@@ -396,6 +396,7 @@ export class PuzzleCanvasEngine {
     this.canvas.addEventListener("wheel", this.handleWheel, { passive: false });
     this.canvas.addEventListener("contextmenu", this.handleContextMenu);
     window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("blur", this.handleBlur);
   }
 
   public destroy() {
@@ -406,6 +407,7 @@ export class PuzzleCanvasEngine {
     this.canvas.removeEventListener("wheel", this.handleWheel);
     this.canvas.removeEventListener("contextmenu", this.handleContextMenu);
     window.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("blur", this.handleBlur);
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -421,7 +423,37 @@ export class PuzzleCanvasEngine {
     });
   }
 
+  private handleBlur = () => {
+    if (this.activeGroup) {
+      this.activeGroup.forEach((id) => {
+        const init = this.initialPiecePositions.get(id);
+        if (init) this.pieces[id].currentPos = { ...init };
+      });
+      this.activeGroup = null;
+      this.requestRender();
+    }
+    this.isPanningCanvas = false;
+    this.activePointers.clear();
+  };
+
   private handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      if (this.activeGroup) {
+        this.activeGroup.forEach((id) => {
+          const init = this.initialPiecePositions.get(id);
+          if (init) this.pieces[id].currentPos = { ...init };
+        });
+        this.activeGroup = null;
+        this.requestRender();
+      }
+      if (this.isPanningCanvas) {
+        this.panOffset = { ...this.initialPanOffset };
+        this.isPanningCanvas = false;
+        this.requestRender();
+      }
+      return;
+    }
+
     if (e.code === "Space" || e.key === " " || e.key === "r" || e.key === "R") {
       if (!this.enableRotation) return;
       const targetId = this.activeGroup ? this.activeGroup[0] : this.selectedPieceId;

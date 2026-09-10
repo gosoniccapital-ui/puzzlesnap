@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = process.env.TEST_BASE_URL || "https://cunfashion.com";
 
 test("API: GET /api/daily should return today's daily puzzle", async () => {
   const res = await fetch(`${BASE_URL}/api/daily`);

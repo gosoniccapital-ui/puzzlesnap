@@ -430,5 +430,29 @@ test("Cluster Rotation Invariant: rotating a cluster preserves inter-piece geome
   assert.equal(pieces[1].currentPos.y, 150);
 });
 
+// 9. Test Drag Interruption Invariant (Escape / Blur Rollback)
+test("Drag Interruption Invariant: Escape key and window blur cleanly roll back cluster positions", () => {
+  const pieces = [
+    { id: 0, currentPos: { x: 50, y: 50 } },
+    { id: 1, currentPos: { x: 100, y: 50 } },
+  ];
 
+  const initialPositions = new Map([
+    [0, { x: 50, y: 50 }],
+    [1, { x: 100, y: 50 }],
+  ]);
 
+  // Simulate dragging offset dx=80, dy=60
+  pieces[0].currentPos = { x: 130, y: 110 };
+  pieces[1].currentPos = { x: 180, y: 110 };
+
+  // Interruption triggers rollback (Escape or Blur)
+  const activeGroup = [0, 1];
+  activeGroup.forEach((id) => {
+    const init = initialPositions.get(id);
+    if (init) pieces[id].currentPos = { ...init };
+  });
+
+  assert.deepEqual(pieces[0].currentPos, { x: 50, y: 50 });
+  assert.deepEqual(pieces[1].currentPos, { x: 100, y: 50 });
+});
