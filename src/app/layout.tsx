@@ -3,8 +3,8 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 
 export const metadata: Metadata = {
-  title: "Free Online Jigsaw Puzzles | PuzzleSnap (formerly I'm a Puzzle)",
-  description: "Play thousands of free online jigsaw puzzles on PuzzleSnap. Browse by category, try the daily puzzle, or create your own custom jigsaw puzzles from any photo.",
+  title: "CunFashion — Free Online Jigsaw Puzzles",
+  description: "Play thousands of free online jigsaw puzzles on CunFashion. Browse by category, try the daily puzzle, or create your own custom jigsaw puzzles from any photo.",
   manifest: "/site.webmanifest",
 };
 
@@ -26,8 +26,8 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <footer className="border-t border-stone-200 bg-white py-12 text-center text-xs text-stone-500">
           <div className="max-w-7xl mx-auto px-4 space-y-2">
-            <p className="font-bold text-stone-700">PuzzleSnap — Free Online Jigsaw Puzzles</p>
-            <p>© 2026 PuzzleSnap (formerly I&apos;m a Puzzle). All rights reserved.</p>
+            <p className="font-bold text-stone-700">CunFashion — Free Online Jigsaw Puzzles</p>
+            <p>© 2026 CunFashion. All rights reserved.</p>
           </div>
         </footer>
       </body>

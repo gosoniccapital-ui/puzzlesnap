@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: CategoryDetailPageProps) {
   const title = category?.name || slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
   return {
-    title: `${title} Jigsaw Puzzles | PuzzleSnap`,
-    description: `Play thousands of free online jigsaw puzzles in the ${title} category on PuzzleSnap.`,
+    title: `${title} Jigsaw Puzzles | CunFashion`,
+    description: `Play thousands of free online jigsaw puzzles in the ${title} category on CunFashion.`,
   };
 }
 

@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: PuzzlePageProps) {
       .join(" ");
 
   return {
-    title: `${formattedTitle} - Jigsaw Puzzle | PuzzleSnap`,
-    description: puzzle?.description || `Play the free online jigsaw puzzle: ${formattedTitle} on PuzzleSnap.`,
+    title: `${formattedTitle} - Jigsaw Puzzle | CunFashion`,
+    description: puzzle?.description || `Play the free online jigsaw puzzle: ${formattedTitle} on CunFashion.`,
   };
 }
 

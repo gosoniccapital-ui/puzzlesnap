@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import Link from "next/link";
 
 interface LogoProps {
@@ -54,11 +54,11 @@ export default function Logo({ className = "h-9", showTagline = true }: LogoProp
       {/* Typography: Wordmark + Tagline */}
       <div className="flex flex-col">
         <span className="text-2xl font-black tracking-tight text-stone-900 leading-none">
-          Puzzle<span className="text-[#e29800]">Snap</span>
+          Cun<span className="text-[#e29800]">Fashion</span>
         </span>
         {showTagline && (
           <span className="text-[10px] font-semibold text-stone-400 tracking-tight leading-tight mt-0.5">
-            (formerly I&apos;m a Puzzle)
+            Free Online Jigsaw Puzzles
           </span>
         )}
       </div>

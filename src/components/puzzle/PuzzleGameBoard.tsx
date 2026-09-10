@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { PuzzleCanvasEngine } from "@/lib/puzzle-engine/puzzle-canvas";
@@ -69,7 +69,7 @@ export default function PuzzleGameBoard({
   // Load player name from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("puzzlesnap_player_name");
+      const saved = localStorage.getItem("cunfashion_player_name") || localStorage.getItem("puzzlesnap_player_name");
       if (saved) setPlayerName(saved);
     }
   }, []);
@@ -292,7 +292,7 @@ export default function PuzzleGameBoard({
     try {
       setIsSubmittingScore(true);
       if (typeof window !== "undefined") {
-        localStorage.setItem("puzzlesnap_player_name", playerName.trim());
+        localStorage.setItem("cunfashion_player_name", playerName.trim());
       }
 
       const res = await fetch("/api/scores", {

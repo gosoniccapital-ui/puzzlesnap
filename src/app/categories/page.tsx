@@ -4,8 +4,8 @@ import { Play, Sparkles, Folder } from "lucide-react";
 import { CATEGORIES_LIST, PUZZLES_DATA, getPuzzlesByCategory } from "@/lib/data/puzzles-data";
 
 export const metadata = {
-  title: "Browse All 14 Puzzle Categories | PuzzleSnap",
-  description: "Browse thousands of free online jigsaw puzzles across 14 categories: Nature, Animals, Art, Space, Structures, and more on PuzzleSnap.",
+  title: "Browse All 14 Puzzle Categories | CunFashion",
+  description: "Browse thousands of free online jigsaw puzzles across 14 categories: Nature, Animals, Art, Space, Structures, and more on CunFashion.",
 };
 
 export default function CategoriesPage() {
