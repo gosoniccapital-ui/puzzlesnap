@@ -1,5 +1,5 @@
-﻿import { DisjointSet } from "./disjoint-set";
-import { generatePieceEdgesGrid, createPiecePath } from "./bezier-cutter";
+import { DisjointSet } from "./disjoint-set";
+import { generatePieceEdgesGrid, createPiecePath, CutStyle } from "./bezier-cutter";
 import { Piece, Point, BoardBounds } from "./types";
 import { soundFx } from "./sound";
 
@@ -16,6 +16,7 @@ export class PuzzleCanvasEngine {
   private rows: number;
   private cols: number;
   private snapTolerance: number;
+  public cutStyle: CutStyle;
 
   public pieces: Piece[] = [];
   public dsu: DisjointSet;
@@ -41,7 +42,8 @@ export class PuzzleCanvasEngine {
     rows: number = 4,
     cols: number = 5,
     events: EngineEvents = {},
-    snapTolerance: number = 16
+    snapTolerance: number = 16,
+    cutStyle: CutStyle = "classic"
   ) {
     this.canvas = canvas;
     const context = canvas.getContext("2d");
@@ -52,6 +54,7 @@ export class PuzzleCanvasEngine {
     this.cols = cols;
     this.snapTolerance = snapTolerance;
     this.events = events;
+    this.cutStyle = cutStyle;
 
     const totalPieces = rows * cols;
     this.dsu = new DisjointSet(totalPieces);
@@ -116,7 +119,7 @@ export class PuzzleCanvasEngine {
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
         const edges = edgesGrid[r][c];
-        const path = createPiecePath(pieceW, pieceH, edges);
+        const path = createPiecePath(pieceW, pieceH, edges, this.cutStyle);
         const originalPos: Point = {
           x: this.boardBounds.x + c * pieceW,
           y: this.boardBounds.y + r * pieceH,
@@ -206,6 +209,16 @@ export class PuzzleCanvasEngine {
 
     soundFx.playVictory();
     this.events.onVictory?.();
+    this.render();
+  }
+
+  public setCutStyle(style: CutStyle) {
+    this.cutStyle = style;
+    const pieceW = this.boardBounds.width / this.cols;
+    const pieceH = this.boardBounds.height / this.rows;
+    this.pieces.forEach((piece) => {
+      piece.path = createPiecePath(pieceW, pieceH, piece.edges, style);
+    });
     this.render();
   }
 

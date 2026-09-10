@@ -1,99 +1,171 @@
 ﻿"use client";
 
-import React, { useState } from "react";
-import PuzzleGameBoard from "@/components/puzzle/PuzzleGameBoard";
-import { Sparkles, Upload, Flame, Heart, Compass, Trophy } from "lucide-react";
-
-const CATEGORIES = [
-  { name: "Daily Challenge", icon: Flame, active: true },
-  { name: "Nature & Landscapes", icon: Compass, active: false },
-  { name: "Animals & Wildlife", icon: Heart, active: false },
-  { name: "Art & Architecture", icon: Trophy, active: false },
-];
+import React from "react";
+import Link from "next/link";
+import { Play, Heart, Sparkles, Upload } from "lucide-react";
+import { PUZZLES_DATA, getDailyPuzzle, CATEGORIES_LIST } from "@/lib/data/puzzles-data";
 
 export default function Home() {
-  const [customImage, setCustomImage] = useState<string>("/images/sample-puzzle.jpg");
-  const [puzzleTitle, setPuzzleTitle] = useState<string>("Enchanted Aurora & Mountains");
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setCustomImage(event.target.result as string);
-          setPuzzleTitle(file.name.replace(/\.[^/.]+$/, ""));
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const daily = getDailyPuzzle();
+  const featuredList = PUZZLES_DATA.slice(1, 7);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-      {/* 1. Hero Section */}
-      <section className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-stone-800/60">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-3">
-            <Sparkles className="w-3.5 h-3.5" />
-            Free Online Jigsaw Game
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      {/* 1. Home Hero Section (2 Columns) */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-6 sm:p-10 rounded-3xl border border-stone-200 shadow-sm">
+        {/* Left Column: Hero Copy & CTA */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="space-y-3">
+            <h1 className="text-3xl sm:text-5xl font-black text-stone-900 tracking-tight leading-[1.15]">
+              Free Online Jigsaw Puzzles
+              <span className="block text-xl sm:text-2xl font-bold text-stone-500 mt-2">
+                From Our Library or Your Own Photos
+              </span>
+            </h1>
+            <p className="text-stone-600 text-sm sm:text-base leading-relaxed max-w-lg">
+              Play thousands of picture puzzles for free — or turn any photo into your own custom jigsaw puzzle in seconds.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-stone-100 tracking-tight">
-            Play & Create <span className="text-amber-400">Jigsaw Puzzles</span>
-          </h1>
-          <p className="text-stone-400 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
-            Experience our 60fps smooth Canvas Jigsaw Engine with magnetic snapping,
-            custom photo cutting, and instant link sharing.
-          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Link
+              href={`/puzzle/${daily.slug}`}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[#ffb703] hover:bg-[#e0a102] text-stone-950 font-extrabold text-sm shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 duration-150"
+            >
+              <span>Play Today&apos;s Puzzle</span>
+              <Play className="w-4 h-4 fill-current" />
+            </Link>
+
+            <Link
+              href="/make-puzzle"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white hover:bg-stone-50 text-stone-800 font-bold text-sm border-2 border-stone-300 hover:border-stone-400 transition"
+            >
+              <Upload className="w-4 h-4 text-stone-600" />
+              <span>Make Your Own</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Quick Upload Action */}
-        <div id="maker" className="flex items-center gap-3">
-          <label className="cursor-pointer px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 text-sm font-semibold border border-stone-700/80 shadow-md hover:border-amber-500 transition flex items-center gap-2">
-            <Upload className="w-4 h-4 text-amber-400" />
-            <span>Upload Your Photo</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
-          </label>
+        {/* Right Column: Daily Puzzle Feature Card */}
+        <div className="lg:col-span-6">
+          <Link
+            href={`/puzzle/${daily.slug}`}
+            className="group block relative rounded-2xl overflow-hidden border-2 border-stone-200 hover:border-amber-500 shadow-md hover:shadow-xl transition duration-300 bg-stone-950"
+          >
+            {/* Image Container with Jigsaw Pattern */}
+            <div className="relative aspect-[16/10] overflow-hidden">
+              <img
+                src={daily.image}
+                alt={daily.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+              />
+              {/* Jigsaw grid overlay texture */}
+              <div className="absolute inset-0 jigsaw-overlay pointer-events-none opacity-40 group-hover:opacity-60 transition" />
+
+              {/* Badge */}
+              <span className="absolute top-3 left-3 px-3 py-1 bg-[#ffb703] text-stone-950 font-black text-xs rounded-full shadow-md uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 fill-current" />
+                Daily Puzzle
+              </span>
+
+              {/* Center Play Button Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition">
+                <div className="w-14 h-14 rounded-full bg-white/90 group-hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-xl transform group-hover:scale-110 transition duration-200">
+                  <Play className="w-7 h-7 fill-current ml-0.5" />
+                </div>
+              </div>
+            </div>
+
+            {/* Meta bar */}
+            <div className="p-4 bg-white flex items-center justify-between border-t border-stone-100">
+              <h3 className="font-extrabold text-stone-900 text-base group-hover:text-amber-600 transition">
+                {daily.title}
+              </h3>
+              <div className="flex items-center gap-3 text-xs font-bold text-stone-500">
+                <span className="flex items-center gap-1">
+                  <Play className="w-3.5 h-3.5 text-stone-400 fill-current" />
+                  {daily.plays}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                  {daily.likes}
+                </span>
+              </div>
+            </div>
+          </Link>
         </div>
       </section>
 
-      {/* 2. Interactive Game Board */}
-      <section className="w-full">
-        <PuzzleGameBoard
-          key={customImage}
-          imageSrc={customImage}
-          title={puzzleTitle}
-          initialDifficulty="medium"
-        />
+      {/* 2. Featured Puzzles Grid */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+          <h2 className="text-2xl font-black text-stone-900 tracking-tight">Featured Puzzles</h2>
+          <Link href="/categories" className="text-xs font-bold text-amber-600 hover:text-amber-700">
+            View All →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+          {featuredList.map((puzzle) => (
+            <Link
+              key={puzzle.slug}
+              href={`/puzzle/${puzzle.slug}`}
+              className="group block rounded-xl overflow-hidden bg-white border border-stone-200 hover:border-amber-500 hover:shadow-lg transition duration-200 flex flex-col"
+            >
+              <div className="relative aspect-square overflow-hidden bg-stone-100">
+                <img
+                  src={puzzle.image}
+                  alt={puzzle.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                />
+                <div className="absolute inset-0 jigsaw-overlay pointer-events-none opacity-30 group-hover:opacity-50 transition" />
+
+                {/* Hover Play Button */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/25 transition">
+                  <div className="w-10 h-10 rounded-full bg-amber-400 text-stone-950 flex items-center justify-center shadow-lg">
+                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                  </div>
+                </div>
+
+                {/* Stats Pill in Corner */}
+                <div className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2 py-0.5 bg-black/60 backdrop-blur rounded-full text-[10px] font-bold text-white">
+                  <Play className="w-2.5 h-2.5 fill-current text-amber-400" />
+                  <span>{puzzle.plays}</span>
+                </div>
+              </div>
+
+              <div className="p-2.5 flex-1 flex flex-col justify-between">
+                <h4 className="text-xs font-bold text-stone-800 line-clamp-1 group-hover:text-amber-600 transition">
+                  {puzzle.title}
+                </h4>
+                <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mt-1">
+                  {puzzle.category}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
 
-      {/* 3. Category Filter Chips */}
-      <section id="categories" className="space-y-4 pt-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-stone-200">Explore Puzzle Categories</h3>
+      {/* 3. Browse Categories Grid */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+          <h2 className="text-2xl font-black text-stone-900 tracking-tight">Popular Categories</h2>
+          <Link href="/categories" className="text-xs font-bold text-amber-600 hover:text-amber-700">
+            See all 14 categories →
+          </Link>
         </div>
-        <div className="flex flex-wrap gap-2.5">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <button
-                key={cat.name}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold border transition flex items-center gap-2 ${
-                  cat.active
-                    ? "bg-amber-500/15 border-amber-500/40 text-amber-300"
-                    : "bg-stone-900/80 border-stone-800 hover:border-stone-700 text-stone-400 hover:text-stone-200"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {cat.name}
-              </button>
-            );
-          })}
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          {CATEGORIES_LIST.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/categories#${cat.slug}`}
+              className="p-3.5 rounded-2xl bg-white hover:bg-amber-50 border border-stone-200 hover:border-amber-400 text-center font-bold text-xs text-stone-700 hover:text-amber-700 transition shadow-sm hover:shadow"
+            >
+              {cat.name}
+            </Link>
+          ))}
         </div>
       </section>
     </div>
