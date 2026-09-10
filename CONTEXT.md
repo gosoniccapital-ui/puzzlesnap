@@ -50,4 +50,4 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - Milestone 4 (1:1 PuzzleSnap, Admin Dashboard, Live Leaderboard & Cut Styles): `605463a`
 - Milestone 5.1 (Mobile Touch, Zoom Matrix, GitHub & Vercel Production): `03802b6`
 - Milestone 6.1 (Admin Security & Passcode Auth Gate): `7548772`
-- Milestone 6.2 (Gamified E-Commerce Voucher & Shop The Look): In Progress on `feature/fullstack-puzzle-foundation`
+- Milestone 6.2 (Gamified E-Commerce Voucher & Shop The Look): `0e8793d`
