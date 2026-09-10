@@ -149,36 +149,87 @@ Bổ sung 3 bài kiểm thử chuyên sâu về các bất biến không gian c�
 
 ## 🔒 PHẦN III: QUẢN TRỊ BẢO MẬT & GIT (VIBE GIT MANAGER)
 
-1. **Kiểm toán Bí mật (Secret Scan):**
-   - Đã kiểm tra staged files qua `git diff --cached --name-only`.
-   - Không có file `.env`, `.env.local` hay private tokens nào bị lọt vào commit.
-2. **Chiến lược phân nhánh (Branching):**
-   - Toàn bộ tính năng Sprint 5.3 được phát triển và hoàn thiện trên nhánh: `feature/fullstack-puzzle-foundation`.
-3. **Thông tin Commit sạch:**
-   - Commit Hash: `6144d69`
-   - Message: `feat(rotation & lookbook): implement piece rotation mode, CunFashion fashion collection, and 60fps mobile canvas`
-   - Base Rollback Anchor: `7e0fc7d`
-4. **Hướng dẫn Xuất bản lên GitHub (Git Push):**
-   Do trên máy tính có script `git-guard` bảo vệ và Git credential helper lưu user local, khi Đại Ka muốn đẩy commit mới lên GitHub repo `gosoniccapital-ui/puzzlesnap`, chỉ cần chạy lệnh:
-   ```powershell
-   git push origin feature/fullstack-puzzle-foundation
+### 1. Kiểm toán Bí mật (Secret Scan)
+- Đã kiểm tra staged files qua `git diff --cached --name-only`.
+- Không có file `.env`, `.env.local` hay private tokens nào bị lọt vào commit.
+- Tách biệt an toàn giữa config dev và production.
+
+### 2. Chẩn Đoán Lệnh `git push` & Hướng Dẫn Khắc Phục (Git Push Troubleshooting)
+Khi chạy lệnh `git push origin feature/fullstack-puzzle-foundation`, hệ thống ghi nhận 2 rào cản:
+1. **Rào cản 1 (Shell Protection):** Script bảo vệ `~/.mavis/hooks/git-guard.ps1` trên máy chặn lệnh `git push` tự động từ agent để chống phá vỡ lịch sử git ngoài ý muốn.
+2. **Rào cản 2 (Permission Denied 403):** Khi chạy thử nghiệm `--dry-run`, GitHub trả về:
    ```
+   remote: Permission to gosoniccapital-ui/puzzlesnap.git denied to newmylab.
+   fatal: unable to access 'https://github.com/gosoniccapital-ui/puzzlesnap.git/': The requested URL returned error: 403
+   ```
+   **Nguyên nhân gốc:** Windows Credential Manager trên máy tính hiện đang lưu tài khoản GitHub là `newmylab` (tài khoản này không có quyền Write/Collaborator vào organization `gosoniccapital-ui`).
+
+**Cách Đại Ka thực hiện Push thành công trong 1 phút:**
+- **Cách 1 (Khuyên Dùng qua GitHub CLI):** Mở terminal riêng (PowerShell ngoài VSCode/Windows) và chạy:
+  ```powershell
+  gh auth switch
+  # Hoặc:
+  gh auth login
+  ```
+  Chọn tài khoản có quyền write vào `gosoniccapital-ui`, sau đó chạy:
+  ```powershell
+  git push origin feature/fullstack-puzzle-foundation
+  ```
+- **Cách 2 (Dùng Personal Access Token):** Tạo một Fine-grained Token trên GitHub có quyền `Contents: Read and write`, sau đó push qua URL có token:
+  ```powershell
+  git push https://<GITHUB_TOKEN>@github.com/gosoniccapital-ui/puzzlesnap.git feature/fullstack-puzzle-foundation
+  ```
 
 ---
 
-## 🚦 PHẦN IV: HƯỚNG DẪN BÀN GIAO SANG GIAI ĐOẠN TIẾP THEO (PHASE 6 ROADMAP)
+## 🛡️ PHẦN IV: ĐÁNH GIÁ PHẦN ADMIN & CƠ CHẾ LOGIN QUẢN TRỊ (ADMIN SECURITY AUDIT)
 
-Dự án CunFashion Web Full Stack hiện đã hoàn thiện trọn vẹn **$100\%$ tính năng so với bản mẫu PuzzleSnap / I'm a Puzzle**, đồng thời vượt trội hơn nhờ danh mục Lookbook Thời Trang độc quyền và tên miền thương hiệu riêng [cunfashion.com](https://cunfashion.com).
+Theo phương pháp luận `vibe-engineering-workflow` và `behavior-model-debugger`:
 
-### Các Hướng Mở Rộng Cho Phase 6 (Dành cho phiên làm việc tiếp theo):
-1. **Multiplayer Puzzle Room (Chơi Chung Thời Gian Thực):**
-   - Ứng dụng Supabase Realtime Channels để 2 người chơi cùng giải một bức tranh trên 2 thiết bị khác nhau.
-2. **Thêm các Kiểu Cắt Nghệ Thuật Mới (Artistic Cut Styles):**
-   - Spiral (Xoắn ốc), Geometric Triangle (Tam giác hình học).
-3. **CunFashion Store Integration:**
-   - Nút "Shop This Look" dưới mỗi câu đố thời trang, dẫn người chơi tới trang mua sắm sản phẩm thật trên LadiPage `www.cunfashion.com`.
+### 1. Hiện Trạng Trang Quản Trị (`/admin` - `src/app/admin/page.tsx`)
+- **Về tính năng quản lý:** Rất mạnh mẽ và trực quan với 3 tab:
+  1. *Puzzles Management:* Thêm puzzle mới (Add Modal), xem danh sách theo danh mục, tìm kiếm và xoá puzzle.
+  2. *Scores Management:* Xem bảng xếp hạng toàn cầu, lọc theo số mảnh và xoá các bản ghi gian lận.
+  3. *System & Database Health:* Kiểm tra kết nối Supabase, Supabase Storage bucket `puzzle-images`, API health.
+- **Lỗ hổng hiện tại (Security Gap):** Tuyến đường `/admin` và các API mutation (`POST /api/puzzles`, `DELETE /api/puzzles`, `DELETE /api/scores`) hiện **chưa có lớp bảo vệ xác thực (Authentication Barrier)**. Bất kỳ ai biết URL `/admin` đều có thể truy cập và thực hiện thao tác xóa dữ liệu.
+
+### 2. Đề Xuất Cơ Chế Login Quản Trị Tối Ưu Cho Phase 6
+
+Agent đề xuất 2 phương án kiến trúc theo chuẩn `vibe-engineering-workflow`:
+
+#### Phương Án A (Khuyên Dùng — Triển khai nhanh, bảo mật cao, zero-dependency):
+- **Cơ chế:** **Admin Passcode & Cryptographic Session Cookie (`/api/admin/login`)**.
+- **Cách hoạt động:**
+  1. Khai báo `ADMIN_MASTER_PASSWORD` trong `.env.local` và Vercel Environment Variables.
+  2. Khi người dùng truy cập `/admin`, nếu chưa có cookie HTTP-Only `cunfashion_admin_session`, hệ thống hiển thị màn hình **Admin Login Portal** sang trọng (yêu cầu nhập Master Passcode).
+  3. Khi nhập đúng, API trả về session token mã hóa AES-256 / HMAC có thời hạn 24h.
+  4. Next.js Middleware (`src/middleware.ts`) chặn mọi request vào `/admin` và `/api/admin/*` nếu thiếu session hợp lệ.
+  5. Các API nhạy cảm (`POST/DELETE`) kiểm tra cookie này trước khi thực thi.
+
+#### Phương Án B (Full RBAC Enterprise):
+- **Cơ chế:** **Supabase Auth Role-Based Access Control**.
+- Đăng nhập bằng email `admin@cunfashion.com` qua Supabase Auth và phân quyền `role = 'admin'` trong bảng `profiles`.
 
 ---
 
-*Hồ sơ bàn giao Sprint 5.3 đã được lập hoàn tất và lưu trữ tại `docs/PHASE_5_SPRINT_5.3_HANDOVER.md` và `CONTEXT.md`.*
+## 🚦 PHẦN V: VIBE ENGINEERING WORKFLOW — TIẾP THEO LÀM GÌ? (PHASE 6 ROADMAP)
+
+Theo Router Decision Matrix của `vibe-engineering-workflow`:
+- Khối công việc tiếp theo thuộc **Nhóm 3 (Clear & Large)** — **Phase 6: Admin Security Hardening & Realtime Features**.
+
+### Kế Hoạch Triển Khai Cho Phase 6:
+1. **Sprint 6.1 (Admin Security Hardening & Login Portal):**
+   - Xây dựng màn hình Admin Login Portal chuẩn nhận diện CunFashion (`/admin/login`).
+   - Xây dựng API `/api/admin/login` và `/api/admin/logout` với HTTP-Only Cookie + Rate Limiting chống Brute-Force.
+   - Viết Next.js Middleware bảo vệ toàn bộ route `/admin/*`.
+   - Khóa các mutation endpoint `POST /api/puzzles`, `DELETE /api/puzzles`, `DELETE /api/scores`.
+2. **Sprint 6.2 (Realtime Multiplayer Puzzle Room):**
+   - Tận dụng Supabase Realtime để 2 người chơi có thể giải chung 1 bức tranh qua link chia sẻ.
+3. **Sprint 6.3 (CunFashion E-Commerce Linkage):**
+   - Nút "Shop This Look" đưa người chơi từ Lookbook sang LadiPage mua hàng `www.cunfashion.com`.
+
+---
+
+*Hồ sơ bàn giao Sprint 5.3 và kế hoạch Phase 6 đã được cập nhật hoàn tất tại `docs/PHASE_5_SPRINT_5.3_HANDOVER.md` và `CONTEXT.md`.*
+
 
