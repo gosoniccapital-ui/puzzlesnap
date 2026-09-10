@@ -1,32 +1,32 @@
-﻿# Project Context: PuzzleSnap Full Stack
+# Project Context: PuzzleSnap Full Stack
 
-## 🎯 Current Goal
-Xây dựng nền tảng Web Jigsaw Puzzle Full Stack tương tự PuzzleSnap (trước đây là "I''m a Puzzle"):
-1. Kho thư viện puzzle theo danh mục (Daily Puzzle, Animals, Art, Nature, Holidays, v.v.).
-2. Engine ghép hình HTML5 Canvas/WebGL tương tác thời gian thực (60fps, drag & drop, magnetic snap, ghép cụm mảnh, trợ thủ biên, xem trước, tính giờ, bảng xếp hạng).
-3. Công cụ Custom Puzzle Maker: Upload ảnh bất kỳ (JPG, PNG, GIF) -> Cắt mảnh thời gian thực -> Tùy chọn số mảnh (9 - 50+ pcs) và phong cách cắt (Classic, Hearts, Star, Honeycomb) -> Chia sẻ link chơi ngay.
-4. Hệ thống người dùng, tài khoản lưu puzzle, leaderboard, Supabase database & storage.
+## ?? Current Goal
+X�y d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap (tru?c d�y l� "I''m a Puzzle"):
+1. Kho thu vi?n puzzle theo danh m?c (Daily Puzzle, Animals, Art, Nature, Holidays, v.v.).
+2. Engine gh�p h�nh HTML5 Canvas/WebGL tuong t�c th?i gian th?c (60fps, drag & drop, magnetic snap, gh�p c?m m?nh, tr? th? bi�n, xem tru?c, t�nh gi?, b?ng x?p h?ng).
+3. C�ng c? Custom Puzzle Maker: Upload ?nh b?t k? (JPG, PNG, GIF) -> C?t m?nh th?i gian th?c -> T�y ch?n s? m?nh (9 - 50+ pcs) v� phong c�ch c?t (Classic, Hearts, Star, Honeycomb) -> Chia s? link choi ngay.
+4. H? th?ng ngu?i d�ng, t�i kho?n luu puzzle, leaderboard, Supabase database & storage.
 
-## 🏛️ Decisions & Architecture
+## ??? Decisions & Architecture
 - **Frontend Framework:** Next.js (App Router) + TypeScript + Tailwind CSS.
-- **UI & UX Standard:** Tuân thủ `design-taste-frontend` (Anti-slop, không gradient tím rẻ tiền, layout rõ ràng, typography cao cấp).
+- **UI & UX Standard:** Tu�n th? `design-taste-frontend` (Anti-slop, kh�ng gradient t�m r? ti?n, layout r� r�ng, typography cao c?p).
 - **Core Puzzle Engine:**
-  - Thuật toán tạo cạnh mảnh ghép bằng đường cong Cubic Bézier đối xứng (Tab lồi / Blank lõm).
-  - Quản lý cụm mảnh ghép đã nối bằng cấu trúc dữ liệu Disjoint-Set Union (DSU).
-  - Tối ưu hiệu năng bằng OffscreenCanvas / ImageBitmap pre-rendering và Spatial Grid Partitioning ($O(1)$ collision check).
+  - Thu?t to�n t?o c?nh m?nh gh�p b?ng du?ng cong Cubic B�zier d?i x?ng (Tab l?i / Blank l�m).
+  - Qu?n l� c?m m?nh gh�p d� n?i b?ng c?u tr�c d? li?u Disjoint-Set Union (DSU).
+  - T?i uu hi?u nang b?ng OffscreenCanvas / ImageBitmap pre-rendering v� Spatial Grid Partitioning ($O(1)$ collision check).
 - **Backend & Database:**
   - Supabase PostgreSQL (Puzzles, Categories, Users, Highscores, Likes).
   - Supabase Storage Bucket (`puzzle-images`, `custom-uploads`).
-  - Keep-alive bot qua `keeping-supabase-alive` để giữ Supabase Free Tier luôn online.
-- **Git & Security Protocol:** Tuân thủ tuyệt đối `vibe-git-manager`, ignore toàn bộ `.env*`, quét secret trước commit.
+  - Keep-alive bot qua `keeping-supabase-alive` d? gi? Supabase Free Tier lu�n online.
+- **Git & Security Protocol:** Tu�n th? tuy?t d?i `vibe-git-manager`, ignore to�n b? `.env*`, qu�t secret tru?c commit.
 
-## 📦 Skills & Ecosystem Installed
-- `vibe-engineering-workflow`: Smart router định tuyến công việc và pre-check gates.
-- `vibe-git-manager`: Quản lý Git an toàn, zero leak.
-- `behavior-model-debugger`: Audit hành vi người dùng, bắt lỗi xung đột tọa độ/trạng thái.
-- `design-taste-frontend`: Thiết kế giao diện anti-slop, chuẩn visual quốc tế.
-- `puzzle-engine-architect`: Kiến trúc toán học và rendering Canvas cho Jigsaw Puzzle.
-- `keeping-supabase-alive`: Giữ dự án Supabase luôn hoạt động.
+## ?? Skills & Ecosystem Installed
+- `vibe-engineering-workflow`: Smart router d?nh tuy?n c�ng vi?c v� pre-check gates.
+- `vibe-git-manager`: Qu?n l� Git an to�n, zero leak.
+- `behavior-model-debugger`: Audit h�nh vi ngu?i d�ng, b?t l?i xung d?t t?a d?/tr?ng th�i.
+- `design-taste-frontend`: Thi?t k? giao di?n anti-slop, chu?n visual qu?c t?.
+- `puzzle-engine-architect`: Ki?n tr�c to�n h?c v� rendering Canvas cho Jigsaw Puzzle.
+- `keeping-supabase-alive`: Gi? d? �n Supabase lu�n ho?t d?ng.
 
-## 🔄 Rollback Anchor
-- Base Init Commit: (Pending first commit)
+## ?? Rollback Anchor
+- Base Init Commit: 4660c18
