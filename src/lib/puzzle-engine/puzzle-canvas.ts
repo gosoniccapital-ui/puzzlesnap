@@ -829,7 +829,7 @@ export class PuzzleCanvasEngine {
     // 2. Draw Ghost / Shadow Image hint (if enabled)
     if (this.showGhostImage) {
       this.ctx.save();
-      this.ctx.globalAlpha = 0.22;
+      this.ctx.globalAlpha = 0.30;
       this.ctx.drawImage(
         this.image,
         this.boardBounds.x,

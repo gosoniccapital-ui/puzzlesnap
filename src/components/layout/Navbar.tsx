@@ -104,16 +104,9 @@ export default function Navbar() {
           <Search className="w-4 h-4 text-stone-400 absolute left-3 pointer-events-none" />
         </form>
 
-        {/* Right: Sign In / Admin / CTA */}
+        {/* Right: Sign In / CTA */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            href="/admin"
-            className="text-[11px] font-extrabold text-stone-500 hover:text-stone-900 transition px-2.5 py-1 rounded-md hover:bg-stone-100 hidden md:inline-block"
-            title="Admin Console"
-          >
-            Admin
-          </Link>
-          <button className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-stone-700 hover:text-stone-900 border border-stone-200 hover:bg-stone-50 rounded-full transition">
+          <button className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-stone-700 hover:text-stone-900 border border-stone-200 hover:bg-stone-50 rounded-full transition cursor-pointer">
             <User className="w-3.5 h-3.5 text-stone-500" />
             <span>Sign in</span>
           </button>

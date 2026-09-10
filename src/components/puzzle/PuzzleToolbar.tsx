@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ZoomIn,
   ZoomOut,
+  Image as ImageIcon,
 } from "lucide-react";
 
 export interface PuzzleToolbarProps {
@@ -166,6 +167,23 @@ export default function PuzzleToolbar({
         >
           <Eye className="w-3.5 h-3.5 text-stone-500" />
           <span className="hidden md:inline">Preview</span>
+        </button>
+
+        {/* Guide Image on Board */}
+        <button
+          onClick={onToggleGhost}
+          className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-bold border transition flex items-center gap-1 shadow-2xs cursor-pointer ${
+            showGhost
+              ? "bg-amber-500 text-stone-950 border-amber-500 font-extrabold"
+              : "bg-white hover:bg-stone-100 text-stone-700 border-stone-200"
+          }`}
+          title="Bật/tắt ảnh mẫu mờ trên bàn cờ để dễ lắp ráp theo"
+        >
+          <ImageIcon className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">Hình Mẫu</span>
+          <span className={`text-[9px] px-1 py-0.2 rounded font-black ${showGhost ? "bg-stone-950 text-amber-400" : "bg-stone-200 text-stone-600"}`}>
+            {showGhost ? "ON" : "OFF"}
+          </span>
         </button>
 
         <button

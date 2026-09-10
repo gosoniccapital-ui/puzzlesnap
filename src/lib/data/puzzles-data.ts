@@ -233,3 +233,18 @@ export function deletePuzzleItem(id: string): boolean {
   return false;
 }
 
+export function updatePuzzleItem(
+  id: string,
+  updates: Partial<Omit<PuzzleItem, "id">>
+): PuzzleItem | null {
+  const index = PUZZLES_DATA.findIndex((p) => p.id === id);
+  if (index === -1) return null;
+
+  PUZZLES_DATA[index] = {
+    ...PUZZLES_DATA[index],
+    ...updates,
+  };
+  return PUZZLES_DATA[index];
+}
+
+

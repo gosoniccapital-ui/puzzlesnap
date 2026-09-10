@@ -5,6 +5,7 @@ import {
   searchPuzzles,
   addPuzzleItem,
   deletePuzzleItem,
+  updatePuzzleItem,
 } from "@/lib/data/puzzles-data";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -107,3 +108,45 @@ export async function DELETE(request: NextRequest) {
 
   return NextResponse.json({ success: false, error: "Puzzle not found" }, { status: 404 });
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, title, category, categorySlug, image, difficulty, description } = body;
+
+    if (!id || !title || !category || !image) {
+      return NextResponse.json(
+        { success: false, error: "ID, Title, Category, and Image URL are required" },
+        { status: 400 }
+      );
+    }
+
+    const updated = updatePuzzleItem(id, {
+      title,
+      category,
+      categorySlug: categorySlug || category.toLowerCase().replace(/\s+/g, "-"),
+      image,
+      difficulty: difficulty || "medium",
+      description: description || `A lovely jigsaw puzzle: ${title}`,
+    });
+
+    if (!updated) {
+      return NextResponse.json(
+        { success: false, error: "Puzzle not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Puzzle updated successfully",
+      data: updated,
+    });
+  } catch {
+    return NextResponse.json(
+      { success: false, error: "Invalid request payload" },
+      { status: 500 }
+    );
+  }
+}
+

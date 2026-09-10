@@ -20,6 +20,7 @@ import {
   Loader2,
   Layers,
   LogOut,
+  Pencil,
 } from "lucide-react";
 import Logo from "@/components/brand/Logo";
 import { CATEGORIES_LIST } from "@/lib/data/puzzles-data";
@@ -86,6 +87,71 @@ export default function AdminDashboardPage() {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newDifficulty, setNewDifficulty] = useState<"easy" | "medium" | "hard" | "very-hard" | "supreme">("medium");
   const [newDescription, setNewDescription] = useState("");
+
+  // Edit Puzzle Form State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPuzzle, setEditingPuzzle] = useState<AdminPuzzle | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editFormError, setEditFormError] = useState("");
+  const [editFormSuccess, setEditFormSuccess] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editCategory, setEditCategory] = useState(CATEGORIES_LIST[0].name);
+  const [editImageUrl, setEditImageUrl] = useState("");
+  const [editDifficulty, setEditDifficulty] = useState<"easy" | "medium" | "hard" | "very-hard" | "supreme">("medium");
+  const [editDescription, setEditDescription] = useState("");
+
+  const openEditModal = (p: AdminPuzzle) => {
+    setEditingPuzzle(p);
+    setEditTitle(p.title);
+    setEditCategory(p.category);
+    setEditImageUrl(p.image);
+    setEditDifficulty((p.difficulty as any) || "medium");
+    setEditDescription(p.description || "");
+    setEditFormError("");
+    setEditFormSuccess("");
+    setShowEditModal(true);
+  };
+
+  const handleUpdatePuzzle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPuzzle) return;
+    setEditFormError("");
+    setEditFormSuccess("");
+    setIsUpdating(true);
+
+    try {
+      const res = await fetch("/api/puzzles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingPuzzle.id,
+          title: editTitle.trim(),
+          category: editCategory,
+          image: editImageUrl.trim(),
+          difficulty: editDifficulty,
+          description: editDescription.trim(),
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        setEditFormSuccess("Puzzle updated successfully!");
+        setPuzzles((prev) =>
+          prev.map((item) => (item.id === editingPuzzle.id ? { ...item, ...json.data } : item))
+        );
+        setTimeout(() => {
+          setShowEditModal(false);
+          setEditFormSuccess("");
+        }, 800);
+      } else {
+        setEditFormError(json.error || "Failed to update puzzle");
+      }
+    } catch {
+      setEditFormError("Network error while updating puzzle");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // Load Puzzles
   const loadPuzzles = async () => {
@@ -434,7 +500,7 @@ export default function AdminDashboardPage() {
                           <td className="py-2.5 px-4 text-right font-mono text-stone-600">{p.plays}</td>
                           <td className="py-2.5 px-4 text-right font-mono text-stone-600">{p.likes}</td>
                           <td className="py-2.5 px-4">
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-center gap-1.5">
                               <Link
                                 href={`/puzzle/${p.slug}`}
                                 target="_blank"
@@ -443,6 +509,13 @@ export default function AdminDashboardPage() {
                               >
                                 <ExternalLink className="w-4 h-4" />
                               </Link>
+                              <button
+                                onClick={() => openEditModal(p)}
+                                className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition cursor-pointer"
+                                title="Edit Puzzle"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
                               <button
                                 onClick={() => handleDeletePuzzle(p.id, p.title)}
                                 className="p-1.5 rounded-lg hover:bg-rose-50 text-stone-400 hover:text-rose-600 transition cursor-pointer"
@@ -735,6 +808,144 @@ export default function AdminDashboardPage() {
                 >
                   {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   Save Puzzle
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Puzzle Modal */}
+      {showEditModal && editingPuzzle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-lg w-full overflow-hidden">
+            <div className="p-5 border-b border-stone-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Pencil className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-stone-900">Edit Puzzle</h3>
+                  <p className="text-[11px] text-stone-400 font-medium">Update puzzle metadata and settings</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-stone-400 hover:text-stone-600 text-sm font-bold w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdatePuzzle} className="p-5 space-y-4 text-xs">
+              {editFormError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>{editFormError}</span>
+                </div>
+              )}
+              {editFormSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>{editFormSuccess}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Puzzle Title</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-hidden focus:ring-1 focus:ring-amber-500 font-medium"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">Category</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-hidden focus:ring-1 focus:ring-amber-500 font-semibold"
+                  >
+                    {CATEGORIES_LIST.map((c) => (
+                      <option key={c.slug} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">Default Difficulty</label>
+                  <select
+                    value={editDifficulty}
+                    onChange={(e) => setEditDifficulty(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-hidden focus:ring-1 focus:ring-amber-500 font-semibold capitalize"
+                  >
+                    <option value="easy">Easy (9 pcs)</option>
+                    <option value="medium">Medium (16 pcs)</option>
+                    <option value="hard">Hard (30 pcs)</option>
+                    <option value="very-hard">Very Hard (40 pcs)</option>
+                    <option value="supreme">Supreme (50 pcs)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Image URL</label>
+                <input
+                  type="url"
+                  value={editImageUrl}
+                  onChange={(e) => setEditImageUrl(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                  required
+                />
+              </div>
+
+              {editImageUrl && (
+                <div className="mt-2">
+                  <span className="block font-semibold text-stone-500 text-[11px] mb-1">Image Preview:</span>
+                  <div className="w-full h-32 rounded-xl overflow-hidden border border-stone-200 bg-stone-100">
+                    <img
+                      src={editImageUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Description (Optional)</label>
+                <textarea
+                  rows={2}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 rounded-xl text-stone-600 hover:bg-stone-100 font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="px-5 py-2 rounded-xl bg-[#ffb703] hover:bg-[#e0a102] text-stone-950 font-black shadow-sm transition flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
+                >
+                  {isUpdating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Update Puzzle
                 </button>
               </div>
             </form>

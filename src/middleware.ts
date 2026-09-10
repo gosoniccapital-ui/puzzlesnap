@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   const method = request.method.toUpperCase();
 
   const isPuzzlesMutation =
-    pathname === "/api/puzzles" && (method === "POST" || method === "DELETE");
+    pathname === "/api/puzzles" && (method === "POST" || method === "PUT" || method === "DELETE");
   const isScoresMutation =
     pathname === "/api/scores" && method === "DELETE";
 

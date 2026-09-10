@@ -384,6 +384,28 @@ export default function PuzzleGameBoard({
       >
         <canvas ref={canvasRef} className="absolute inset-0 cursor-grab active:cursor-grabbing w-full h-full" />
 
+        {/* Floating Mini Reference Image (Ảnh Mẫu Gốc Góc Bàn Cờ) */}
+        <div className="absolute top-3 right-3 z-10 bg-white/95 backdrop-blur-md rounded-2xl border border-stone-200 shadow-lg p-2 max-w-[150px] transition-all hover:scale-105 group">
+          <div className="flex items-center justify-between mb-1 px-0.5">
+            <span className="text-[10px] font-black uppercase tracking-wider text-stone-600">Ảnh Mẫu</span>
+            <button
+              type="button"
+              onClick={() => setShowPreviewModal(true)}
+              className="text-[10px] font-extrabold text-amber-600 hover:text-amber-700 transition cursor-pointer"
+              title="Phóng to ảnh mẫu"
+            >
+              Phóng to ↗
+            </button>
+          </div>
+          <div
+            onClick={() => setShowPreviewModal(true)}
+            className="w-full aspect-4/3 rounded-xl overflow-hidden cursor-pointer border border-stone-200/80 bg-stone-100 relative shadow-2xs"
+            title="Nhấp để xem ảnh mẫu kích thước lớn"
+          >
+            <img src={imageSrc} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+          </div>
+        </div>
+
         {/* Rotation Mode Active Hint Badge */}
         {isRotationEnabled && (
           <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-amber-500/90 text-stone-950 text-xs font-black shadow-md backdrop-blur-xs flex items-center gap-1.5 animate-in fade-in duration-200 select-none pointer-events-none">
