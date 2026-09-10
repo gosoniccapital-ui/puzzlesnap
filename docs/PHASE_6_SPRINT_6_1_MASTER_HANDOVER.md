@@ -6,7 +6,7 @@
 > **Trạng thái:** **HOÀN THÀNH 100% — ĐÃ KIỂM THỬ — ĐÃ BUILD PRODUCTION — ĐÃ DEPLOY LÊN VERCEL**  
 > **Live Production Verified:** [https://puzzle-tung.vercel.app/admin](https://puzzle-tung.vercel.app/admin) (HTTP 307 Redirect to Login)  
 > **Branch:** `feature/fullstack-puzzle-foundation`  
-> **Rollback Anchor:** `61345d4` | **Commit Mới Nhất:** `f6f6939`  
+> **Rollback Anchor:** `61345d4` | **Commit Mới Nhất:** `a523087`  
 > **Phương pháp luận áp dụng:** `/vibe-engineering-workflow` + `/vibe-git-manager` + `/behavior-model-debugger`
 
 ---
@@ -15,11 +15,14 @@
 
 ### 🎯 1. Mục Tiêu (Objectives)
 1. **Thiết lập Cổng Bảo Vệ Quản Trị (Admin Passcode Auth Gate):** Xóa bỏ lỗ hổng bảo mật nghiêm trọng của Phase 5 (tuyến `/admin` trước đây bị mở công khai cho bất kỳ ai biết URL).
-2. **Next.js Edge Middleware Protection:** Chặn $100\%$ các truy cập trái phép vào `/admin/*` và các mutation APIs nhạy cảm (`POST /api/puzzles`, `DELETE /api/puzzles`, `DELETE /api/scores`) từ cấp độ mạng Edge.
+2. **Next.js Edge Middleware Protection:** Chặn $100\%$ các truy cập trái phép vào `/admin/*` và các mutation APIs nhạy cảm (`POST/PUT/DELETE /api/puzzles`, `DELETE /api/scores`) từ cấp độ mạng Edge.
 3. **Bảo Mật Phiên Làm Việc (Defense-in-Depth Session):** Cấp phát cookie `cunfashion_admin_session` có chữ ký HMAC-SHA256, thời hạn 24h, kèm cờ `HttpOnly`, `Secure`, `SameSite=Strict`.
 4. **Chống Tấn Công Dò Quét (Anti-Brute Force):** Tích hợp In-memory Sliding Window Rate Limiter khóa tạm thời sau 5 lần nhập sai trong 60 giây.
-5. **Giao Diện Đăng Nhập Haute Couture CunFashion:** Xây dựng trang `/admin/login` sang trọng, hiện đại, trải nghiệm mượt mà, hỗ trợ toggle ẩn/hiện mật mã và thông báo lỗi trực quan.
-6. **Triển khai Production qua Vercel Token:** Tự động hóa cấu hình biến môi trường và deploy trực tiếp lên hạ tầng Vercel Production.
+5. **Giao Diện Đăng Nhập Haute Couture CunFashion:** Xây dựng trang `/admin/login` sang trọng, hiện đại, hỗ trợ toggle ẩn/hiện mật mã và thông báo lỗi trực quan.
+6. **Ẩn Chữ Admin Khỏi Public Storefront:** Loại bỏ hoàn toàn link `Admin` trên Navbar chính để đảm bảo bảo mật thông tin (Security through obscurity).
+7. **Bổ Sung Tính Năng SỬA (Edit Puzzle):** Xây dựng Modal Edit Puzzle và API `PUT /api/puzzles` cho phép sửa tiêu đề, thể loại, ảnh, độ khó, mô tả.
+8. **Hiển Thị Hình Gốc Hướng Dẫn Giải Đố:** Tích hợp nút `[Hình Mẫu]` (Guide Image ON/OFF) trên Toolbar chính và Khung Ảnh Mẫu Thu Nhỏ (Floating Mini Reference Picture-in-Picture) ở góc bàn cờ giúp người chơi dễ dàng hình dung lắp ráp.
+9. **Triển khai Production qua Vercel Token:** Tự động hóa cấu hình biến môi trường và deploy trực tiếp lên hạ tầng Vercel Production.
 
 ---
 
