@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Trophy,
   Puzzle,
@@ -18,6 +19,7 @@ import {
   Sparkles,
   Loader2,
   Layers,
+  LogOut,
 } from "lucide-react";
 import Logo from "@/components/brand/Logo";
 import { CATEGORIES_LIST } from "@/lib/data/puzzles-data";
@@ -46,7 +48,23 @@ interface AdminScore {
 }
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"puzzles" | "scores" | "health">("puzzles");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    try {
+      setIsLoggingOut(true);
+      await fetch("/api/admin/logout", { method: "POST" });
+      router.push("/admin/login");
+      router.refresh();
+    } catch {
+      alert("Đã xảy ra lỗi khi đăng xuất.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   // Data states
   const [puzzles, setPuzzles] = useState<AdminPuzzle[]>([]);
@@ -211,7 +229,7 @@ export default function AdminDashboardPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Link
               href="/"
               className="text-xs font-bold text-stone-600 hover:text-stone-900 px-3 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 transition"
@@ -224,6 +242,15 @@ export default function AdminDashboardPage() {
             >
               <Plus className="w-4 h-4" />
               Add Puzzle
+            </button>
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              title="Đăng xuất khỏi phiên quản trị"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50/60 hover:bg-red-100 text-red-700 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>{isLoggingOut ? "Đang thoát..." : "Đăng xuất"}</span>
             </button>
           </div>
         </div>

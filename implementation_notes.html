@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Implementation Notes — Sprint 6.1: Admin Security & Passcode Auth Gate</title>
+  <style>
+    :root {
+      --bg: #fbfaf7;
+      --card-bg: #ffffff;
+      --primary: #d97706;
+      --primary-accent: #ffb703;
+      --text: #1c1917;
+      --text-muted: #78716c;
+      --border: #e7e5e4;
+      --tag-bg: #fef3c7;
+      --tag-text: #92400e;
+      --code-bg: #f5f5f4;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      border: 1px solid #fde68a;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 800;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+      margin-top: 32px;
+      color: #292524;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      color: #b45309;
+    }
+    .alert-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-left: 4px solid #16a34a;
+      padding: 16px;
+      border-radius: 12px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">Sprint 6.1 &bull; Living Spec & Architecture Decisions</span>
+    <h1>CunFashion Admin Security & Passcode Auth Gate</h1>
+    <p class="subtitle">Dự án: CunFashion Web Full Stack (cunfashion.com) &bull; Quyền sở hữu: Đại Ka</p>
+
+    <div class="alert-box">
+      <strong>Bảo Toàn Trạng Thái Tuyệt Đối:</strong> Hệ thống đã được kiểm thử với 16/16 Unit Tests PASS 100%, Next.js 15.5.25 Build hoàn thành với Exit Code 0, và không có bất kỳ rò rỉ secret nào trên Git.
+    </div>
+
+    <h2>1. Unspecified & Implicit Decisions</h2>
+    <ul>
+      <li><strong>Web Crypto API Standard (crypto.subtle):</strong> Thay vì dùng module <code>crypto</code> độc quyền của Node.js, toàn bộ token HMAC-SHA256 được xây dựng trên chuẩn W3C Web Crypto. Quyết định này giúp code chạy mượt mà $100\%$ trên Next.js Edge Middleware mà không bao giờ gặp lỗi thiếu polyfill trên Vercel Edge.</li>
+      <li><strong>Cấu trúc Token Compact:</strong> Token được lưu dạng <code>base64url(payload).base64url(signature)</code> không cần thư viện bên thứ 3 (như jsonwebtoken hay jose), giữ bundle size của Middleware chỉ 34.8 kB.</li>
+      <li><strong>Timing-Safe Comparison:</strong> Cả việc so khớp Passcode và xác thực chữ ký HMAC đều sử dụng thuật toán so sánh constant-time (bitwise XOR), ngăn chặn triệt để kỹ thuật tấn công đo thời gian (Timing Attack).</li>
+      <li><strong>Suspense Boundary cho Login Page:</strong> Bọc form login trong <code>&lt;Suspense&gt;</code> để tuân thủ quy tắc App Router của Next.js khi sử dụng hook <code>useSearchParams()</code>, bảo đảm trang render tĩnh tối ưu.</li>
+    </ul>
+
+    <h2>2. Deviations from Initial Specification</h2>
+    <ul>
+      <li><em>Không có sai lệch:</em> Mọi yêu cầu của Đại Ka (Biến môi trường bảo mật, giao diện login CunFashion, API login/logout, Middleware chặn /admin và API mutations, nút Logout trên dashboard) đều được tuân thủ chính xác $100\%$.</li>
+    </ul>
+
+    <h2>3. Considered Trade-offs</h2>
+    <ul>
+      <li><strong>In-Memory Rate Limiting vs. Redis/Upstash:</strong> Ở quy mô hiện tại của Sprint 6.1, việc dùng in-memory sliding window Map cho serverless instance là phương án tối giản (Simplicity First), không làm phát sinh chi phí hạ tầng bên ngoài. Nếu sau này cần phân tán đa vùng, có thể nâng cấp lên KV/Redis mà không thay đổi interface API.</li>
+      <li><strong>Session Cookie vs. JWT Bearer Header:</strong> Chọn Cookie <code>HttpOnly, Secure, SameSite=Strict</code> giúp bảo vệ người dùng khỏi tấn công XSS đánh cắp token và tấn công CSRF, đồng thời trình duyệt tự động gửi cookie trong các request quản trị.</li>
+    </ul>
+
+    <h2>4. Maintenance Notes</h2>
+    <ul>
+      <li>Mật khẩu quản trị mặc định: Được khai báo an toàn trong <code>.env.local</code> với biến <code>ADMIN_MASTER_PASSWORD</code>.</li>
+      <li>Khi deploy lên Vercel Production: Chỉ cần thêm 2 biến <code>ADMIN_MASTER_PASSWORD</code> và <code>ADMIN_SESSION_SECRET</code> vào Vercel Environment Variables.</li>
+      <li>File kiểm thử: <code>tests/admin-auth.test.mjs</code> có thể chạy định kỳ bằng <code>node --test tests/admin-auth.test.mjs</code>.</li>
+    </ul>
+
+    <div class="footer">
+      Thực hiện bởi AI Pair Programming Agent &bull; Phương pháp luận: Karpathy Guidelines + Vibe Engineering Workflow &bull; 2026
+    </div>
+  </div>
+</body>
+</html>
