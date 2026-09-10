@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { CutStyle } from "@/lib/puzzle-engine/bezier-cutter";
@@ -6,6 +6,7 @@ import {
   Play,
   Pause,
   RotateCcw,
+  RotateCw,
   Eye,
   Layers,
   Sparkles,
@@ -43,6 +44,9 @@ export interface PuzzleToolbarProps {
   onArrange: () => void;
   showEdgesOnly: boolean;
   onToggleEdges: () => void;
+  isRotationEnabled: boolean;
+  onToggleRotation: () => void;
+  onRotatePiece?: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
 
@@ -82,6 +86,9 @@ export default function PuzzleToolbar({
   onArrange,
   showEdgesOnly,
   onToggleEdges,
+  isRotationEnabled,
+  onToggleRotation,
+  onRotatePiece,
   isFullscreen,
   onToggleFullscreen,
   zoomPercent,
@@ -183,6 +190,35 @@ export default function PuzzleToolbar({
           <span className="hidden md:inline">Edges</span>
         </button>
 
+        {/* Rotation Mode Toggle Button */}
+        <button
+          onClick={onToggleRotation}
+          className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-bold border transition flex items-center gap-1 shadow-2xs cursor-pointer ${
+            isRotationEnabled
+              ? "bg-amber-500 text-stone-950 border-amber-500 font-extrabold"
+              : "bg-white hover:bg-stone-100 text-stone-700 border-stone-200"
+          }`}
+          title={isRotationEnabled ? "Piece Rotation Mode: ON (Click or press Space to rotate)" : "Enable Piece Rotation Mode"}
+        >
+          <RotateCw className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">Rotate</span>
+          <span className={`text-[9px] px-1 py-0.2 rounded font-black ${isRotationEnabled ? "bg-stone-950 text-amber-400" : "bg-stone-200 text-stone-600"}`}>
+            {isRotationEnabled ? "ON" : "OFF"}
+          </span>
+        </button>
+
+        {/* Quick Rotate 90deg button when rotation is active */}
+        {isRotationEnabled && (
+          <button
+            onClick={onRotatePiece}
+            className="p-1.5 sm:px-2 sm:py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-black transition flex items-center gap-1 shadow-2xs cursor-pointer animate-in fade-in"
+            title="Rotate selected piece 90° (Shortcut: Space or Right-click)"
+          >
+            <RotateCw className="w-3.5 h-3.5 text-amber-700" />
+            <span>90°</span>
+          </button>
+        )}
+
         <button
           onClick={onToggleFullscreen}
           className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold border border-stone-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
@@ -238,6 +274,19 @@ export default function PuzzleToolbar({
               >
                 <span>Overlay Shadow</span>
                 <span className="text-[10px] text-stone-400 font-bold">{showGhost ? "ON" : "OFF"}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  onToggleRotation();
+                  onCloseMoreMenu();
+                }}
+                className="w-full text-left px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition flex items-center justify-between cursor-pointer"
+              >
+                <span>Piece Rotation Mode</span>
+                <span className={`text-[10px] font-bold ${isRotationEnabled ? "text-amber-600" : "text-stone-400"}`}>
+                  {isRotationEnabled ? "ON" : "OFF"}
+                </span>
               </button>
 
               <button

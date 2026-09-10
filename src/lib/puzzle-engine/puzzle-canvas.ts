@@ -49,9 +49,15 @@ export class PuzzleCanvasEngine {
   // Visual helper toggles
   public showGhostImage: boolean = false;
   public showEdgesOnly: boolean = false;
+  public enableRotation: boolean = false;
+  public selectedPieceId: number | null = null;
 
   private events: EngineEvents;
   private animationFrameId: number | null = null;
+  private renderScheduled: boolean = false;
+  private pointerDownTime: number = 0;
+  private pointerDownPos: Point = { x: 0, y: 0 };
+  private lastTapTime: number = 0;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -60,7 +66,8 @@ export class PuzzleCanvasEngine {
     cols: number = 5,
     events: EngineEvents = {},
     snapTolerance: number = 16,
-    cutStyle: CutStyle = "classic"
+    cutStyle: CutStyle = "classic",
+    enableRotation: boolean = false
   ) {
     this.canvas = canvas;
     const context = canvas.getContext("2d");
@@ -72,6 +79,7 @@ export class PuzzleCanvasEngine {
     this.snapTolerance = snapTolerance;
     this.events = events;
     this.cutStyle = cutStyle;
+    this.enableRotation = enableRotation;
 
     const totalPieces = rows * cols;
     this.dsu = new DisjointSet(totalPieces);
@@ -190,6 +198,7 @@ export class PuzzleCanvasEngine {
           isPlaced: false,
           groupId: id,
           zIndex: 1,
+          rotation: this.enableRotation ? [0, 90, 180, 270][Math.floor(Math.random() * 4)] : 0,
           path,
         });
 
@@ -214,10 +223,6 @@ export class PuzzleCanvasEngine {
       if (piece.isPlaced) return;
 
       const isLeft = index % 2 === 0;
-      const xRange = isLeft
-        ? Math.max(10, leftSpace - pieceW - 10)
-        : Math.max(rightSpaceStart + 10, cWidth - pieceW - 20);
-
       const targetX = isLeft
         ? 15 + Math.random() * Math.max(10, leftSpace - pieceW - 30)
         : rightSpaceStart + 15 + Math.random() * Math.max(10, cWidth - rightSpaceStart - pieceW - 30);
@@ -227,7 +232,7 @@ export class PuzzleCanvasEngine {
       piece.currentPos = { x: targetX, y: targetY };
     });
 
-    this.render();
+    this.requestRender();
   }
 
   public shuffle() {
@@ -239,6 +244,7 @@ export class PuzzleCanvasEngine {
 
     this.pieces.forEach((piece) => {
       piece.isPlaced = false;
+      piece.rotation = this.enableRotation ? [0, 90, 180, 270][Math.floor(Math.random() * 4)] : 0;
       piece.currentPos = {
         x: Math.random() * (cWidth - pieceW - 20) + 10,
         y: Math.random() * (cHeight - pieceH - 20) + 10,
@@ -247,22 +253,75 @@ export class PuzzleCanvasEngine {
 
     // Reset Union-Find
     this.dsu = new DisjointSet(this.pieces.length);
-    this.render();
+    this.selectedPieceId = null;
+    this.requestRender();
   }
 
   public solve() {
     this.pieces.forEach((piece) => {
       piece.currentPos = { ...piece.originalPos };
       piece.isPlaced = true;
+      piece.rotation = 0;
     });
 
     for (let i = 0; i < this.pieces.length; i++) {
       this.dsu.union(0, i);
     }
 
+    this.selectedPieceId = null;
     soundFx.playVictory();
     this.events.onVictory?.();
-    this.render();
+    this.requestRender();
+  }
+
+  public toggleRotationMode(enabled?: boolean) {
+    this.enableRotation = enabled !== undefined ? enabled : !this.enableRotation;
+    if (!this.enableRotation) {
+      // Reset rotation for all pieces to 0 when turning off rotation mode
+      this.pieces.forEach((p) => {
+        if (!p.isPlaced) p.rotation = 0;
+      });
+    }
+    this.requestRender();
+  }
+
+  public rotatePiece(pieceId: number, clockwise: boolean = true) {
+    if (!this.enableRotation) return;
+    const targetPiece = this.pieces.find((p) => p.id === pieceId);
+    if (!targetPiece || targetPiece.isPlaced) return;
+
+    const group = this.dsu.getGroup(targetPiece.id);
+    const pivotX = targetPiece.currentPos.x + targetPiece.width / 2;
+    const pivotY = targetPiece.currentPos.y + targetPiece.height / 2;
+    const rotAngle = clockwise ? 90 : 270;
+
+    group.forEach((memberId) => {
+      const p = this.pieces[memberId];
+      const cx = p.currentPos.x + p.width / 2;
+      const cy = p.currentPos.y + p.height / 2;
+      const dx = cx - pivotX;
+      const dy = cy - pivotY;
+
+      const newDx = clockwise ? -dy : dy;
+      const newDy = clockwise ? dx : -dx;
+
+      const newCx = pivotX + newDx;
+      const newCy = pivotY + newDy;
+
+      p.currentPos.x = newCx - p.width / 2;
+      p.currentPos.y = newCy - p.height / 2;
+      p.rotation = (p.rotation + rotAngle) % 360;
+    });
+
+    soundFx.playClick();
+    this.events.onMove?.();
+    this.requestRender();
+  }
+
+  public rotateSelectedPiece(clockwise: boolean = true) {
+    if (this.selectedPieceId !== null) {
+      this.rotatePiece(this.selectedPieceId, clockwise);
+    }
   }
 
   public setCutStyle(style: CutStyle) {
@@ -335,6 +394,8 @@ export class PuzzleCanvasEngine {
     window.addEventListener("pointerup", this.handlePointerUp);
     window.addEventListener("pointercancel", this.handlePointerCancel);
     this.canvas.addEventListener("wheel", this.handleWheel, { passive: false });
+    this.canvas.addEventListener("contextmenu", this.handleContextMenu);
+    window.addEventListener("keydown", this.handleKeyDown);
   }
 
   public destroy() {
@@ -343,10 +404,68 @@ export class PuzzleCanvasEngine {
     window.removeEventListener("pointerup", this.handlePointerUp);
     window.removeEventListener("pointercancel", this.handlePointerCancel);
     this.canvas.removeEventListener("wheel", this.handleWheel);
+    this.canvas.removeEventListener("contextmenu", this.handleContextMenu);
+    window.removeEventListener("keydown", this.handleKeyDown);
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
     }
   }
+
+  public requestRender() {
+    if (this.renderScheduled) return;
+    this.renderScheduled = true;
+    this.animationFrameId = requestAnimationFrame(() => {
+      this.renderScheduled = false;
+      this.render();
+    });
+  }
+
+  private handleKeyDown = (e: KeyboardEvent) => {
+    if (e.code === "Space" || e.key === " " || e.key === "r" || e.key === "R") {
+      if (!this.enableRotation) return;
+      const targetId = this.activeGroup ? this.activeGroup[0] : this.selectedPieceId;
+      if (targetId !== null && targetId !== undefined) {
+        e.preventDefault();
+        this.rotatePiece(targetId, true);
+      }
+    }
+  };
+
+  private handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    if (!this.enableRotation) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const screenPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const worldPos = this.screenToWorld(screenPos);
+
+    const sorted = [...this.pieces].sort((a, b) => b.zIndex - a.zIndex);
+    for (const piece of sorted) {
+      if (piece.isPlaced) continue;
+
+      const cx = piece.currentPos.x + piece.width / 2;
+      const cy = piece.currentPos.y + piece.height / 2;
+      const vx = worldPos.x - cx;
+      const vy = worldPos.y - cy;
+      const rad = -(piece.rotation * Math.PI) / 180;
+      const localVx = vx * Math.cos(rad) - vy * Math.sin(rad);
+      const localVy = vx * Math.sin(rad) + vy * Math.cos(rad);
+      const localX = localVx + piece.width / 2;
+      const localY = localVy + piece.height / 2;
+      const margin = Math.max(piece.width, piece.height) * 0.4;
+
+      if (
+        localX >= -margin &&
+        localX <= piece.width + margin &&
+        localY >= -margin &&
+        localY <= piece.height + margin
+      ) {
+        this.selectedPieceId = piece.id;
+        this.rotatePiece(piece.id, true);
+        break;
+      }
+    }
+  };
 
   private getPointerPos(e: PointerEvent): Point {
     const rect = this.canvas.getBoundingClientRect();
@@ -370,6 +489,8 @@ export class PuzzleCanvasEngine {
   private handlePointerDown = (e: PointerEvent) => {
     const screenPos = this.getPointerPos(e);
     this.activePointers.set(e.pointerId, screenPos);
+    this.pointerDownTime = Date.now();
+    this.pointerDownPos = screenPos;
 
     // Multi-touch: 2 or more fingers -> Switch to Pinch / Pan mode
     if (this.activePointers.size >= 2) {
@@ -391,11 +512,11 @@ export class PuzzleCanvasEngine {
       };
       this.pinchStartZoom = this.zoomScale;
       this.pinchStartPan = { ...this.panOffset };
-      this.render();
+      this.requestRender();
       return;
     }
 
-    // Single touch or mouse click: check if hitting a puzzle piece (in World Space)
+    // Single touch or mouse click: check if hitting a puzzle piece (in World Space with inverse rotation)
     const worldPos = this.screenToWorld(screenPos);
     const sorted = [...this.pieces].sort((a, b) => b.zIndex - a.zIndex);
 
@@ -403,12 +524,22 @@ export class PuzzleCanvasEngine {
     for (const piece of sorted) {
       if (piece.isPlaced) continue;
 
+      const cx = piece.currentPos.x + piece.width / 2;
+      const cy = piece.currentPos.y + piece.height / 2;
+      const vx = worldPos.x - cx;
+      const vy = worldPos.y - cy;
+      const rad = -(piece.rotation * Math.PI) / 180;
+      const localVx = vx * Math.cos(rad) - vy * Math.sin(rad);
+      const localVy = vx * Math.sin(rad) + vy * Math.cos(rad);
+      const localX = localVx + piece.width / 2;
+      const localY = localVy + piece.height / 2;
       const margin = Math.max(piece.width, piece.height) * 0.4;
+
       if (
-        worldPos.x >= piece.currentPos.x - margin &&
-        worldPos.x <= piece.currentPos.x + piece.width + margin &&
-        worldPos.y >= piece.currentPos.y - margin &&
-        worldPos.y <= piece.currentPos.y + piece.height + margin
+        localX >= -margin &&
+        localX <= piece.width + margin &&
+        localY >= -margin &&
+        localY <= piece.height + margin
       ) {
         hitPiece = piece;
         break;
@@ -418,6 +549,7 @@ export class PuzzleCanvasEngine {
     if (hitPiece) {
       // Hit a piece: initiate dragging of the DSU cluster
       this.maxZIndex += 1;
+      this.selectedPieceId = hitPiece.id;
       const group = this.dsu.getGroup(hitPiece.id);
       this.activeGroup = group;
       this.dragStartPos = worldPos;
@@ -472,7 +604,8 @@ export class PuzzleCanvasEngine {
         y: currCenter.y - worldCenter.y * this.zoomScale,
       };
 
-      this.render();
+      this.renderScheduled = false;
+      this.requestRender();
       this.events.onZoomChange?.(this.zoomScale);
       return;
     }
@@ -493,7 +626,7 @@ export class PuzzleCanvasEngine {
         }
       });
 
-      this.render();
+      this.requestRender();
       return;
     }
 
@@ -507,7 +640,7 @@ export class PuzzleCanvasEngine {
         y: this.initialPanOffset.y + dy,
       };
 
-      this.render();
+      this.requestRender();
       return;
     }
   };
@@ -517,11 +650,12 @@ export class PuzzleCanvasEngine {
     if (this.activePointers.size === 0) {
       this.isPanningCanvas = false;
       this.activeGroup = null;
-      this.render();
+      this.requestRender();
     }
   };
 
   private handlePointerUp = (e: PointerEvent) => {
+    const screenPos = this.getPointerPos(e);
     this.activePointers.delete(e.pointerId);
 
     // If there are still active pointers (e.g. 1 finger left after 2-finger pinch),
@@ -538,12 +672,32 @@ export class PuzzleCanvasEngine {
 
     if (!this.activeGroup) return;
 
+    // Detect quick tap or double tap on touch screens for rotation
+    const tapDuration = Date.now() - this.pointerDownTime;
+    const tapDist = Math.hypot(screenPos.x - this.pointerDownPos.x, screenPos.y - this.pointerDownPos.y);
+    const isQuickTap = tapDuration < 280 && tapDist < 8;
+    const now = Date.now();
+    const isDoubleTap = now - this.lastTapTime < 320 && tapDist < 16;
+    this.lastTapTime = now;
+
+    if (this.enableRotation && (isDoubleTap || (isQuickTap && e.pointerType === "touch"))) {
+      if (this.activeGroup.length > 0) {
+        this.rotatePiece(this.activeGroup[0], true);
+        this.activeGroup = null;
+        this.requestRender();
+        return;
+      }
+    }
+
     this.events.onMove?.();
     let snappedAny = false;
 
     // 1. Check Magnetic Snap to Board Target
     for (const id of this.activeGroup) {
       const piece = this.pieces[id];
+      // Invariant: only snap to board target if rotation is perfectly 0 deg
+      if ((piece.rotation % 360) !== 0) continue;
+
       const distToOriginal = Math.hypot(
         piece.currentPos.x - piece.originalPos.x,
         piece.currentPos.y - piece.originalPos.y
@@ -559,6 +713,7 @@ export class PuzzleCanvasEngine {
           gp.currentPos.x += shiftX;
           gp.currentPos.y += shiftY;
           gp.isPlaced = true;
+          gp.rotation = 0;
           gp.zIndex = 0; // lock to board layer
         });
 
@@ -577,10 +732,10 @@ export class PuzzleCanvasEngine {
 
         // Check 4 orthogonal neighbors
         const neighbors = [
-          { r: piece.row - 1, c: piece.col, dx: 0, dy: -piece.height },
-          { r: piece.row + 1, c: piece.col, dx: 0, dy: piece.height },
-          { r: piece.row, c: piece.col - 1, dx: -piece.width, dy: 0 },
-          { r: piece.row, c: piece.col + 1, dx: piece.width, dy: 0 },
+          { r: piece.row - 1, c: piece.col },
+          { r: piece.row + 1, c: piece.col },
+          { r: piece.row, c: piece.col - 1 },
+          { r: piece.row, c: piece.col + 1 },
         ];
 
         for (const n of neighbors) {
@@ -588,19 +743,38 @@ export class PuzzleCanvasEngine {
           const neighborPiece = this.pieces.find((p) => p.row === n.r && p.col === n.c);
           if (!neighborPiece || this.dsu.connected(piece.id, neighborPiece.id)) continue;
 
-          // Expected relative position
-          const expectedX = piece.currentPos.x + n.dx;
-          const expectedY = piece.currentPos.y + n.dy;
+          // Invariant: only snap if both pieces share identical rotation angle
+          if ((piece.rotation % 360) !== (neighborPiece.rotation % 360)) continue;
 
-          const dist = Math.hypot(
-            neighborPiece.currentPos.x - expectedX,
-            neighborPiece.currentPos.y - expectedY
-          );
+          const rad = (piece.rotation * Math.PI) / 180;
+          const cos = Math.round(Math.cos(rad));
+          const sin = Math.round(Math.sin(rad));
+
+          const dx0 = (neighborPiece.col - piece.col) * piece.width;
+          const dy0 = (neighborPiece.row - piece.row) * piece.height;
+
+          const expectedRelX = dx0 * cos - dy0 * sin;
+          const expectedRelY = dx0 * sin + dy0 * cos;
+
+          const centerA = {
+            x: piece.currentPos.x + piece.width / 2,
+            y: piece.currentPos.y + piece.height / 2,
+          };
+          const expectedCenterB = {
+            x: centerA.x + expectedRelX,
+            y: centerA.y + expectedRelY,
+          };
+          const centerB = {
+            x: neighborPiece.currentPos.x + neighborPiece.width / 2,
+            y: neighborPiece.currentPos.y + neighborPiece.height / 2,
+          };
+
+          const dist = Math.hypot(centerB.x - expectedCenterB.x, centerB.y - expectedCenterB.y);
 
           if (dist <= this.snapTolerance) {
             // Align neighbor piece & its group to this piece
-            const deltaX = expectedX - neighborPiece.currentPos.x;
-            const deltaY = expectedY - neighborPiece.currentPos.y;
+            const deltaX = expectedCenterB.x - centerB.x;
+            const deltaY = expectedCenterB.y - centerB.y;
 
             const neighborGroup = this.dsu.getGroup(neighborPiece.id);
             neighborGroup.forEach((nid) => {
@@ -700,7 +874,6 @@ export class PuzzleCanvasEngine {
   private drawPiece(piece: Piece) {
     if (!piece.path) return;
 
-    // If edges-only helper is active, dim interior pieces unless they belong to placed cluster
     const isEdgePiece =
       piece.row === 0 ||
       piece.row === this.rows - 1 ||
@@ -708,20 +881,30 @@ export class PuzzleCanvasEngine {
       piece.col === this.cols - 1;
 
     const shouldDim = this.showEdgesOnly && !isEdgePiece && !piece.isPlaced;
+    const isSelected = this.selectedPieceId === piece.id && this.enableRotation && !piece.isPlaced;
+    const isDraggingThis = Boolean(this.activeGroup && this.activeGroup.includes(piece.id));
 
     this.ctx.save();
-    this.ctx.translate(piece.currentPos.x, piece.currentPos.y);
+
+    // Rotate piece around its visual center
+    const cx = piece.currentPos.x + piece.width / 2;
+    const cy = piece.currentPos.y + piece.height / 2;
+    this.ctx.translate(cx, cy);
+    if (piece.rotation !== 0) {
+      this.ctx.rotate((piece.rotation * Math.PI) / 180);
+    }
+    this.ctx.translate(-piece.width / 2, -piece.height / 2);
 
     if (shouldDim) {
       this.ctx.globalAlpha = 0.15;
     }
 
-    // A. Drop Shadow for unplaced pieces (realistic physical cardboard depth)
+    // A. Drop Shadow for unplaced pieces (optimized for 60fps mobile smoothness)
     if (!piece.isPlaced) {
-      this.ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
-      this.ctx.shadowBlur = 10;
-      this.ctx.shadowOffsetX = 3;
-      this.ctx.shadowOffsetY = 4;
+      this.ctx.shadowColor = isDraggingThis ? "rgba(0, 0, 0, 0.45)" : "rgba(0, 0, 0, 0.25)";
+      this.ctx.shadowBlur = isDraggingThis ? 8 : 4;
+      this.ctx.shadowOffsetX = 2;
+      this.ctx.shadowOffsetY = 3;
     }
 
     // B. Clip to Piece Path
@@ -752,10 +935,12 @@ export class PuzzleCanvasEngine {
     this.ctx.drawImage(this.image, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
     this.ctx.restore(); // end clip
 
-    // C. Embossed Stroke / Bevel border
+    // C. Embossed Stroke / Bevel border & Selection Highlight
     this.ctx.shadowColor = "transparent";
-    this.ctx.lineWidth = 1.2;
-    this.ctx.strokeStyle = piece.isPlaced
+    this.ctx.lineWidth = isSelected ? 2.5 : 1.2;
+    this.ctx.strokeStyle = isSelected
+      ? "#f59e0b" // Amber selection border in rotation mode
+      : piece.isPlaced
       ? "rgba(255, 255, 255, 0.25)"
       : "rgba(0, 0, 0, 0.45)";
     this.ctx.stroke(piece.path);

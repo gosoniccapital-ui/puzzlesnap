@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -147,12 +147,63 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. Browse Categories Grid */}
+      {/* 3. CunFashion Exclusive Lookbook Showcase */}
+      <section className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-stone-900 via-stone-850 to-stone-950 text-white border border-stone-800 shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
+          <div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-[#ffb703]">
+              <Sparkles className="w-3.5 h-3.5" />
+              CunFashion Originals
+            </span>
+            <h2 className="text-2xl font-black text-white tracking-tight mt-0.5">
+              Haute Couture & Lookbook Collection
+            </h2>
+          </div>
+          <Link
+            href="/categories/fashion-lookbook"
+            className="self-start sm:self-auto text-xs font-black text-stone-950 bg-[#ffb703] hover:bg-[#e0a102] px-4 py-2 rounded-full transition shadow-md"
+          >
+            Explore Lookbooks →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {PUZZLES_DATA.filter((p) => p.categorySlug === "fashion-lookbook").map((item) => (
+            <Link
+              key={item.id}
+              href={`/puzzle/${item.slug}`}
+              className="group block rounded-2xl overflow-hidden bg-stone-900 border border-stone-800 hover:border-amber-400 transition duration-300"
+            >
+              <div className="relative aspect-3/4 overflow-hidden bg-stone-950">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <span className="absolute top-2.5 right-2.5 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-stone-950/80 text-amber-400 border border-stone-700">
+                  {item.difficulty}
+                </span>
+                <div className="absolute bottom-2.5 left-2.5 right-2.5">
+                  <h4 className="text-xs font-bold text-white line-clamp-1 group-hover:text-amber-300 transition">
+                    {item.title}
+                  </h4>
+                  <span className="text-[10px] text-stone-400 font-semibold">
+                    {item.plays.toLocaleString()} plays
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* 4. Browse Categories Grid */}
       <section className="space-y-6">
         <div className="flex items-center justify-between border-b border-stone-200 pb-3">
           <h2 className="text-2xl font-black text-stone-900 tracking-tight">Popular Categories</h2>
           <Link href="/categories" className="text-xs font-bold text-amber-600 hover:text-amber-700">
-            See all 14 categories →
+            See all categories →
           </Link>
         </div>
 
@@ -160,7 +211,7 @@ export default function Home() {
           {CATEGORIES_LIST.map((cat) => (
             <Link
               key={cat.slug}
-              href={`/categories#${cat.slug}`}
+              href={`/categories/${cat.slug}`}
               className="p-3.5 rounded-2xl bg-white hover:bg-amber-50 border border-stone-200 hover:border-amber-400 text-center font-bold text-xs text-stone-700 hover:text-amber-700 transition shadow-sm hover:shadow"
             >
               {cat.name}

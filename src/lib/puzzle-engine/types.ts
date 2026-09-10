@@ -1,4 +1,4 @@
-﻿export type EdgeShape = 0 | 1 | -1; // 0: flat border, 1: tab (outward), -1: blank (inward)
+export type EdgeShape = 0 | 1 | -1; // 0: flat border, 1: tab (outward), -1: blank (inward)
 
 export interface Point {
   x: number;
@@ -24,6 +24,7 @@ export interface Piece {
   isPlaced: boolean;  // Placed in exact final spot
   groupId: number;    // DSU group ID
   zIndex: number;
+  rotation: number;   // 0, 90, 180, 270 (degrees)
   path?: Path2D;      // Cached Path2D relative to (0, 0)
 }
 
@@ -31,8 +32,9 @@ export interface PuzzleConfig {
   rows: number;
   cols: number;
   imageSrc: string;
-  cutStyle?: "classic" | "hearts";
-  snapTolerance?: number; // default: 14px
+  cutStyle?: "classic" | "hearts" | "star";
+  snapTolerance?: number; // default: 16px
+  enableRotation?: boolean; // default: false
 }
 
 export interface BoardBounds {

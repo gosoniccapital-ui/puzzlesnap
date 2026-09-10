@@ -35,6 +35,14 @@ export default function Navbar() {
             Daily Puzzle
           </Link>
 
+          <Link
+            href="/categories/fashion-lookbook"
+            className="hover:text-amber-600 transition flex items-center gap-1.5 text-amber-600 font-extrabold"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            Lookbook
+          </Link>
+
           {/* Categories Mega Dropdown */}
           <div
             className="relative"
@@ -58,7 +66,7 @@ export default function Navbar() {
                   {CATEGORIES_LIST.map((cat) => (
                     <Link
                       key={cat.slug}
-                      href={`/categories#${cat.slug}`}
+                      href={`/categories/${cat.slug}`}
                       onClick={() => setShowCategoriesMenu(false)}
                       className="block px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-amber-50 hover:text-amber-700 transition"
                     >

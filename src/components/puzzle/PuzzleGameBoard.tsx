@@ -58,6 +58,7 @@ export default function PuzzleGameBoard({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isVictory, setIsVictory] = useState(false);
   const [zoomPercent, setZoomPercent] = useState(100);
+  const [isRotationEnabled, setIsRotationEnabled] = useState(false);
 
   // Leaderboard & Player Score state
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
@@ -163,7 +164,8 @@ export default function PuzzleGameBoard({
           },
         },
         16,
-        cutStyle
+        cutStyle,
+        isRotationEnabled
       );
 
       engineRef.current = engine;
@@ -177,7 +179,7 @@ export default function PuzzleGameBoard({
         engineRef.current = null;
       }
     };
-  }, [imageSrc, difficulty, handleVictory, cutStyle]);
+  }, [imageSrc, difficulty, handleVictory, cutStyle, isRotationEnabled]);
 
   // Window & Orientation resize observer
   useEffect(() => {
@@ -227,6 +229,21 @@ export default function PuzzleGameBoard({
       engineRef.current.showEdgesOnly = next;
       engineRef.current.render();
       soundFx.playClick();
+    }
+  };
+
+  const toggleRotation = () => {
+    const next = !isRotationEnabled;
+    setIsRotationEnabled(next);
+    if (engineRef.current) {
+      engineRef.current.toggleRotationMode(next);
+      soundFx.playClick();
+    }
+  };
+
+  const handleRotatePiece = () => {
+    if (engineRef.current) {
+      engineRef.current.rotateSelectedPiece(true);
     }
   };
 
@@ -340,6 +357,9 @@ export default function PuzzleGameBoard({
         onArrange={handleArrange}
         showEdgesOnly={showEdgesOnly}
         onToggleEdges={toggleEdges}
+        isRotationEnabled={isRotationEnabled}
+        onToggleRotation={toggleRotation}
+        onRotatePiece={handleRotatePiece}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         zoomPercent={zoomPercent}
@@ -363,6 +383,14 @@ export default function PuzzleGameBoard({
         className="relative w-full h-[620px] bg-[#f2ede4] overflow-hidden select-none"
       >
         <canvas ref={canvasRef} className="absolute inset-0 cursor-grab active:cursor-grabbing w-full h-full" />
+
+        {/* Rotation Mode Active Hint Badge */}
+        {isRotationEnabled && (
+          <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-amber-500/90 text-stone-950 text-xs font-black shadow-md backdrop-blur-xs flex items-center gap-1.5 animate-in fade-in duration-200 select-none pointer-events-none">
+            <span className="inline-block w-2 h-2 rounded-full bg-stone-950 animate-pulse" />
+            <span>Xoay mảnh: Spacebar / Chuột phải / Chạm đúp</span>
+          </div>
+        )}
 
         {/* Pause Overlay */}
         {isPaused && (
@@ -393,12 +421,14 @@ export default function PuzzleGameBoard({
           onPlayAgain={handleShuffle}
         />
 
-        {/* Floating Zoom Controls */}
+        {/* Floating Zoom & Quick Rotate Controls */}
         <PuzzleZoomWidget
           zoomPercent={zoomPercent}
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onResetZoom={handleResetZoom}
+          isRotationEnabled={isRotationEnabled}
+          onRotatePiece={handleRotatePiece}
         />
       </div>
 

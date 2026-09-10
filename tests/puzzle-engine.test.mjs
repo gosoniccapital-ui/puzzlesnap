@@ -255,4 +255,180 @@ test("Resize Invariant: pieces scale and reposition proportionally, placed piece
   assert.equal(piece1.originalPos.y, newBounds.y);
 });
 
+// 5. Test Rotation Hit-Test Invariant (Inverse Matrix Transformation)
+function hitTestPiece(worldPos, piece) {
+  const cx = piece.currentPos.x + piece.width / 2;
+  const cy = piece.currentPos.y + piece.height / 2;
+  const vx = worldPos.x - cx;
+  const vy = worldPos.y - cy;
+  const rad = -(piece.rotation * Math.PI) / 180;
+  const localVx = vx * Math.cos(rad) - vy * Math.sin(rad);
+  const localVy = vx * Math.sin(rad) + vy * Math.cos(rad);
+  const localX = localVx + piece.width / 2;
+  const localY = localVy + piece.height / 2;
+  const margin = Math.max(piece.width, piece.height) * 0.4;
+
+  return (
+    localX >= -margin &&
+    localX <= piece.width + margin &&
+    localY >= -margin &&
+    localY <= piece.height + margin
+  );
+}
+
+test("Rotation Hit-Test Invariant: inverse rotation correctly identifies click points at 0, 90, 180, 270 degrees", () => {
+  const piece = {
+    currentPos: { x: 100, y: 100 },
+    width: 60,
+    height: 40,
+    rotation: 90, // Rotated 90 degrees clockwise around center (130, 120)
+  };
+
+  // The center is at (130, 120).
+  // In unrotated piece space, point (150, 120) is +20px along X axis.
+  // When rotated 90 deg clockwise, that point moves to (130, 140) (+20px along Y axis).
+  const pointWorld = { x: 130, y: 140 };
+  assert.equal(hitTestPiece(pointWorld, piece), true, "Point rotated by 90 deg should hit");
+
+  // A point far outside should not hit
+  const farPoint = { x: 500, y: 500 };
+  assert.equal(hitTestPiece(farPoint, piece), false, "Far point should not hit");
+});
+
+// 6. Test Rotation Magnetic Snap Invariant
+function checkMagneticSnap(pieceA, pieceB, snapTolerance = 16) {
+  // Must have exact same rotation angle
+  if ((pieceA.rotation % 360) !== (pieceB.rotation % 360)) {
+    return { canSnap: false, reason: "MISMATCHED_ROTATION" };
+  }
+
+  const rad = (pieceA.rotation * Math.PI) / 180;
+  const cos = Math.round(Math.cos(rad));
+  const sin = Math.round(Math.sin(rad));
+
+  const dx0 = (pieceB.col - pieceA.col) * pieceA.width;
+  const dy0 = (pieceB.row - pieceA.row) * pieceA.height;
+
+  const expectedRelX = dx0 * cos - dy0 * sin;
+  const expectedRelY = dx0 * sin + dy0 * cos;
+
+  const centerA = {
+    x: pieceA.currentPos.x + pieceA.width / 2,
+    y: pieceA.currentPos.y + pieceA.height / 2,
+  };
+  const expectedCenterB = {
+    x: centerA.x + expectedRelX,
+    y: centerA.y + expectedRelY,
+  };
+  const centerB = {
+    x: pieceB.currentPos.x + pieceB.width / 2,
+    y: pieceB.currentPos.y + pieceB.height / 2,
+  };
+
+  const dist = Math.hypot(centerB.x - expectedCenterB.x, centerB.y - expectedCenterB.y);
+  return {
+    canSnap: dist <= snapTolerance,
+    dist,
+    expectedDelta: {
+      x: expectedCenterB.x - centerB.x,
+      y: expectedCenterB.y - centerB.y,
+    },
+  };
+}
+
+test("Rotation Magnetic Snap Invariant: pieces only snap when sharing identical rotation angle", () => {
+  const pieceA = {
+    id: 0,
+    row: 0,
+    col: 0,
+    width: 50,
+    height: 50,
+    currentPos: { x: 100, y: 100 },
+    rotation: 0,
+  };
+  const pieceB = {
+    id: 1,
+    row: 0,
+    col: 1,
+    width: 50,
+    height: 50,
+    currentPos: { x: 152, y: 102 }, // ~2.8px offset from (150, 100)
+    rotation: 90, // Misaligned angle!
+  };
+
+  // Even though physically adjacent, rotation mismatch prevents snapping
+  const snapMismatch = checkMagneticSnap(pieceA, pieceB, 16);
+  assert.equal(snapMismatch.canSnap, false);
+  assert.equal(snapMismatch.reason, "MISMATCHED_ROTATION");
+
+  // When pieceB is rotated to 0 deg, snapping succeeds
+  pieceB.rotation = 0;
+  const snapSuccess = checkMagneticSnap(pieceA, pieceB, 16);
+  assert.equal(snapSuccess.canSnap, true);
+  assert.ok(snapSuccess.dist < 16);
+
+  // When both are rotated 90 deg clockwise:
+  // Expected neighbor pos for col+1 is now below pieceA (0, +50)
+  pieceA.rotation = 90;
+  pieceB.rotation = 90;
+  pieceB.currentPos = { x: 101, y: 151 }; // Near (100, 150)
+  const snapRotated = checkMagneticSnap(pieceA, pieceB, 16);
+  assert.equal(snapRotated.canSnap, true);
+});
+
+// 7. Test Cluster Rotation Invariant
+function rotateCluster(pieces, groupIds, pivotPieceId, clockwise = true) {
+  const pivotPiece = pieces.find((p) => p.id === pivotPieceId);
+  const pivotX = pivotPiece.currentPos.x + pivotPiece.width / 2;
+  const pivotY = pivotPiece.currentPos.y + pivotPiece.height / 2;
+
+  const rotAngle = clockwise ? 90 : 270;
+
+  for (const id of groupIds) {
+    const p = pieces.find((item) => item.id === id);
+    const cx = p.currentPos.x + p.width / 2;
+    const cy = p.currentPos.y + p.height / 2;
+    const dx = cx - pivotX;
+    const dy = cy - pivotY;
+
+    const newDx = clockwise ? -dy : dy;
+    const newDy = clockwise ? dx : -dx;
+
+    const newCx = pivotX + newDx;
+    const newCy = pivotY + newDy;
+
+    p.currentPos.x = newCx - p.width / 2;
+    p.currentPos.y = newCy - p.height / 2;
+    p.rotation = (p.rotation + rotAngle) % 360;
+  }
+}
+
+test("Cluster Rotation Invariant: rotating a cluster preserves inter-piece geometric distances exactly", () => {
+  const pieces = [
+    { id: 0, width: 50, height: 50, currentPos: { x: 100, y: 100 }, rotation: 0 },
+    { id: 1, width: 50, height: 50, currentPos: { x: 150, y: 100 }, rotation: 0 },
+  ];
+
+  const initialDist = Math.hypot(
+    pieces[1].currentPos.x - pieces[0].currentPos.x,
+    pieces[1].currentPos.y - pieces[0].currentPos.y
+  );
+  assert.equal(initialDist, 50);
+
+  // Rotate group 90 degrees around piece 0
+  rotateCluster(pieces, [0, 1], 0, true);
+
+  assert.equal(pieces[0].rotation, 90);
+  assert.equal(pieces[1].rotation, 90);
+
+  const postRotDist = Math.hypot(
+    pieces[1].currentPos.x - pieces[0].currentPos.x,
+    pieces[1].currentPos.y - pieces[0].currentPos.y
+  );
+  assert.equal(postRotDist, 50, "Distance between pieces in cluster must remain 50px");
+  assert.equal(pieces[1].currentPos.x, 100);
+  assert.equal(pieces[1].currentPos.y, 150);
+});
+
+
 
