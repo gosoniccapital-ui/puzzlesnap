@@ -1,24 +1,24 @@
 # Project Context: PuzzleSnap Full Stack
 
 ## ?? Current Goal
-Xây d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
-- [x] Milestone 1: N?n t?ng Next.js 15 Full Stack + Core Jigsaw Canvas Engine (Bézier cutter, DSU grouping, magnetic snap, sound fx, victory celebration, toolbar helpers).
+Xï¿½y d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
+- [x] Milestone 1: N?n t?ng Next.js 15 Full Stack + Core Jigsaw Canvas Engine (Bï¿½zier cutter, DSU grouping, magnetic snap, sound fx, victory celebration, toolbar helpers).
 - [x] Milestone 2: Schema Supabase PostgreSQL (`supabase/schema.sql`) + Client Helper (`src/lib/supabase/client.ts`) + Keep-alive skill integration.
-- [x] Milestone 3: Custom Puzzle Maker (`/make-puzzle`), Danh m?c (`/categories`), Trang chi ti?t câu d? d?ng (`/puzzle/[slug]`) v?i breadcrumbs và share buttons.
+- [x] Milestone 3: Custom Puzzle Maker (`/make-puzzle`), Danh m?c (`/categories`), Trang chi ti?t cï¿½u d? d?ng (`/puzzle/[slug]`) v?i breadcrumbs vï¿½ share buttons.
 
 ## ??? Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
-- **UI & UX Standard:** Tuân th? `design-taste-frontend` (Anti-slop, tông màu Amber/Stone sang tr?ng, typography rõ ràng).
+- **UI & UX Standard:** Tuï¿½n th? `design-taste-frontend` (Anti-slop, tï¿½ng mï¿½u Amber/Stone sang tr?ng, typography rï¿½ rï¿½ng).
 - **Core Puzzle Engine:**
-  - `bezier-cutter.ts`: T?o c?nh m?u l?i/l? khuy?t Cubic Bézier mu?t mà, d?m b?o b?t bi?n d?i x?ng gi?a 2 m?nh k? nhau.
-  - `disjoint-set.ts`: C?u trúc Union-Find qu?n lý c?m m?nh ghép dã snap, di chuy?n d?ng b? toàn c?m.
-  - `sound.ts`: T?ng h?p âm thanh click g? và chime progression tang ti?n b?ng Web Audio API offline không ph? thu?c file ngoài.
-  - `puzzle-canvas.ts`: Controller di?u ph?i Canvas 2D 60fps, x? lý kéo th? PointerEvents, hít nam châm, l?c vi?n (Edges) và bóng m? (Ghost).
+  - `bezier-cutter.ts`: T?o c?nh m?u l?i/l? khuy?t Cubic Bï¿½zier mu?t mï¿½, d?m b?o b?t bi?n d?i x?ng gi?a 2 m?nh k? nhau.
+  - `disjoint-set.ts`: C?u trï¿½c Union-Find qu?n lï¿½ c?m m?nh ghï¿½p dï¿½ snap, di chuy?n d?ng b? toï¿½n c?m.
+  - `sound.ts`: T?ng h?p ï¿½m thanh click g? vï¿½ chime progression tang ti?n b?ng Web Audio API offline khï¿½ng ph? thu?c file ngoï¿½i.
+  - `puzzle-canvas.ts`: Controller di?u ph?i Canvas 2D 60fps, x? lï¿½ kï¿½o th? PointerEvents, hï¿½t nam chï¿½m, l?c vi?n (Edges) vï¿½ bï¿½ng m? (Ghost).
 - **Database & Storage (Supabase):**
-  - Schema PostgreSQL hoàn ch?nh trong `supabase/schema.sql`: các b?ng `categories`, `puzzles`, `puzzle_scores` kèm RLS policies an toàn và Storage bucket `puzzle-images`.
+  - Schema PostgreSQL hoï¿½n ch?nh trong `supabase/schema.sql`: cï¿½c b?ng `categories`, `puzzles`, `puzzle_scores` kï¿½m RLS policies an toï¿½n vï¿½ Storage bucket `puzzle-images`.
   - Client helper: `src/lib/supabase/client.ts` t? d?ng fallback graceful khi chua n?p API key.
-- **Code Intelligence:** Ðã index toàn b? codebase qua CodeGraph CLI v1.5.0.
-- **Git Strategy:** Phát tri?n trên nhánh `feature/fullstack-puzzle-foundation`. Commit vertical slices an toàn v?i pre-check.
+- **Code Intelligence:** ï¿½ï¿½ index toï¿½n b? codebase qua CodeGraph CLI v1.5.0.
+- **Git Strategy:** Phï¿½t tri?n trï¿½n nhï¿½nh `feature/fullstack-puzzle-foundation`. Commit vertical slices an toï¿½n v?i pre-check.
 
 ## ?? Skills Installed (Project Scope: `.agents/skills/`)
 1. `vibe-engineering-workflow`
@@ -37,3 +37,4 @@ Xây d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - Base Init Commit: `4660c18`
 - Milestone 1 (Foundation & Engine): `4c1b9ac`
 - Milestone 2 & 3 (Supabase Schema & Custom Puzzle Maker): 17a369e
+- Milestone 4 (1:1 PuzzleSnap, Admin Dashboard, Live Leaderboard & Cut Styles): 605463a
