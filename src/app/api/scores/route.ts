@@ -7,6 +7,39 @@ import {
 } from "@/lib/data/scores-data";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
+// Simple in-memory rate limiter for score submissions (sliding 1-minute window)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function isRateLimited(identifier: string, limit = 10, windowMs = 60_000): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(identifier);
+
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(identifier, { count: 1, resetTime: now + windowMs });
+    return false;
+  }
+
+  if (entry.count >= limit) {
+    return true;
+  }
+
+  entry.count += 1;
+  return false;
+}
+
+/**
+ * Strips HTML tags, script entities, control characters, and clamps length to 25 chars.
+ */
+function sanitizePlayerName(raw: string): string {
+  if (!raw || typeof raw !== "string") return "Anonymous";
+  return raw
+    .replace(/<[^>]*>/g, "") // Remove HTML tags
+    .replace(/[&<>"'/`]/g, "") // Strip characters frequently leveraged in XSS vectors
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Strip control characters
+    .trim()
+    .substring(0, 25) || "Anonymous";
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const slug = searchParams.get("slug");
@@ -62,25 +95,55 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // 1. In-Memory Rate Limiting
+    const forwardedFor = request.headers.get("x-forwarded-for");
+    const clientIp = forwardedFor ? forwardedFor.split(",")[0].trim() : "127.0.0.1";
+    if (isRateLimited(clientIp, 10, 60_000)) {
+      return NextResponse.json(
+        { success: false, error: "Too many score submissions. Please wait a moment." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { puzzleSlug, playerName, pieceCount, elapsedSeconds, moves } = body;
 
-    if (!puzzleSlug || !playerName || typeof elapsedSeconds !== "number") {
+    // 2. Strict Input Validation
+    if (!puzzleSlug || typeof puzzleSlug !== "string" || !playerName || typeof elapsedSeconds !== "number") {
       return NextResponse.json(
-        { success: false, error: "Missing required score fields" },
+        { success: false, error: "Missing or invalid required score fields" },
         { status: 400 }
       );
     }
 
-    // Sanitize playerName
-    const safePlayerName = (playerName || "Anonymous").trim().substring(0, 30);
+    const parsedPieces = Number(pieceCount) || 16;
+    const validPieceCounts = [9, 16, 30, 40, 50];
+    if (!validPieceCounts.includes(parsedPieces)) {
+      return NextResponse.json(
+        { success: false, error: `Invalid pieceCount. Must be one of: ${validPieceCounts.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const parsedElapsed = Math.round(elapsedSeconds);
+    if (parsedElapsed < 1 || parsedElapsed > 86400) {
+      return NextResponse.json(
+        { success: false, error: "elapsedSeconds must be between 1 and 86400" },
+        { status: 400 }
+      );
+    }
+
+    const parsedMoves = Math.max(0, Math.min(10000, Number(moves) || 0));
+
+    // 3. XSS Sanitization
+    const safePlayerName = sanitizePlayerName(playerName);
 
     const newRecord = addScoreRecord({
       puzzleSlug,
       playerName: safePlayerName,
-      pieceCount: Number(pieceCount) || 16,
-      elapsedSeconds: Math.max(1, Math.round(elapsedSeconds)),
-      moves: Number(moves) || 0,
+      pieceCount: parsedPieces,
+      elapsedSeconds: parsedElapsed,
+      moves: parsedMoves,
     });
 
     // If Supabase is active, also persist
@@ -89,9 +152,9 @@ export async function POST(request: NextRequest) {
         await supabase.from("puzzle_scores").insert({
           puzzle_slug: puzzleSlug,
           player_name: safePlayerName,
-          piece_count: Number(pieceCount) || 16,
-          elapsed_seconds: Math.max(1, Math.round(elapsedSeconds)),
-          moves: Number(moves) || 0,
+          piece_count: parsedPieces,
+          elapsed_seconds: parsedElapsed,
+          moves: parsedMoves,
         });
       } catch {
         // Local already recorded

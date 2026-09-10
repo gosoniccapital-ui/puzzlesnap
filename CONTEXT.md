@@ -6,6 +6,7 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - [x] Milestone 2: Schema Supabase PostgreSQL (`supabase/schema.sql`) + Client Helper (`src/lib/supabase/client.ts`) + Keep-alive skill integration.
 - [x] Milestone 4: Giao diện chuẩn 1:1 PuzzleSnap, Admin Console (/admin), Live Leaderboard REST APIs, Cut Styles (Classic, Hearts, Star).
 - [x] Milestone 5.1: Mobile Canvas Touch Engine (Pinch-to-zoom 0.5x-3.0x, Pan 2 ngón & 1 ngón, Camera Matrix transforms, Floating Zoom Widget) + Cloud Deploy (GitHub repo gosoniccapital-ui/puzzlesnap & Vercel Production https://puzzle-tung.vercel.app).
+- [x] Milestone 5.2: Security Hardening (next.config.ts HTTP Security Headers, CSP, XSS Sanitization, In-Memory Rate Limiting) + Orientation Change Coordinate Re-scale Invariant + Modular Refactoring (PuzzleToolbar, PuzzleLeaderboard, PuzzleVictoryModal, PuzzlePreviewModal, PuzzleZoomWidget) + Supabase Storage sync for Custom Puzzle Maker.
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.

@@ -1,4 +1,4 @@
-﻿class SoundEffects {
+class SoundEffects {
   private ctx: AudioContext | null = null;
   public isMuted: boolean = false;
 
@@ -14,6 +14,36 @@
       this.ctx.resume();
     }
     return this.ctx;
+  }
+
+  get muted(): boolean {
+    return this.isMuted;
+  }
+
+  set muted(val: boolean) {
+    this.isMuted = val;
+  }
+
+  playClick() {
+    if (this.isMuted) return;
+    const ctx = this.getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(450, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.04);
+
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.04);
   }
 
   playSnap(consecutiveCount: number = 0) {

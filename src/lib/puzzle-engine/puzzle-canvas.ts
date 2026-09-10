@@ -91,7 +91,43 @@ export class PuzzleCanvasEngine {
     this.canvas.height = rect.height * dpr;
     this.ctx.scale(dpr, dpr);
 
+    const oldBounds = { ...this.boardBounds };
     this.initBoard();
+
+    // If board already had pieces initialized, proportionally re-scale them to the new bounds
+    if (oldBounds.width > 0 && oldBounds.height > 0 && this.pieces.length > 0) {
+      const newPieceW = this.boardBounds.width / this.cols;
+      const newPieceH = this.boardBounds.height / this.rows;
+
+      this.pieces.forEach((piece) => {
+        piece.width = newPieceW;
+        piece.height = newPieceH;
+        piece.path = createPiecePath(newPieceW, newPieceH, piece.edges, this.cutStyle);
+
+        // Update target snapped position in new board coordinate space
+        piece.originalPos = {
+          x: this.boardBounds.x + piece.col * newPieceW,
+          y: this.boardBounds.y + piece.row * newPieceH,
+        };
+
+        if (piece.isPlaced) {
+          // Keep solved pieces locked seamlessly to their new board target
+          piece.currentPos = { ...piece.originalPos };
+        } else {
+          // Proportionally interpolate unsolved pieces based on their relative position to old board
+          const relX = (piece.currentPos.x - oldBounds.x) / oldBounds.width;
+          const relY = (piece.currentPos.y - oldBounds.y) / oldBounds.height;
+          let targetX = this.boardBounds.x + relX * this.boardBounds.width;
+          let targetY = this.boardBounds.y + relY * this.boardBounds.height;
+
+          // Clamp within visible canvas container bounds
+          targetX = Math.max(10, Math.min(rect.width - newPieceW - 10, targetX));
+          targetY = Math.max(10, Math.min(rect.height - newPieceH - 10, targetY));
+          piece.currentPos = { x: targetX, y: targetY };
+        }
+      });
+    }
+
     this.render();
   }
 

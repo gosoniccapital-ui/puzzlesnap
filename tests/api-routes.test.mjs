@@ -59,3 +59,42 @@ test("API: GET and POST /api/scores should persist and sort leaderboard entries"
   const found = getJson.data.find((s) => s.playerName === uniqueName);
   assert.ok(found, "Newly submitted score should be present on leaderboard");
 });
+
+test("API: POST /api/scores should sanitize XSS tags and enforce input validation", async () => {
+  const testSlug = "colorful-fireworks-jigsaw-puzzle";
+
+  // 1. Test XSS sanitization
+  const xssName = "<script>alert('xss')</script>Hero";
+  const postRes = await fetch(`${BASE_URL}/api/scores`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      puzzleSlug: testSlug,
+      playerName: xssName,
+      pieceCount: 16,
+      elapsedSeconds: 30,
+      moves: 10,
+    }),
+  });
+  assert.equal(postRes.status, 200);
+  const postJson = await postRes.json();
+  assert.equal(postJson.success, true);
+  assert.ok(!postJson.data.playerName.includes("<script>"), "Player name must not contain HTML tags");
+  assert.ok(!postJson.data.playerName.includes("<"), "Player name must not contain '<'");
+  assert.ok(!postJson.data.playerName.includes(">"), "Player name must not contain '>'");
+
+  // 2. Test Invalid pieceCount rejected
+  const invalidRes = await fetch(`${BASE_URL}/api/scores`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      puzzleSlug: testSlug,
+      playerName: "InvalidTester",
+      pieceCount: 999, // Invalid pieceCount
+      elapsedSeconds: 30,
+      moves: 10,
+    }),
+  });
+  assert.equal(invalidRes.status, 400);
+});
+

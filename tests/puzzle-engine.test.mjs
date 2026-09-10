@@ -184,3 +184,75 @@ test("Magnetic Snap Invariant: World Space Euclidean distance remains invariant 
   );
 });
 
+// 4. Test Resize / Orientation Change Coordinate Invariant
+test("Resize Invariant: pieces scale and reposition proportionally, placed pieces match new board bounds exactly", () => {
+  const rows = 4;
+  const cols = 4;
+
+  // Simulate initial orientation (Portrait phone: 375 x 667)
+  const oldBounds = { x: 37.5, y: 100, width: 300, height: 225 };
+  const oldPieceW = oldBounds.width / cols;
+  const oldPieceH = oldBounds.height / rows;
+
+  const piece0 = {
+    id: 0,
+    row: 1,
+    col: 2,
+    isPlaced: true,
+    width: oldPieceW,
+    height: oldPieceH,
+    originalPos: { x: oldBounds.x + 2 * oldPieceW, y: oldBounds.y + 1 * oldPieceH },
+    currentPos: { x: oldBounds.x + 2 * oldPieceW, y: oldBounds.y + 1 * oldPieceH },
+  };
+
+  const piece1 = {
+    id: 1,
+    row: 0,
+    col: 0,
+    isPlaced: false,
+    width: oldPieceW,
+    height: oldPieceH,
+    originalPos: { x: oldBounds.x, y: oldBounds.y },
+    currentPos: { x: 10, y: 350 }, // Scattered below
+  };
+
+  // Simulate orientation change to Landscape (667 x 375)
+  const newBounds = { x: 133.5, y: 40, width: 400, height: 300 };
+  const newPieceW = newBounds.width / cols;
+  const newPieceH = newBounds.height / rows;
+
+  // Apply re-scaling algorithm
+  for (const p of [piece0, piece1]) {
+    p.width = newPieceW;
+    p.height = newPieceH;
+    p.originalPos = {
+      x: newBounds.x + p.col * newPieceW,
+      y: newBounds.y + p.row * newPieceH,
+    };
+
+    if (p.isPlaced) {
+      p.currentPos = { ...p.originalPos };
+    } else {
+      const relX = (p.currentPos.x - oldBounds.x) / oldBounds.width;
+      const relY = (p.currentPos.y - oldBounds.y) / oldBounds.height;
+      p.currentPos = {
+        x: newBounds.x + relX * newBounds.width,
+        y: newBounds.y + relY * newBounds.height,
+      };
+    }
+  }
+
+  // Verification:
+  // 1. Placed piece must perfectly match its new grid target position on new bounds
+  assert.equal(piece0.currentPos.x, newBounds.x + 2 * newPieceW);
+  assert.equal(piece0.currentPos.y, newBounds.y + 1 * newPieceH);
+  assert.deepEqual(piece0.currentPos, piece0.originalPos);
+
+  // 2. Unplaced piece maintains valid finite numbers and relative spatial positioning
+  assert.ok(Number.isFinite(piece1.currentPos.x));
+  assert.ok(Number.isFinite(piece1.currentPos.y));
+  assert.equal(piece1.originalPos.x, newBounds.x);
+  assert.equal(piece1.originalPos.y, newBounds.y);
+});
+
+

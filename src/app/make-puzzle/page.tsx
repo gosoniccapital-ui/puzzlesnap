@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef } from "react";
-import { Upload, Sparkles, Image as ImageIcon, ArrowRight, Check } from "lucide-react";
+import { Upload, Sparkles, Image as ImageIcon, ArrowRight, Check, Loader2, CloudUpload } from "lucide-react";
 import PuzzleGameBoard from "@/components/puzzle/PuzzleGameBoard";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function MakePuzzlePage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -10,13 +11,18 @@ export default function MakePuzzlePage() {
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const [isPlaying, setIsPlaying] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isCloudStored, setIsCloudStored] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setPuzzleTitle(file.name.replace(/\.[^/.]+$/, ""));
+      setIsCloudStored(false);
+
+      // 1. Immediate local preview via FileReader for zero-delay UX
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -24,6 +30,37 @@ export default function MakePuzzlePage() {
         }
       };
       reader.readAsDataURL(file);
+
+      // 2. Background sync to Supabase Storage if configured
+      if (isSupabaseConfigured && supabase) {
+        try {
+          setIsUploading(true);
+          const ext = file.name.split(".").pop() || "jpg";
+          const uniquePath = `custom-puzzles/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+
+          const { data, error } = await supabase.storage
+            .from("puzzle-images")
+            .upload(uniquePath, file, {
+              cacheControl: "3600",
+              upsert: false,
+            });
+
+          if (!error && data) {
+            const { data: publicUrlData } = supabase.storage
+              .from("puzzle-images")
+              .getPublicUrl(uniquePath);
+
+            if (publicUrlData?.publicUrl) {
+              setSelectedImage(publicUrlData.publicUrl);
+              setIsCloudStored(true);
+            }
+          }
+        } catch (err) {
+          console.warn("Storage upload fallback to local data url:", err);
+        } finally {
+          setIsUploading(false);
+        }
+      }
     }
   };
 
@@ -109,9 +146,20 @@ export default function MakePuzzlePage() {
                 alt="Uploaded preview"
                 className="max-h-[360px] w-auto object-contain rounded-lg p-2"
               />
+              {isUploading ? (
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold backdrop-blur flex items-center gap-1.5 animate-pulse">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Syncing to Cloud...</span>
+                </div>
+              ) : isCloudStored ? (
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold backdrop-blur flex items-center gap-1.5">
+                  <CloudUpload className="w-3.5 h-3.5" />
+                  <span>Cloud Ready</span>
+                </div>
+              ) : null}
               <button
                 onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-black/70 hover:bg-black text-stone-200 text-xs font-semibold backdrop-blur transition"
+                className="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-black/70 hover:bg-black text-stone-200 text-xs font-semibold backdrop-blur transition cursor-pointer"
               >
                 Change Photo
               </button>
