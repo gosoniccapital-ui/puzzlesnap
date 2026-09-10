@@ -5,8 +5,8 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - [x] Milestone 1: N?n t?ng Next.js 15 Full Stack + Core Jigsaw Canvas Engine (Bzier cutter, DSU grouping, magnetic snap, sound fx, victory celebration, toolbar helpers).
 - [x] Milestone 2: Schema Supabase PostgreSQL (`supabase/schema.sql`) + Client Helper (`src/lib/supabase/client.ts`) + Keep-alive skill integration.
 - [x] Milestone 4: Giao diện chuẩn 1:1 PuzzleSnap, Admin Console (/admin), Live Leaderboard REST APIs, Cut Styles (Classic, Hearts, Star).
-- [x] Milestone 5.1: Mobile Canvas Touch Engine (Pinch-to-zoom 0.5x-3.0x, Pan 2 ngón & 1 ngón, Camera Matrix transforms, Floating Zoom Widget) + Cloud Deploy (GitHub repo gosoniccapital-ui/puzzlesnap & Vercel Production https://puzzle-tung.vercel.app).
-- [x] Milestone 5.2: Security Hardening (next.config.ts HTTP Security Headers, CSP, XSS Sanitization, In-Memory Rate Limiting) + Orientation Change Coordinate Re-scale Invariant + Modular Refactoring (PuzzleToolbar, PuzzleLeaderboard, PuzzleVictoryModal, PuzzlePreviewModal, PuzzleZoomWidget) + Supabase Storage sync for Custom Puzzle Maker.
+- [x] Milestone 5.2: Security Hardening (next.config.mjs HTTP Security Headers, CSP, XSS Sanitization, In-Memory Rate Limiting) + Orientation Change Coordinate Re-scale Invariant + Modular Refactoring (PuzzleToolbar, PuzzleLeaderboard, PuzzleVictoryModal, PuzzlePreviewModal, PuzzleZoomWidget) + Supabase Storage sync for Custom Puzzle Maker.
+- [x] Milestone 5.3 (Domain & Branding): Trỏ Apex domain cunfashion.com sang Vercel Anycast IP (76.76.21.21) qua Cloudflare API, bảo toàn 100% các subdomain khác (LadiPage www, cute, quietude, support), đồng bộ toàn bộ nhận diện thương hiệu sang CunFashion.
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
@@ -22,8 +22,10 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - **Code Intelligence:** Đã index toàn bộ codebase qua CodeGraph CLI v1.5.0.
 - **Git Strategy:** Phát triển trên nhánh `feature/fullstack-puzzle-foundation`. Commit vertical slices an toàn với pre-check.
 - **Cloud Infrastructure:**
+  - Production Custom Domain: [https://cunfashion.com](https://cunfashion.com) (HTTP 200 OK, SSL Active)
+  - Vercel Deployment Alias: [https://puzzle-tung.vercel.app](https://puzzle-tung.vercel.app) & [https://cunfashion-qprzyoi2h-newgmer-s-projects.vercel.app](https://cunfashion-qprzyoi2h-newgmer-s-projects.vercel.app)
   - GitHub Repository: https://github.com/gosoniccapital-ui/puzzlesnap
-  - Vercel Production: https://puzzle-tung.vercel.app
+  - Cloudflare Zone: `cunfashion.com` (Apex A Record trỏ 76.76.21.21, bảo toàn 100% LadiPage www và các subdomain khác).
 
 ## 📦 Skills Installed (Project Scope: `.agents/skills/`)
 1. `vibe-engineering-workflow`
