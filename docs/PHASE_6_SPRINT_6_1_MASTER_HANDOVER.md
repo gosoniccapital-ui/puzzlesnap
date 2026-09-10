@@ -4,9 +4,10 @@
 > **Workspace:** `g:\AWE\puzzle-tung`  
 > **Giai đoạn:** **PHASE 6 — SPRINT 6.1 (ADMIN SECURITY & PASSCODE AUTH GATE)**  
 > **Trạng thái:** **HOÀN THÀNH 100% — ĐÃ KIỂM THỬ — ĐÃ BUILD PRODUCTION — ĐÃ DEPLOY LÊN VERCEL**  
-> **Live Production Verified:** [https://puzzle-tung.vercel.app/admin](https://puzzle-tung.vercel.app/admin) (HTTP 307 Redirect to Login)  
+> **Live Production Verified:** [https://cunfashion.com/admin](https://cunfashion.com/admin) (HTTP 307 Redirect to Login — SSL Active)  
+> **Production Alias:** [https://cunfashion.com](https://cunfashion.com) & [https://puzzle-tung.vercel.app](https://puzzle-tung.vercel.app)  
 > **Branch:** `feature/fullstack-puzzle-foundation`  
-> **Rollback Anchor:** `61345d4` | **Commit Mới Nhất:** `a523087`  
+> **Rollback Anchor:** `61345d4` | **Commit Mới Nhất:** `55c3a1e`  
 > **Phương pháp luận áp dụng:** `/vibe-engineering-workflow` + `/vibe-git-manager` + `/behavior-model-debugger`
 
 ---
