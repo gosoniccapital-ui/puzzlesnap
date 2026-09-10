@@ -76,3 +76,8 @@ Thumbs.db
 !.agents/AGENTS.md
 !.agents/rules/
 !.agents/rules/**
+
+# ==========================================
+# CODEGRAPH LOCAL INDEX & CACHE
+# ==========================================
+.codegraph/
