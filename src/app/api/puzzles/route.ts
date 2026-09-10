@@ -52,10 +52,38 @@ export async function GET(request: NextRequest) {
   });
 }
 
+function sanitizeText(val: unknown): string {
+  if (typeof val !== "string") return "";
+  return val.replace(/<[^>]*>?/gm, "").trim();
+}
+
+function sanitizeUrl(val: unknown): string {
+  if (typeof val !== "string") return "";
+  const trimmed = val.trim();
+  if (!trimmed) return "";
+  // Block javascript:, vbscript:, data: protocols
+  if (/^(javascript|vbscript|data):/i.test(trimmed)) {
+    return "";
+  }
+  return trimmed;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, category, categorySlug, image, difficulty, description } = body;
+    const {
+      title,
+      category,
+      categorySlug,
+      image,
+      difficulty,
+      description,
+      voucherCode,
+      discountPercent,
+      productUrl,
+      productPriceOriginal,
+      productPriceSale,
+    } = body;
 
     if (!title || !category || !image) {
       return NextResponse.json(
@@ -64,20 +92,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const slug = title
+    const cleanTitle = sanitizeText(title);
+    const slug = cleanTitle
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
+    const cleanVoucher = sanitizeText(voucherCode);
+    const cleanProductUrl = sanitizeUrl(productUrl);
+    const parsedDiscount = typeof discountPercent === "number" && discountPercent >= 0 && discountPercent <= 100
+      ? discountPercent
+      : undefined;
+
     const newPuzzle = addPuzzleItem({
-      title,
+      title: cleanTitle,
       slug,
-      category,
+      category: sanitizeText(category),
       categorySlug: categorySlug || category.toLowerCase().replace(/\s+/g, "-"),
-      image,
+      image: sanitizeUrl(image),
       difficulty: difficulty || "medium",
-      description: description || `A lovely jigsaw puzzle: ${title}`,
+      description: sanitizeText(description) || `A lovely jigsaw puzzle: ${cleanTitle}`,
+      ...(cleanVoucher && { voucherCode: cleanVoucher }),
+      ...(parsedDiscount !== undefined && { discountPercent: parsedDiscount }),
+      ...(cleanProductUrl && { productUrl: cleanProductUrl }),
+      ...(productPriceOriginal && { productPriceOriginal: sanitizeText(productPriceOriginal) }),
+      ...(productPriceSale && { productPriceSale: sanitizeText(productPriceSale) }),
     });
 
     return NextResponse.json({
@@ -112,7 +152,20 @@ export async function DELETE(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, title, category, categorySlug, image, difficulty, description } = body;
+    const {
+      id,
+      title,
+      category,
+      categorySlug,
+      image,
+      difficulty,
+      description,
+      voucherCode,
+      discountPercent,
+      productUrl,
+      productPriceOriginal,
+      productPriceSale,
+    } = body;
 
     if (!id || !title || !category || !image) {
       return NextResponse.json(
@@ -121,13 +174,25 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const cleanTitle = sanitizeText(title);
+    const cleanVoucher = sanitizeText(voucherCode);
+    const cleanProductUrl = sanitizeUrl(productUrl);
+    const parsedDiscount = typeof discountPercent === "number" && discountPercent >= 0 && discountPercent <= 100
+      ? discountPercent
+      : undefined;
+
     const updated = updatePuzzleItem(id, {
-      title,
-      category,
+      title: cleanTitle,
+      category: sanitizeText(category),
       categorySlug: categorySlug || category.toLowerCase().replace(/\s+/g, "-"),
-      image,
+      image: sanitizeUrl(image),
       difficulty: difficulty || "medium",
-      description: description || `A lovely jigsaw puzzle: ${title}`,
+      description: sanitizeText(description) || `A lovely jigsaw puzzle: ${cleanTitle}`,
+      voucherCode: cleanVoucher || undefined,
+      discountPercent: parsedDiscount,
+      productUrl: cleanProductUrl || undefined,
+      productPriceOriginal: productPriceOriginal ? sanitizeText(productPriceOriginal) : undefined,
+      productPriceSale: productPriceSale ? sanitizeText(productPriceSale) : undefined,
     });
 
     if (!updated) {

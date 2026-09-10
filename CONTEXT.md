@@ -8,6 +8,8 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - [x] Milestone 5.2: Security Hardening (next.config.mjs HTTP Security Headers, CSP, XSS Sanitization, In-Memory Rate Limiting) + Orientation Change Coordinate Re-scale Invariant + Modular Refactoring (PuzzleToolbar, PuzzleLeaderboard, PuzzleVictoryModal, PuzzlePreviewModal, PuzzleZoomWidget) + Supabase Storage sync for Custom Puzzle Maker.
 - [x] Milestone 5.3 (Domain & Branding): Trỏ Apex domain cunfashion.com sang Vercel Anycast IP (76.76.21.21) qua Cloudflare API, bảo toàn 100% các subdomain khác (LadiPage www, cute, quietude, support), đồng bộ toàn bộ nhận diện thương hiệu sang CunFashion.
 - [x] Milestone 5.3 (Feature Completion): Chế độ xoay mảnh ghép (Piece Rotation Mode 90°/180°/270° qua Space, Right-Click, Double-Tap & UI Widgets), CunFashion Exclusive Lookbook Collection, tối ưu hóa 60fps Mobile Canvas Engine (rAF loop), và 8/8 automated invariant tests pass 100%.
+- [x] Milestone 6.1: Admin Security & Passcode Auth Gate (HMAC-SHA256, Next.js Edge Middleware, timing-safe compare, sliding-window rate limit, modal edit puzzle, floating reference thumbnail, 21/21 tests pass 100%).
+- [x] Milestone 6.2: Gamified E-Commerce Funnel (Haute Couture Victory Voucher Card, 1-click clipboard copy, Shop The Look CTA, admin e-commerce controls, XSS & URL sanitization, 25/25 automated tests pass 100%).
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
@@ -47,3 +49,5 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - Milestone 2 & 3 (Supabase Schema & Custom Puzzle Maker): `17a369e`
 - Milestone 4 (1:1 PuzzleSnap, Admin Dashboard, Live Leaderboard & Cut Styles): `605463a`
 - Milestone 5.1 (Mobile Touch, Zoom Matrix, GitHub & Vercel Production): `03802b6`
+- Milestone 6.1 (Admin Security & Passcode Auth Gate): `7548772`
+- Milestone 6.2 (Gamified E-Commerce Voucher & Shop The Look): In Progress on `feature/fullstack-puzzle-foundation`

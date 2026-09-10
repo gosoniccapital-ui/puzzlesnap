@@ -10,6 +10,12 @@ export interface PuzzleItem {
   isDaily?: boolean;
   difficulty: "easy" | "medium" | "hard" | "very-hard" | "supreme";
   description: string;
+  // E-Commerce Extensions (Sprint 6.2)
+  voucherCode?: string;
+  discountPercent?: number;
+  productUrl?: string;
+  productPriceOriginal?: string;
+  productPriceSale?: string;
 }
 
 export const CATEGORIES_LIST = [
@@ -42,6 +48,11 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 98,
     difficulty: "medium",
     description: "Luxurious haute couture designer collection showcasing modern elegance and warmth.",
+    voucherCode: "CUNAUTUMN15",
+    discountPercent: 15,
+    productUrl: "https://cunfashion.com",
+    productPriceOriginal: "1.450.000₫",
+    productPriceSale: "1.232.500₫",
   },
   {
     id: "f2",
@@ -54,6 +65,11 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 76,
     difficulty: "easy",
     description: "Bold contemporary streetwear outfit with neon metropolitan accents.",
+    voucherCode: "CYBERPUNK20",
+    discountPercent: 20,
+    productUrl: "https://cunfashion.com",
+    productPriceOriginal: "950.000₫",
+    productPriceSale: "760.000₫",
   },
   {
     id: "f3",
@@ -66,6 +82,11 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 52,
     difficulty: "medium",
     description: "Timeless classic denim styling paired with confident editorial photography.",
+    voucherCode: "RETRODENIM10",
+    discountPercent: 10,
+    productUrl: "https://cunfashion.com",
+    productPriceOriginal: "850.000₫",
+    productPriceSale: "765.000₫",
   },
   {
     id: "f4",
@@ -78,6 +99,11 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 88,
     difficulty: "hard",
     description: "Exquisite silk evening gown flowing gracefully down the high-fashion runway.",
+    voucherCode: "RUNWAY25",
+    discountPercent: 25,
+    productUrl: "https://cunfashion.com",
+    productPriceOriginal: "2.800.000₫",
+    productPriceSale: "2.100.000₫",
   },
   {
     id: "f5",
@@ -90,6 +116,11 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 64,
     difficulty: "supreme",
     description: "Clean monochromatic lines and premium textiles celebrating modern sartorial taste.",
+    voucherCode: "MINIMALIST15",
+    discountPercent: 15,
+    productUrl: "https://cunfashion.com",
+    productPriceOriginal: "1.200.000₫",
+    productPriceSale: "1.020.000₫",
   },
   {
     id: "p1",

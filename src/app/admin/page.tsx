@@ -21,6 +21,8 @@ import {
   Layers,
   LogOut,
   Pencil,
+  Tag,
+  ShoppingBag,
 } from "lucide-react";
 import Logo from "@/components/brand/Logo";
 import { CATEGORIES_LIST } from "@/lib/data/puzzles-data";
@@ -36,6 +38,12 @@ interface AdminPuzzle {
   likes: number;
   difficulty: string;
   description: string;
+  // E-Commerce Extensions (Sprint 6.2)
+  voucherCode?: string;
+  discountPercent?: number;
+  productUrl?: string;
+  productPriceOriginal?: string;
+  productPriceSale?: string;
 }
 
 interface AdminScore {
@@ -87,6 +95,11 @@ export default function AdminDashboardPage() {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newDifficulty, setNewDifficulty] = useState<"easy" | "medium" | "hard" | "very-hard" | "supreme">("medium");
   const [newDescription, setNewDescription] = useState("");
+  const [newVoucherCode, setNewVoucherCode] = useState("");
+  const [newDiscountPercent, setNewDiscountPercent] = useState("");
+  const [newProductUrl, setNewProductUrl] = useState("");
+  const [newProductPriceOriginal, setNewProductPriceOriginal] = useState("");
+  const [newProductPriceSale, setNewProductPriceSale] = useState("");
 
   // Edit Puzzle Form State
   const [showEditModal, setShowEditModal] = useState(false);
@@ -99,6 +112,11 @@ export default function AdminDashboardPage() {
   const [editImageUrl, setEditImageUrl] = useState("");
   const [editDifficulty, setEditDifficulty] = useState<"easy" | "medium" | "hard" | "very-hard" | "supreme">("medium");
   const [editDescription, setEditDescription] = useState("");
+  const [editVoucherCode, setEditVoucherCode] = useState("");
+  const [editDiscountPercent, setEditDiscountPercent] = useState("");
+  const [editProductUrl, setEditProductUrl] = useState("");
+  const [editProductPriceOriginal, setEditProductPriceOriginal] = useState("");
+  const [editProductPriceSale, setEditProductPriceSale] = useState("");
 
   const openEditModal = (p: AdminPuzzle) => {
     setEditingPuzzle(p);
@@ -107,6 +125,11 @@ export default function AdminDashboardPage() {
     setEditImageUrl(p.image);
     setEditDifficulty((p.difficulty as any) || "medium");
     setEditDescription(p.description || "");
+    setEditVoucherCode(p.voucherCode || "");
+    setEditDiscountPercent(p.discountPercent !== undefined ? String(p.discountPercent) : "");
+    setEditProductUrl(p.productUrl || "");
+    setEditProductPriceOriginal(p.productPriceOriginal || "");
+    setEditProductPriceSale(p.productPriceSale || "");
     setEditFormError("");
     setEditFormSuccess("");
     setShowEditModal(true);
@@ -130,6 +153,11 @@ export default function AdminDashboardPage() {
           image: editImageUrl.trim(),
           difficulty: editDifficulty,
           description: editDescription.trim(),
+          voucherCode: editVoucherCode.trim() || undefined,
+          discountPercent: editDiscountPercent.trim() ? Number(editDiscountPercent) : undefined,
+          productUrl: editProductUrl.trim() || undefined,
+          productPriceOriginal: editProductPriceOriginal.trim() || undefined,
+          productPriceSale: editProductPriceSale.trim() || undefined,
         }),
       });
 
@@ -214,6 +242,11 @@ export default function AdminDashboardPage() {
           image: newImageUrl.trim(),
           difficulty: newDifficulty,
           description: newDescription.trim() || `Beautiful jigsaw puzzle of ${newTitle.trim()}`,
+          voucherCode: newVoucherCode.trim() || undefined,
+          discountPercent: newDiscountPercent.trim() ? Number(newDiscountPercent) : undefined,
+          productUrl: newProductUrl.trim() || undefined,
+          productPriceOriginal: newProductPriceOriginal.trim() || undefined,
+          productPriceSale: newProductPriceSale.trim() || undefined,
         }),
       });
 
@@ -223,6 +256,11 @@ export default function AdminDashboardPage() {
         setNewTitle("");
         setNewImageUrl("");
         setNewDescription("");
+        setNewVoucherCode("");
+        setNewDiscountPercent("");
+        setNewProductUrl("");
+        setNewProductPriceOriginal("");
+        setNewProductPriceSale("");
         loadPuzzles();
         setTimeout(() => setShowAddModal(false), 1200);
       } else {
@@ -486,6 +524,20 @@ export default function AdminDashboardPage() {
                           <td className="py-2.5 px-4">
                             <p className="font-extrabold text-stone-900">{p.title}</p>
                             <p className="text-[11px] font-mono text-stone-400 truncate max-w-xs">{p.slug}</p>
+                            <div className="flex flex-wrap items-center gap-1 mt-1">
+                              {p.voucherCode && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200/80 px-1.5 py-0.5 rounded-md">
+                                  <Tag className="w-2.5 h-2.5 text-amber-600" />
+                                  {p.voucherCode} ({p.discountPercent || 10}% OFF)
+                                </span>
+                              )}
+                              {p.productUrl && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded-md">
+                                  <ShoppingBag className="w-2.5 h-2.5 text-stone-500" />
+                                  Shop The Look
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-2.5 px-4">
                             <span className="px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 text-[11px] font-bold">
@@ -793,6 +845,83 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
+              {/* E-Commerce & Lookbook Settings */}
+              <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs">
+                  <Tag className="w-3.5 h-3.5 text-amber-600" />
+                  <span>E-Commerce & Lookbook (CunFashion Rewards)</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                      Voucher Code (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. CUN15"
+                      value={newVoucherCode}
+                      onChange={(e) => setNewVoucherCode(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 font-mono text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                      Discount % (Optional)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="15"
+                      value={newDiscountPercent}
+                      onChange={(e) => setNewDiscountPercent(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                    Shop / Lookbook URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://cunfashion.com/..."
+                    value={newProductUrl}
+                    onChange={(e) => setNewProductUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                      Original Price (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1.250.000₫"
+                      value={newProductPriceOriginal}
+                      onChange={(e) => setNewProductPriceOriginal(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                      Sale Price (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1.050.000₫"
+                      value={newProductPriceSale}
+                      onChange={(e) => setNewProductPriceSale(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
                 <button
                   type="button"
@@ -929,6 +1058,83 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setEditDescription(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                 />
+              </div>
+
+              {/* E-Commerce & Lookbook Settings */}
+              <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs">
+                  <Tag className="w-3.5 h-3.5 text-amber-600" />
+                  <span>E-Commerce & Lookbook (CunFashion Rewards)</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                      Voucher Code (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. CUN15"
+                      value={editVoucherCode}
+                      onChange={(e) => setEditVoucherCode(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 font-mono text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                      Discount % (Optional)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="15"
+                      value={editDiscountPercent}
+                      onChange={(e) => setEditDiscountPercent(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                    Shop / Lookbook URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://cunfashion.com/..."
+                    value={editProductUrl}
+                    onChange={(e) => setEditProductUrl(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                      Original Price (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1.250.000₫"
+                      value={editProductPriceOriginal}
+                      onChange={(e) => setEditProductPriceOriginal(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-stone-600 text-[11px] mb-1">
+                      Sale Price (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1.050.000₫"
+                      value={editProductPriceSale}
+                      onChange={(e) => setEditProductPriceSale(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">

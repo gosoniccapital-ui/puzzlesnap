@@ -67,6 +67,11 @@ export default async function PuzzleDetailPage({ params }: PuzzlePageProps) {
         imageSrc={imageSrc}
         title={title}
         initialDifficulty={puzzle?.difficulty || "medium"}
+        voucherCode={puzzle?.voucherCode}
+        discountPercent={puzzle?.discountPercent}
+        productUrl={puzzle?.productUrl}
+        productPriceOriginal={puzzle?.productPriceOriginal}
+        productPriceSale={puzzle?.productPriceSale}
       />
     </div>
   );

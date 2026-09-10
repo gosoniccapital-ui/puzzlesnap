@@ -20,6 +20,11 @@ interface PuzzleGameBoardProps {
   title?: string;
   puzzleSlug?: string;
   initialDifficulty?: "easy" | "medium" | "hard" | "very-hard" | "supreme";
+  voucherCode?: string;
+  discountPercent?: number;
+  productUrl?: string;
+  productPriceOriginal?: string;
+  productPriceSale?: string;
 }
 
 const DIFFICULTY_MAP = {
@@ -35,6 +40,11 @@ export default function PuzzleGameBoard({
   title = "Daily Puzzle",
   puzzleSlug = "colorful-fireworks-jigsaw-puzzle",
   initialDifficulty = "medium",
+  voucherCode,
+  discountPercent,
+  productUrl,
+  productPriceOriginal,
+  productPriceSale,
 }: PuzzleGameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -441,6 +451,12 @@ export default function PuzzleGameBoard({
           isSubmittingScore={isSubmittingScore}
           scoreSubmitted={scoreSubmitted}
           onPlayAgain={handleShuffle}
+          voucherCode={voucherCode}
+          discountPercent={discountPercent}
+          productUrl={productUrl}
+          productPriceOriginal={productPriceOriginal}
+          productPriceSale={productPriceSale}
+          imageSrc={imageSrc}
         />
 
         {/* Floating Zoom & Quick Rotate Controls */}
