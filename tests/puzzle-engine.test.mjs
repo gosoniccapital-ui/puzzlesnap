@@ -1,4 +1,4 @@
-﻿import test from "node:test";
+import test from "node:test";
 import assert from "node:assert/strict";
 
 // 1. Test DisjointSet logic
@@ -122,3 +122,65 @@ test("Edge Generation: guarantees outer boundaries are flat and adjacent edges a
     }
   }
 });
+
+// 3. Test Camera Coordinate Transforms (Screen <-> World)
+function screenToWorld(pos, zoomScale, panOffset) {
+  return {
+    x: (pos.x - panOffset.x) / zoomScale,
+    y: (pos.y - panOffset.y) / zoomScale,
+  };
+}
+
+function worldToScreen(pos, zoomScale, panOffset) {
+  return {
+    x: pos.x * zoomScale + panOffset.x,
+    y: pos.y * zoomScale + panOffset.y,
+  };
+}
+
+test("Camera Matrix: screenToWorld and worldToScreen are exact inverses across zooms and pans", () => {
+  const testCases = [
+    { zoom: 1.0, pan: { x: 0, y: 0 }, screen: { x: 400, y: 300 } },
+    { zoom: 0.5, pan: { x: -100, y: 50 }, screen: { x: 250, y: 150 } },
+    { zoom: 2.25, pan: { x: 80, y: -120 }, screen: { x: 500, y: 450 } },
+    { zoom: 3.0, pan: { x: 300, y: 200 }, screen: { x: 100, y: 100 } },
+  ];
+
+  for (const tc of testCases) {
+    const world = screenToWorld(tc.screen, tc.zoom, tc.pan);
+    const roundTripScreen = worldToScreen(world, tc.zoom, tc.pan);
+
+    assert.ok(
+      Math.abs(roundTripScreen.x - tc.screen.x) < 1e-6,
+      `Screen X roundtrip failed for zoom=${tc.zoom}`
+    );
+    assert.ok(
+      Math.abs(roundTripScreen.y - tc.screen.y) < 1e-6,
+      `Screen Y roundtrip failed for zoom=${tc.zoom}`
+    );
+  }
+});
+
+test("Magnetic Snap Invariant: World Space Euclidean distance remains invariant under any camera zoom", () => {
+  const p1World = { x: 100, y: 150 };
+  const p2World = { x: 112, y: 155 }; // dx=12, dy=5 => dist = 13 (within snapTolerance 16)
+  const expectedDist = Math.hypot(p2World.x - p1World.x, p2World.y - p1World.y);
+  assert.equal(expectedDist, 13);
+
+  // When rendered on screen under 2x zoom:
+  const zoom = 2.0;
+  const pan = { x: -50, y: 20 };
+  const p1Screen = worldToScreen(p1World, zoom, pan);
+  const p2Screen = worldToScreen(p2World, zoom, pan);
+
+  // Convert back from screen to world
+  const p1Restored = screenToWorld(p1Screen, zoom, pan);
+  const p2Restored = screenToWorld(p2Screen, zoom, pan);
+
+  const restoredDist = Math.hypot(p2Restored.x - p1Restored.x, p2Restored.y - p1Restored.y);
+  assert.ok(
+    Math.abs(restoredDist - expectedDist) < 1e-6,
+    "World distance must remain strictly scale-invariant for reliable magnetic snapping"
+  );
+});
+

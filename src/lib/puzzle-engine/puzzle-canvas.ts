@@ -7,6 +7,7 @@ export interface EngineEvents {
   onProgress?: (placedCount: number, totalCount: number) => void;
   onVictory?: () => void;
   onMove?: () => void;
+  onZoomChange?: (zoomScale: number) => void;
 }
 
 export class PuzzleCanvasEngine {
@@ -22,12 +23,28 @@ export class PuzzleCanvasEngine {
   public dsu: DisjointSet;
   public boardBounds: BoardBounds = { x: 0, y: 0, width: 0, height: 0 };
   
-  // Interaction State
+  // Camera & Viewport Zoom / Pan State
+  public zoomScale: number = 1.0;
+  public panOffset: Point = { x: 0, y: 0 };
+  public readonly minZoom: number = 0.5;
+  public readonly maxZoom: number = 3.0;
+
+  // Interaction & Gesture State
   private activeGroup: number[] | null = null;
   private dragStartPos: Point = { x: 0, y: 0 };
   private initialPiecePositions: Map<number, Point> = new Map();
   private maxZIndex: number = 100;
   private consecutiveSnaps: number = 0;
+
+  // Multi-touch tracking
+  private activePointers: Map<number, Point> = new Map();
+  private isPanningCanvas: boolean = false;
+  private panStartScreenPos: Point = { x: 0, y: 0 };
+  private initialPanOffset: Point = { x: 0, y: 0 };
+  private pinchStartDist: number = 0;
+  private pinchStartCenter: Point = { x: 0, y: 0 };
+  private pinchStartZoom: number = 1.0;
+  private pinchStartPan: Point = { x: 0, y: 0 };
 
   // Visual helper toggles
   public showGhostImage: boolean = false;
@@ -223,6 +240,55 @@ export class PuzzleCanvasEngine {
   }
 
   // ==========================================
+  // CAMERA COORDINATE TRANSFORMS (World <-> Screen)
+  // ==========================================
+  public screenToWorld(pos: Point): Point {
+    return {
+      x: (pos.x - this.panOffset.x) / this.zoomScale,
+      y: (pos.y - this.panOffset.y) / this.zoomScale,
+    };
+  }
+
+  public worldToScreen(pos: Point): Point {
+    return {
+      x: pos.x * this.zoomScale + this.panOffset.x,
+      y: pos.y * this.zoomScale + this.panOffset.y,
+    };
+  }
+
+  public setZoom(targetZoom: number, focalScreenPoint?: Point) {
+    const rect = this.canvas.getBoundingClientRect();
+    const focalScreen = focalScreenPoint || { x: rect.width / 2, y: rect.height / 2 };
+    const clampedZoom = Math.min(Math.max(targetZoom, this.minZoom), this.maxZoom);
+    if (Math.abs(clampedZoom - this.zoomScale) < 0.001) return;
+
+    const focalWorld = this.screenToWorld(focalScreen);
+    this.zoomScale = clampedZoom;
+    this.panOffset = {
+      x: focalScreen.x - focalWorld.x * this.zoomScale,
+      y: focalScreen.y - focalWorld.y * this.zoomScale,
+    };
+
+    this.render();
+    this.events.onZoomChange?.(this.zoomScale);
+  }
+
+  public zoomIn() {
+    this.setZoom(this.zoomScale * 1.2);
+  }
+
+  public zoomOut() {
+    this.setZoom(this.zoomScale / 1.2);
+  }
+
+  public resetZoom() {
+    this.zoomScale = 1.0;
+    this.panOffset = { x: 0, y: 0 };
+    this.render();
+    this.events.onZoomChange?.(this.zoomScale);
+  }
+
+  // ==========================================
   // EVENT HANDLING (Touch & Mouse via PointerEvents)
   // ==========================================
   private attachEvents() {
@@ -231,12 +297,16 @@ export class PuzzleCanvasEngine {
     this.canvas.addEventListener("pointerdown", this.handlePointerDown);
     window.addEventListener("pointermove", this.handlePointerMove);
     window.addEventListener("pointerup", this.handlePointerUp);
+    window.addEventListener("pointercancel", this.handlePointerCancel);
+    this.canvas.addEventListener("wheel", this.handleWheel, { passive: false });
   }
 
   public destroy() {
     this.canvas.removeEventListener("pointerdown", this.handlePointerDown);
     window.removeEventListener("pointermove", this.handlePointerMove);
     window.removeEventListener("pointerup", this.handlePointerUp);
+    window.removeEventListener("pointercancel", this.handlePointerCancel);
+    this.canvas.removeEventListener("wheel", this.handleWheel);
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
@@ -250,63 +320,186 @@ export class PuzzleCanvasEngine {
     };
   }
 
-  private handlePointerDown = (e: PointerEvent) => {
-    const pos = this.getPointerPos(e);
+  private handleWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    const rect = this.canvas.getBoundingClientRect();
+    const focalScreen = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+    const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
+    this.setZoom(this.zoomScale * zoomFactor, focalScreen);
+  };
 
-    // Find topmost piece clicked (sort pieces by zIndex descending)
+  private handlePointerDown = (e: PointerEvent) => {
+    const screenPos = this.getPointerPos(e);
+    this.activePointers.set(e.pointerId, screenPos);
+
+    // Multi-touch: 2 or more fingers -> Switch to Pinch / Pan mode
+    if (this.activePointers.size >= 2) {
+      // If we were dragging a piece, revert to original position to avoid jitter
+      if (this.activeGroup) {
+        this.activeGroup.forEach((id) => {
+          const init = this.initialPiecePositions.get(id);
+          if (init) this.pieces[id].currentPos = { ...init };
+        });
+        this.activeGroup = null;
+      }
+      this.isPanningCanvas = false;
+
+      const pts = Array.from(this.activePointers.values());
+      this.pinchStartDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y) || 1;
+      this.pinchStartCenter = {
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2,
+      };
+      this.pinchStartZoom = this.zoomScale;
+      this.pinchStartPan = { ...this.panOffset };
+      this.render();
+      return;
+    }
+
+    // Single touch or mouse click: check if hitting a puzzle piece (in World Space)
+    const worldPos = this.screenToWorld(screenPos);
     const sorted = [...this.pieces].sort((a, b) => b.zIndex - a.zIndex);
 
+    let hitPiece: Piece | null = null;
     for (const piece of sorted) {
       if (piece.isPlaced) continue;
 
-      // Check if point is inside piece bounding box + margin for tabs
       const margin = Math.max(piece.width, piece.height) * 0.4;
       if (
-        pos.x >= piece.currentPos.x - margin &&
-        pos.x <= piece.currentPos.x + piece.width + margin &&
-        pos.y >= piece.currentPos.y - margin &&
-        pos.y <= piece.currentPos.y + piece.height + margin
+        worldPos.x >= piece.currentPos.x - margin &&
+        worldPos.x <= piece.currentPos.x + piece.width + margin &&
+        worldPos.y >= piece.currentPos.y - margin &&
+        worldPos.y <= piece.currentPos.y + piece.height + margin
       ) {
-        // Bring group to top z-index
-        this.maxZIndex += 1;
-        const group = this.dsu.getGroup(piece.id);
-        this.activeGroup = group;
-        this.dragStartPos = pos;
-
-        this.initialPiecePositions.clear();
-        group.forEach((memberId) => {
-          const p = this.pieces[memberId];
-          p.zIndex = this.maxZIndex;
-          this.initialPiecePositions.set(memberId, { ...p.currentPos });
-        });
-
-        this.render();
+        hitPiece = piece;
         break;
       }
+    }
+
+    if (hitPiece) {
+      // Hit a piece: initiate dragging of the DSU cluster
+      this.maxZIndex += 1;
+      const group = this.dsu.getGroup(hitPiece.id);
+      this.activeGroup = group;
+      this.dragStartPos = worldPos;
+
+      this.initialPiecePositions.clear();
+      group.forEach((memberId) => {
+        const p = this.pieces[memberId];
+        p.zIndex = this.maxZIndex;
+        this.initialPiecePositions.set(memberId, { ...p.currentPos });
+      });
+
+      this.isPanningCanvas = false;
+      this.render();
+    } else {
+      // Hit empty canvas space: start single-finger canvas pan
+      this.activeGroup = null;
+      this.isPanningCanvas = true;
+      this.panStartScreenPos = screenPos;
+      this.initialPanOffset = { ...this.panOffset };
     }
   };
 
   private handlePointerMove = (e: PointerEvent) => {
-    if (!this.activeGroup) return;
+    const screenPos = this.getPointerPos(e);
+    if (!this.activePointers.has(e.pointerId)) return;
+    this.activePointers.set(e.pointerId, screenPos);
 
-    const pos = this.getPointerPos(e);
-    const dx = pos.x - this.dragStartPos.x;
-    const dy = pos.y - this.dragStartPos.y;
+    // Multi-touch pinch & pan
+    if (this.activePointers.size >= 2) {
+      const pts = Array.from(this.activePointers.values());
+      const currDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y) || 1;
+      const currCenter = {
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2,
+      };
 
-    this.activeGroup.forEach((id) => {
-      const initial = this.initialPiecePositions.get(id);
-      if (initial) {
-        this.pieces[id].currentPos = {
-          x: initial.x + dx,
-          y: initial.y + dy,
-        };
-      }
-    });
+      const scaleFactor = currDist / this.pinchStartDist;
+      const targetZoom = Math.min(
+        Math.max(this.pinchStartZoom * scaleFactor, this.minZoom),
+        this.maxZoom
+      );
 
-    this.render();
+      // World point corresponding to initial pinch center
+      const worldCenter = {
+        x: (this.pinchStartCenter.x - this.pinchStartPan.x) / this.pinchStartZoom,
+        y: (this.pinchStartCenter.y - this.pinchStartPan.y) / this.pinchStartZoom,
+      };
+
+      this.zoomScale = targetZoom;
+      this.panOffset = {
+        x: currCenter.x - worldCenter.x * this.zoomScale,
+        y: currCenter.y - worldCenter.y * this.zoomScale,
+      };
+
+      this.render();
+      this.events.onZoomChange?.(this.zoomScale);
+      return;
+    }
+
+    // Single touch / mouse dragging piece
+    if (this.activeGroup) {
+      const worldPos = this.screenToWorld(screenPos);
+      const dx = worldPos.x - this.dragStartPos.x;
+      const dy = worldPos.y - this.dragStartPos.y;
+
+      this.activeGroup.forEach((id) => {
+        const initial = this.initialPiecePositions.get(id);
+        if (initial) {
+          this.pieces[id].currentPos = {
+            x: initial.x + dx,
+            y: initial.y + dy,
+          };
+        }
+      });
+
+      this.render();
+      return;
+    }
+
+    // Single touch / mouse panning canvas background
+    if (this.isPanningCanvas) {
+      const dx = screenPos.x - this.panStartScreenPos.x;
+      const dy = screenPos.y - this.panStartScreenPos.y;
+
+      this.panOffset = {
+        x: this.initialPanOffset.x + dx,
+        y: this.initialPanOffset.y + dy,
+      };
+
+      this.render();
+      return;
+    }
   };
 
-  private handlePointerUp = () => {
+  private handlePointerCancel = (e: PointerEvent) => {
+    this.activePointers.delete(e.pointerId);
+    if (this.activePointers.size === 0) {
+      this.isPanningCanvas = false;
+      this.activeGroup = null;
+      this.render();
+    }
+  };
+
+  private handlePointerUp = (e: PointerEvent) => {
+    this.activePointers.delete(e.pointerId);
+
+    // If there are still active pointers (e.g. 1 finger left after 2-finger pinch),
+    // update pinch/pan anchor to avoid sudden jump
+    if (this.activePointers.size === 1) {
+      const remainingPos = Array.from(this.activePointers.values())[0];
+      this.isPanningCanvas = true;
+      this.panStartScreenPos = remainingPos;
+      this.initialPanOffset = { ...this.panOffset };
+      return;
+    }
+
+    this.isPanningCanvas = false;
+
     if (!this.activeGroup) return;
 
     this.events.onMove?.();
@@ -415,6 +608,11 @@ export class PuzzleCanvasEngine {
     const rect = this.canvas.getBoundingClientRect();
     this.ctx.clearRect(0, 0, rect.width, rect.height);
 
+    this.ctx.save();
+    // Apply camera transform: Pan and Zoom
+    this.ctx.translate(this.panOffset.x, this.panOffset.y);
+    this.ctx.scale(this.zoomScale, this.zoomScale);
+
     // 1. Draw Assembly Board Outline & Background
     this.drawBoardBackground();
 
@@ -443,6 +641,8 @@ export class PuzzleCanvasEngine {
     for (const piece of sortedPieces) {
       this.drawPiece(piece);
     }
+
+    this.ctx.restore();
   }
 
   private drawBoardBackground() {

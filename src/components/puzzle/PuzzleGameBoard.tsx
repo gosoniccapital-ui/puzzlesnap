@@ -24,6 +24,8 @@ import {
   ChevronDown,
   Send,
   Loader2,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 
 interface PuzzleGameBoardProps {
@@ -78,6 +80,7 @@ export default function PuzzleGameBoard({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isVictory, setIsVictory] = useState(false);
+  const [zoomPercent, setZoomPercent] = useState(100);
 
   // Leaderboard & Player Score state
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
@@ -199,6 +202,7 @@ export default function PuzzleGameBoard({
       setMoveCount(0);
       setSeconds(0);
       setIsVictory(false);
+      setZoomPercent(100);
 
       if (engineRef.current) {
         engineRef.current.destroy();
@@ -216,6 +220,7 @@ export default function PuzzleGameBoard({
           },
           onVictory: handleVictory,
           onMove: () => setMoveCount((m) => m + 1),
+          onZoomChange: (scale) => setZoomPercent(Math.round(scale * 100)),
         },
         16,
         cutStyle
@@ -298,6 +303,18 @@ export default function PuzzleGameBoard({
 
   const handleSolve = () => {
     engineRef.current?.solve();
+  };
+
+  const handleZoomIn = () => {
+    engineRef.current?.zoomIn();
+  };
+
+  const handleZoomOut = () => {
+    engineRef.current?.zoomOut();
+  };
+
+  const handleResetZoom = () => {
+    engineRef.current?.resetZoom();
   };
 
   return (
@@ -405,6 +422,31 @@ export default function PuzzleGameBoard({
             {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-stone-500" /> : <Maximize className="w-3.5 h-3.5 text-stone-500" />}
             <span className="hidden md:inline">Fullscreen</span>
           </button>
+
+          {/* Zoom Control Group on Toolbar */}
+          <div className="hidden sm:flex items-center bg-white rounded-lg border border-stone-200 shadow-2xs p-0.5">
+            <button
+              onClick={handleZoomOut}
+              className="p-1 rounded text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleResetZoom}
+              className="px-1.5 py-0.5 text-[11px] font-black text-stone-700 hover:text-stone-900 transition cursor-pointer"
+              title="Click to Reset Zoom (100%)"
+            >
+              {zoomPercent}%
+            </button>
+            <button
+              onClick={handleZoomIn}
+              className="p-1 rounded text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
           {/* More Dropdown Menu */}
           <div className="relative">
@@ -547,6 +589,31 @@ export default function PuzzleGameBoard({
             </button>
           </div>
         )}
+
+        {/* Floating Zoom Controls (Convenient for mobile pinch/touch and quick resetting) */}
+        <div className="absolute bottom-3 right-3 z-10 flex items-center bg-white/95 backdrop-blur-md rounded-xl border border-stone-200 shadow-md p-1 gap-1 select-none">
+          <button
+            onClick={handleZoomOut}
+            className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-700 transition cursor-pointer"
+            title="Zoom Out (-)"
+          >
+            <ZoomOut className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={handleResetZoom}
+            className="px-2 py-0.5 text-[11px] font-black text-stone-700 hover:text-stone-900 rounded-md hover:bg-stone-100 transition min-w-[42px] text-center cursor-pointer"
+            title="Reset Zoom to 100%"
+          >
+            {zoomPercent}%
+          </button>
+          <button
+            onClick={handleZoomIn}
+            className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-700 transition cursor-pointer"
+            title="Zoom In (+)"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* 3. Leaderboard Under Board (Matching PuzzleSnap layout) */}
