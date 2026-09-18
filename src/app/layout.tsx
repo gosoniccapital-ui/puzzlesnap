@@ -1,11 +1,21 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
+import PwaRegister from "@/components/pwa/PwaRegister";
 
 export const metadata: Metadata = {
   title: "CunFashion — Free Online Jigsaw Puzzles",
   description: "Play thousands of free online jigsaw puzzles on CunFashion. Browse by category, try the daily puzzle, or create your own custom jigsaw puzzles from any photo.",
   manifest: "/site.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CunFashion",
+  },
+  icons: {
+    icon: "/images/puzzle-icon-192.png",
+    apple: "/images/puzzle-icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -22,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col bg-[#fbfaf7] text-stone-900 antialiased selection:bg-[#ffb703] selection:text-stone-950">
+        <PwaRegister />
         <Navbar />
         <main className="flex-1">{children}</main>
         <footer className="border-t border-stone-200 bg-white py-12 text-center text-xs text-stone-500">

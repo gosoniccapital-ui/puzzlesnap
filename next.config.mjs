@@ -34,6 +34,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: https: https://images.unsplash.com https://*.supabase.co https://*.supabase.in https://m.media-amazon.com https://images-na.ssl-images-amazon.com",
       "media-src 'self' data: blob:",
       "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://generativelanguage.googleapis.com",
+      "worker-src 'self' blob:",
       "frame-ancestors 'self'",
     ].join("; "),
   },
