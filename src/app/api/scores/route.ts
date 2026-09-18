@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     // 1. In-Memory Rate Limiting
     const forwardedFor = request.headers.get("x-forwarded-for");
     const clientIp = forwardedFor ? forwardedFor.split(",")[0].trim() : "127.0.0.1";
-    if (isRateLimited(clientIp, 60, 60_000)) {
+    if (isRateLimited(clientIp, 20, 60_000)) {
       return NextResponse.json(
         { success: false, error: "Too many score submissions. Please wait a moment." },
         { status: 429 }

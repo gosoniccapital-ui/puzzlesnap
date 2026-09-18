@@ -283,15 +283,30 @@ export class PuzzleCanvasEngine {
     const piece = this.pieces.find((p) => p.id === pieceId);
     if (!piece) return;
 
-    piece.currentPos = { ...pos };
-    piece.rotation = rotation;
-    if (isPlaced && !piece.isPlaced) {
-      piece.isPlaced = true;
-      piece.currentPos = { ...piece.originalPos };
-      piece.rotation = 0;
-      piece.zIndex = 0;
-      soundFx.playSnap(1);
+    // Invariant: Do not overwrite if local player is actively dragging this piece or group
+    if (this.activeGroup && this.activeGroup.includes(pieceId)) {
+      return;
+    }
 
+    const deltaX = pos.x - piece.currentPos.x;
+    const deltaY = pos.y - piece.currentPos.y;
+
+    const group = this.dsu.getGroup(pieceId);
+    group.forEach((id) => {
+      const p = this.pieces[id];
+      p.currentPos.x += deltaX;
+      p.currentPos.y += deltaY;
+      p.rotation = rotation;
+      if (isPlaced) {
+        p.isPlaced = true;
+        p.currentPos = { ...p.originalPos };
+        p.rotation = 0;
+        p.zIndex = 0;
+      }
+    });
+
+    if (isPlaced) {
+      soundFx.playSnap(1);
       const placedCount = this.pieces.filter((p) => p.isPlaced).length;
       this.events.onProgress?.(placedCount, this.pieces.length);
       if (placedCount === this.pieces.length) {
@@ -339,6 +354,9 @@ export class PuzzleCanvasEngine {
       p.currentPos.x = newCx - p.width / 2;
       p.currentPos.y = newCy - p.height / 2;
       p.rotation = (p.rotation + rotAngle) % 360;
+
+      // Broadcast each rotated member's coordinates & rotation angle to Co-op players
+      this.events.onPieceMove?.(memberId, p.currentPos, p.rotation);
     });
 
     soundFx.playClick();

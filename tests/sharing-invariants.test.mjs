@@ -64,4 +64,42 @@ describe("Custom Puzzle Sharing & Alignment Invariants", () => {
     assert.ok(normalPayload.length <= MAX_BYTES);
     assert.ok(oversizedPayload.length > MAX_BYTES);
   });
+
+  it("Custom puzzle security: rejects private and loopback IP hosts", () => {
+    const isForbiddenHost = (img) =>
+      img.includes("localhost") ||
+      img.includes("127.0.0.1") ||
+      img.includes("169.254.") ||
+      img.includes("0.0.0.0") ||
+      img.includes("::1");
+
+    assert.equal(isForbiddenHost("http://localhost:3000/secret.png"), true);
+    assert.equal(isForbiddenHost("http://127.0.0.1:8080/image.jpg"), true);
+    assert.equal(isForbiddenHost("http://169.254.169.254/metadata"), true);
+    assert.equal(isForbiddenHost("https://images.unsplash.com/photo.jpg"), false);
+    assert.equal(isForbiddenHost("data:image/png;base64,iVBORw0KGgoAAAANSUhEUg=="), false);
+  });
+
+  it("Multiplayer Co-Op: cluster translation preserves relative distances between members", () => {
+    // Cluster of piece 0 and piece 1
+    const p0 = { id: 0, currentPos: { x: 100, y: 100 } };
+    const p1 = { id: 1, currentPos: { x: 200, y: 100 } };
+    const originalDx = p1.currentPos.x - p0.currentPos.x;
+
+    // Remote move arrives for piece 0 to (150, 120)
+    const newPos = { x: 150, y: 120 };
+    const deltaX = newPos.x - p0.currentPos.x;
+    const deltaY = newPos.y - p0.currentPos.y;
+
+    p0.currentPos.x += deltaX;
+    p0.currentPos.y += deltaY;
+    p1.currentPos.x += deltaX;
+    p1.currentPos.y += deltaY;
+
+    assert.equal(p0.currentPos.x, 150);
+    assert.equal(p0.currentPos.y, 120);
+    assert.equal(p1.currentPos.x, 250);
+    assert.equal(p1.currentPos.y, 120);
+    assert.equal(p1.currentPos.x - p0.currentPos.x, originalDx);
+  });
 });

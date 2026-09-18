@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Image URL / URI scheme validation
+    // 3. Image URL / URI scheme validation & SSRF/Private IP host guard
     const isValidScheme =
       image.startsWith("http://") ||
       image.startsWith("https://") ||
@@ -117,6 +117,19 @@ export async function POST(request: NextRequest) {
     if (!isValidScheme) {
       return NextResponse.json(
         { success: false, error: "Image must be a valid HTTP(S) URL or image data URI" },
+        { status: 400 }
+      );
+    }
+
+    const isForbiddenHost =
+      image.includes("localhost") ||
+      image.includes("127.0.0.1") ||
+      image.includes("169.254.") ||
+      image.includes("0.0.0.0") ||
+      image.includes("::1");
+    if (isForbiddenHost) {
+      return NextResponse.json(
+        { success: false, error: "Private or loopback IP addresses are not permitted" },
         { status: 400 }
       );
     }
