@@ -28,6 +28,7 @@ import {
 
 export default function StyleAdvisorPage() {
   const [viewMode, setViewMode] = useState<"wide" | "mobile">("wide");
+  const [market, setMarket] = useState<"US" | "VN">("US");
   const [selectedImage, setSelectedImage] = useState<string | null>(
     "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80"
   );
@@ -37,6 +38,7 @@ export default function StyleAdvisorPage() {
   const [budget, setBudget] = useState("mid");
   const [color, setColor] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState<string>("");
   const [result, setResult] = useState<AdviceResult | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showExtensionModal, setShowExtensionModal] = useState(false);
@@ -53,7 +55,8 @@ export default function StyleAdvisorPage() {
       style: "elegant",
       budget: "mid",
       color: "đen, be, trung tính",
-      hasCustomImage: true
+      hasCustomImage: true,
+      market: "US"
     });
     setResult(initialAdvice);
   }, []);
@@ -118,28 +121,58 @@ export default function StyleAdvisorPage() {
     setStyle("elegant");
     setBudget("mid");
     setColor("đen, be, trung tính");
-    handleAnalyze();
+    setMarket("US");
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     setIsAnalyzing(true);
     setResult(null);
+    setAnalysisStatus("Đang gửi sang Google Gemini 3.6 Flash Vision...");
 
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/style-advisor/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: selectedImage,
+          occasion,
+          style,
+          budget,
+          color,
+          market,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setResult(json.data);
+          setIsAnalyzing(false);
+          setAnalysisStatus("");
+          setTimeout(() => {
+            resultRef.current?.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+          return;
+        }
+      }
+      throw new Error("API analysis returned non-OK status");
+    } catch (err) {
+      console.warn("Falling back to smart local heuristic:", err);
       const advice = generateStylistAdvice({
         occasion,
         style,
         budget,
         color,
-        hasCustomImage: Boolean(selectedImage)
+        hasCustomImage: Boolean(selectedImage),
+        market,
       });
       setResult(advice);
       setIsAnalyzing(false);
-
+      setAnalysisStatus("");
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
-    }, 600);
+    }
   };
 
   const handleCopyLink = (product: StyleProduct) => {
@@ -300,8 +333,39 @@ export default function StyleAdvisorPage() {
             )}
           </div>
 
+          {/* Thị trường mục tiêu (US Amazon vs VN Shopee/TikTok) */}
+          <div className="mb-4 pb-3 border-b border-stone-100 flex flex-wrap items-center justify-between gap-2">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
+              Thị trường mua sắm (Affiliate Market):
+            </label>
+            <div className="inline-flex rounded-xl bg-stone-100 p-1 border border-stone-200">
+              <button
+                type="button"
+                onClick={() => setMarket("US")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "US"
+                    ? "bg-white text-stone-900 shadow-xs border border-stone-200"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+              >
+                <span>🇺🇸 US / Global (Amazon)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarket("VN")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "VN"
+                    ? "bg-white text-stone-900 shadow-xs border border-stone-200"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+              >
+                <span>🇻🇳 Việt Nam (Shopee/TikTok)</span>
+              </button>
+            </div>
+          </div>
+
           {/* 2. Form Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-3 border-t border-stone-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
                 Dịp sử dụng
@@ -345,9 +409,19 @@ export default function StyleAdvisorPage() {
                 onChange={(e) => setBudget(e.target.value)}
                 className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800"
               >
-                <option value="mid">500k - 1.5tr</option>
-                <option value="low">Dưới 500k</option>
-                <option value="high">Trên 1.5tr</option>
+                {market === "US" ? (
+                  <>
+                    <option value="low">Under $30 (Tiết kiệm)</option>
+                    <option value="mid">$30 - $80 (Tiêu chuẩn)</option>
+                    <option value="high">Over $80 (Cao cấp)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="low">Dưới 500k (Tiết kiệm)</option>
+                    <option value="mid">500k - 1.5tr (Tiêu chuẩn)</option>
+                    <option value="high">Trên 1.5tr (Cao cấp)</option>
+                  </>
+                )}
               </select>
             </div>
 
@@ -374,7 +448,7 @@ export default function StyleAdvisorPage() {
             {isAnalyzing ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Đang phân tích phối đồ...</span>
+                <span>{analysisStatus || "Đang phân tích phối đồ..."}</span>
               </>
             ) : (
               <>
@@ -390,13 +464,40 @@ export default function StyleAdvisorPage() {
           <div ref={resultRef} className="space-y-6 animate-in fade-in duration-300">
             {/* 1. Card Gợi ý phong cách */}
             <div className="bg-white rounded-3xl shadow-sm border border-stone-200 p-5 sm:p-6">
-              <h2 className="text-base sm:text-lg font-bold text-stone-900 mb-2.5 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold">💡</span>
-                <span>Gợi ý phong cách</span>
-              </h2>
+              <div className="flex items-center justify-between mb-2.5">
+                <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold">💡</span>
+                  <span>Gợi ý phong cách</span>
+                </h2>
+                {result.source === "gemini-vision" ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                    ✨ Google Gemini 3.6 Flash
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                    ⚡ Smart Heuristic
+                  </span>
+                )}
+              </div>
               <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-medium bg-pink-50/40 p-4 rounded-2xl border border-pink-100">
                 {result.adviceText}
               </p>
+
+              {/* Món đồ nhận diện từ AI nếu có */}
+              {result.detectedItems && result.detectedItems.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-stone-100">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
+                    Món đồ AI nhận diện được từ ảnh:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {result.detectedItems.map((item, idx) => (
+                      <span key={idx} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-800 border border-stone-200">
+                        👗 {item.name} ({item.color})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Bảng phối màu đề xuất */}
               {result.palette && result.palette.length > 0 && (

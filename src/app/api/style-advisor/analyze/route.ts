@@ -75,14 +75,66 @@ export async function POST(request: NextRequest) {
     const apiKey = rawKey ? rawKey.replace(/^["']|["']$/g, "").trim() : "";
 
     // Check if Gemini Vision can be invoked
-    if (apiKey && typeof image === "string" && image.startsWith("data:image/")) {
+    if (apiKey && typeof image === "string") {
       try {
-        const matches = image.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
-        if (matches) {
-          const mimeType = matches[1];
-          const base64Data = matches[2];
+        let mimeType = "image/jpeg";
+        let base64Data = "";
 
-          const prompt = `You are an elite personal fashion stylist and personal shopper for CunFashion, specializing in US/Global chic styles.
+        if (image.startsWith("data:image/")) {
+          const matches = image.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+          if (matches) {
+            mimeType = matches[1];
+            base64Data = matches[2];
+          }
+        } else if (image.startsWith("http://") || image.startsWith("https://")) {
+          try {
+            const imgRes = await fetch(image, { signal: AbortSignal.timeout(6000) });
+            if (imgRes.ok) {
+              const arrayBuffer = await imgRes.arrayBuffer();
+              base64Data = Buffer.from(arrayBuffer).toString("base64");
+              mimeType = imgRes.headers.get("content-type") || "image/jpeg";
+            }
+          } catch (fetchErr) {
+            console.warn("Could not fetch remote image for vision analysis:", fetchErr);
+          }
+        }
+
+        if (base64Data) {
+          const isVN = market === "VN";
+          const prompt = isVN
+            ? `Bạn là chuyên gia tư vấn thời trang cao cấp của CunFashion, am hiểu phong cách giới trẻ & công sở Việt Nam.
+Hãy phân tích bức ảnh trang phục này cùng tiêu chí của người dùng:
+- Dịp sử dụng: ${occasion}
+- Phong cách: ${style}
+- Gam màu ưa thích: ${color || "phối màu tự nhiên"}
+
+Trả về DUY NHẤT một JSON object hợp lệ (không markdown, không backticks) theo cấu trúc chính xác:
+{
+  "headline": "Tiêu đề set đồ ngắn gọn, cuốn hút",
+  "overallStyle": "Tên phong cách, ví dụ: Công sở thanh lịch / Streetwear cá tính",
+  "adviceText": "2-3 câu tư vấn chuyên môn về phom dáng, tỷ lệ phối đồ và cách kết hợp",
+  "palette": [
+    {"name": "Tên màu 1", "hex": "#HEX"},
+    {"name": "Tên màu 2", "hex": "#HEX"},
+    {"name": "Tên màu 3", "hex": "#HEX"},
+    {"name": "Tên màu 4", "hex": "#HEX"}
+  ],
+  "detectedItems": [
+    {
+      "name": "Tên món đồ (ví dụ: Áo Blazer dáng suông)",
+      "category": "outerwear",
+      "color": "Màu sắc",
+      "style": "Chi tiết form dáng",
+      "searchQuery": "Từ khóa tìm mua trên Shopee / TikTok Shop (ví dụ: áo blazer dáng suông nữ)"
+    }
+  ],
+  "styleTips": [
+    "Mẹo 1 về phối lớp / layering",
+    "Mẹo 2 về phụ kiện / giày dép",
+    "Mẹo 3 về cân đối vóc dáng"
+  ]
+}`
+            : `You are an elite personal fashion stylist and personal shopper for CunFashion, specializing in US/Global chic styles.
 Analyze this outfit image and the user's styling preferences:
 - Occasion: ${occasion}
 - Desired Style: ${style}
