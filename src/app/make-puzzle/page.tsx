@@ -149,6 +149,10 @@ function MakePuzzleContent() {
       .then((data) => {
         if (data.success && data.data?.id) {
           setCustomPuzzleId(data.data.id);
+          if (data.data.image && data.data.image.startsWith("http")) {
+            setSelectedImage(data.data.image);
+            setIsCloudStored(true);
+          }
           if (typeof window !== "undefined") {
             const url = new URL(window.location.href);
             url.searchParams.set("id", data.data.id);
@@ -165,8 +169,10 @@ function MakePuzzleContent() {
       const cleanName = file.name.replace(/\.[^/.]+$/, "");
       setPuzzleTitle(cleanName);
       setIsCloudStored(false);
+      setCustomPuzzleId(null);
+      autoSavedRef.current = false;
 
-      // 1. Immediate local preview via FileReader for zero-delay UX
+      // Immediate local preview via FileReader for zero-delay UX
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -174,37 +180,6 @@ function MakePuzzleContent() {
         }
       };
       reader.readAsDataURL(file);
-
-      // 2. Background sync to Supabase Storage if configured
-      if (isSupabaseConfigured && supabase) {
-        try {
-          setIsUploading(true);
-          const ext = file.name.split(".").pop() || "jpg";
-          const uniquePath = "custom-puzzles/" + Date.now() + "-" + Math.random().toString(36).substring(2, 8) + "." + ext;
-
-          const { data, error } = await supabase.storage
-            .from("puzzle-images")
-            .upload(uniquePath, file, {
-              cacheControl: "3600",
-              upsert: false,
-            });
-
-          if (!error && data) {
-            const { data: publicUrlData } = supabase.storage
-              .from("puzzle-images")
-              .getPublicUrl(uniquePath);
-
-            if (publicUrlData?.publicUrl) {
-              setSelectedImage(publicUrlData.publicUrl);
-              setIsCloudStored(true);
-            }
-          }
-        } catch (err) {
-          console.warn("Storage upload fallback to local data url:", err);
-        } finally {
-          setIsUploading(false);
-        }
-      }
     }
   };
 
@@ -216,7 +191,18 @@ function MakePuzzleContent() {
       const currentRoom = searchParams.get("room");
       const roomQuery = currentRoom ? `&room=${encodeURIComponent(currentRoom)}` : "";
 
-      // 1. If it is already a web URL, encode directly into query param or save id
+      // 1. If we already have a persisted customPuzzleId, reuse it immediately
+      if (customPuzzleId) {
+        const urlWithId = window.location.origin + "/make-puzzle?id=" + customPuzzleId + roomQuery;
+        setShareUrl(urlWithId);
+        await navigator.clipboard.writeText(urlWithId);
+        setCopied(true);
+        setShowShareModal(true);
+        setTimeout(() => setCopied(false), 2500);
+        return;
+      }
+
+      // 2. If it is already a web URL, encode directly into query param or save id
       if (selectedImage.startsWith("http://") || selectedImage.startsWith("https://")) {
         const directUrl = window.location.origin + "/make-puzzle?img=" + encodeURIComponent(selectedImage) + "&title=" + encodeURIComponent(puzzleTitle) + "&diff=" + difficulty + roomQuery;
         setShareUrl(directUrl);
@@ -227,7 +213,7 @@ function MakePuzzleContent() {
         return;
       }
 
-      // 2. If it's a data URL / local file, persist via custom-puzzles API
+      // 3. If it's a data URL / local file, persist via custom-puzzles API (with Supabase Storage CDN upload)
       const res = await fetch("/api/custom-puzzles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -239,6 +225,11 @@ function MakePuzzleContent() {
       });
       const data = await res.json();
       if (data.success && data.data?.id) {
+        setCustomPuzzleId(data.data.id);
+        if (data.data.image && data.data.image.startsWith("http")) {
+          setSelectedImage(data.data.image);
+          setIsCloudStored(true);
+        }
         const urlWithId = window.location.origin + "/make-puzzle?id=" + data.data.id + roomQuery;
         setShareUrl(urlWithId);
         await navigator.clipboard.writeText(urlWithId);

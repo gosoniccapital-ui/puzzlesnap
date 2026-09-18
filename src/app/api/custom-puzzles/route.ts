@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { supabase, supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/client";
 
 interface CustomPuzzleRecord {
   id: string;
@@ -64,22 +64,25 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  if (isSupabaseConfigured && supabase) {
+  const client = supabaseAdmin || supabase;
+  if (isSupabaseConfigured && client) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from("puzzles")
         .select("*")
-        .eq("slug", id)
-        .single();
+        .eq("description", id)
+        .maybeSingle();
 
       if (!error && data) {
+        const diffMap: Record<number, string> = { 9: "easy", 16: "medium", 30: "hard", 40: "very-hard", 50: "supreme" };
+        const diff = typeof data.difficulty === "number" ? (diffMap[data.difficulty] || "medium") : (data.difficulty || "medium");
         return NextResponse.json({
           success: true,
           data: {
-            id: data.slug,
+            id: data.description || id,
             title: data.title,
             image: data.image_url,
-            difficulty: data.difficulty || "medium",
+            difficulty: diff,
             createdAt: new Date(data.created_at).getTime(),
           },
         });
@@ -151,10 +154,60 @@ export async function POST(request: NextRequest) {
 
     const id = "pz-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 7);
 
+    let finalImageUrl = image;
+
+    const client = supabaseAdmin || supabase;
+    if (isSupabaseConfigured && client) {
+      try {
+        if (image.startsWith("data:")) {
+          const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const contentType = matches[1];
+            const buffer = Buffer.from(matches[2], "base64");
+            const ext = contentType.split("/")[1] || "jpg";
+            const filePath = `custom-puzzles/${id}.${ext}`;
+            const { error: uploadError } = await client.storage
+              .from("puzzle-images")
+              .upload(filePath, buffer, { contentType, upsert: true });
+
+            if (!uploadError) {
+              const { data: publicData } = client.storage
+                .from("puzzle-images")
+                .getPublicUrl(filePath);
+              if (publicData?.publicUrl) {
+                finalImageUrl = publicData.publicUrl;
+              }
+            }
+          }
+        }
+
+        const diffNumMap: Record<string, number> = {
+          easy: 9,
+          medium: 16,
+          hard: 30,
+          "very-hard": 40,
+          supreme: 50,
+        };
+
+        await client.from("puzzles").insert({
+          title: cleanTitle,
+          description: id,
+          image_url: finalImageUrl,
+          source: "user",
+          width: 800,
+          height: 600,
+          difficulty: diffNumMap[cleanDifficulty] || 16,
+          is_public: true,
+        });
+      } catch (err) {
+        console.warn("Could not sync custom puzzle to Supabase DB:", err);
+      }
+    }
+
     const record: CustomPuzzleRecord = {
       id,
       title: cleanTitle,
-      image,
+      image: finalImageUrl,
       difficulty: cleanDifficulty,
       createdAt: Date.now(),
     };
@@ -166,44 +219,6 @@ export async function POST(request: NextRequest) {
     }
 
     customPuzzlesStore.set(id, record);
-
-    let finalImageUrl = image;
-
-    if (isSupabaseConfigured && supabase) {
-      try {
-        if (image.startsWith("data:")) {
-          const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-          if (matches && matches.length === 3) {
-            const contentType = matches[1];
-            const buffer = Buffer.from(matches[2], "base64");
-            const ext = contentType.split("/")[1] || "jpg";
-            const filePath = `custom-puzzles/${id}.${ext}`;
-            const { error: uploadError } = await supabase.storage
-              .from("puzzle-images")
-              .upload(filePath, buffer, { contentType, upsert: true });
-
-            if (!uploadError) {
-              const { data: publicData } = supabase.storage
-                .from("puzzle-images")
-                .getPublicUrl(filePath);
-              if (publicData?.publicUrl) {
-                finalImageUrl = publicData.publicUrl;
-              }
-            }
-          }
-        }
-
-        await supabase.from("puzzles").insert({
-          slug: id,
-          title: cleanTitle,
-          image_url: finalImageUrl,
-          difficulty: cleanDifficulty,
-          is_custom: true,
-        });
-      } catch (err) {
-        console.warn("Could not sync custom puzzle to Supabase DB:", err);
-      }
-    }
 
     return NextResponse.json({
       success: true,
