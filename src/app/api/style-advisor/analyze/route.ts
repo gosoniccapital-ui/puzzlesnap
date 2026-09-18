@@ -227,15 +227,57 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
             );
 
             const catalogPool = market === "US" ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
-            let matchedProducts: StyleProduct[] = [];
 
-            if (detectedItems.length > 0) {
-              const categories = detectedItems.map((d) => d.category);
-              matchedProducts = catalogPool.filter((p) => categories.includes(p.category));
-            }
+            // Category fallback images
+            const categoryImages: Record<string, string> = {
+              outerwear: "https://images.unsplash.com/photo-1544441893-675973e31985?w=600&auto=format&fit=crop&q=80",
+              top: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&auto=format&fit=crop&q=80",
+              bottom: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80",
+              dress: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",
+              shoes: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=600&auto=format&fit=crop&q=80",
+              accessory: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
+            };
 
-            if (matchedProducts.length < 3) {
-              matchedProducts = catalogPool.slice(0, 6);
+            // Build curated product cards directly from Gemini detected items
+            const isUS = market === "US";
+            const detectedProductCards: StyleProduct[] = detectedItems.map((item, idx) => {
+              const cat = item.category || "top";
+              const searchLink = isUS
+                ? buildAmazonSearchUrl(item.searchQuery || `${item.name} for women`)
+                : `https://shopee.vn/search?keyword=${encodeURIComponent(item.searchQuery || item.name)}`;
+
+              const matchedCatalogItem = catalogPool.find((p) => p.category === cat);
+              const cardImg = (idx === 0 && image && !image.startsWith("data:"))
+                ? image
+                : matchedCatalogItem?.img || categoryImages[cat] || categoryImages.top;
+
+              return {
+                id: `gemini-curated-${idx + 1}`,
+                name: item.name,
+                category: cat,
+                price: isUS ? "Check on Amazon" : "Xem trên Shopee",
+                originalPrice: isUS ? "Best Price" : "Giá tốt nhất",
+                rating: 4.8,
+                reviewCount: 320 + idx * 85,
+                img: cardImg,
+                link: searchLink,
+                platform: isUS ? ("Amazon" as const) : ("Shopee" as const),
+                tag: idx === 0 ? "Featured Look Match" : "AI Recommended",
+                occasions: [occasion],
+                styles: [style],
+                budgetTier: (budget as any) || "mid",
+                colorTags: [item.color],
+                market: isUS ? "US" : "VN"
+              };
+            });
+
+            // Combine with catalogPool to ensure we always present 4-6 rich products
+            const combinedProducts = [...detectedProductCards];
+            for (const catItem of catalogPool) {
+              if (combinedProducts.length >= 6) break;
+              if (!combinedProducts.some((p) => p.category === catItem.category)) {
+                combinedProducts.push(catItem);
+              }
             }
 
             const result: AdviceResult = {
@@ -248,8 +290,8 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
               ],
               styleTips: parsed.styleTips || [],
               detectedItems,
-              suggestedProducts: matchedProducts.slice(0, 6),
-              market: market === "US" ? "US" : "VN",
+              suggestedProducts: combinedProducts.slice(0, 6),
+              market: isUS ? "US" : "VN",
               source: "gemini-vision"
             };
 
