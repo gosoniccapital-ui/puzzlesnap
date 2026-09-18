@@ -8,6 +8,7 @@ import {
   updatePuzzleItem,
 } from "@/lib/data/puzzles-data";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ADMIN_COOKIE_NAME, verifyAdminToken } from "@/lib/auth/admin-session";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -69,6 +70,15 @@ function sanitizeUrl(val: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
+  const sessionCookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+  const isAuthenticated = await verifyAdminToken(sessionCookie);
+  if (!isAuthenticated) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Valid admin session required" },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
     const {
@@ -134,6 +144,15 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const sessionCookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+  const isAuthenticated = await verifyAdminToken(sessionCookie);
+  if (!isAuthenticated) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Valid admin session required" },
+      { status: 401 }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
@@ -150,6 +169,15 @@ export async function DELETE(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const sessionCookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+  const isAuthenticated = await verifyAdminToken(sessionCookie);
+  if (!isAuthenticated) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Valid admin session required" },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
     const {

@@ -1,11 +1,12 @@
 import React from "react";
 import PuzzleGameBoard from "@/components/puzzle/PuzzleGameBoard";
+import PuzzleShareButton from "@/components/puzzle/PuzzleShareButton";
 import Link from "next/link";
-import { Share2, Code } from "lucide-react";
 import { getPuzzleBySlug } from "@/lib/data/puzzles-data";
 
 interface PuzzlePageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export async function generateMetadata({ params }: PuzzlePageProps) {
@@ -24,8 +25,11 @@ export async function generateMetadata({ params }: PuzzlePageProps) {
   };
 }
 
-export default async function PuzzleDetailPage({ params }: PuzzlePageProps) {
+export default async function PuzzleDetailPage({ params, searchParams }: PuzzlePageProps) {
   const { slug } = await params;
+  const query = await searchParams;
+  const initialRoomId = typeof query?.room === "string" ? query.room : undefined;
+
   const puzzle = getPuzzleBySlug(slug);
   const title =
     puzzle?.title ||
@@ -50,14 +54,7 @@ export default async function PuzzleDetailPage({ params }: PuzzlePageProps) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button className="px-3 py-1.5 rounded-lg bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold border border-stone-200 shadow-xs transition flex items-center gap-1.5">
-            <Share2 className="w-3.5 h-3.5 text-stone-500" />
-            Share
-          </button>
-          <button className="px-3 py-1.5 rounded-lg bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold border border-stone-200 shadow-xs transition flex items-center gap-1.5">
-            <Code className="w-3.5 h-3.5 text-stone-500" />
-            Embed
-          </button>
+          <PuzzleShareButton title={title} />
         </div>
       </div>
 
@@ -72,6 +69,7 @@ export default async function PuzzleDetailPage({ params }: PuzzlePageProps) {
         productUrl={puzzle?.productUrl}
         productPriceOriginal={puzzle?.productPriceOriginal}
         productPriceSale={puzzle?.productPriceSale}
+        initialRoomId={initialRoomId}
       />
     </div>
   );

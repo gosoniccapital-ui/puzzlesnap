@@ -104,12 +104,16 @@ export default function Navbar() {
           <Search className="w-4 h-4 text-stone-400 absolute left-3 pointer-events-none" />
         </form>
 
-        {/* Right: Sign In / CTA */}
+        {/* Right: Admin Portal Link / CTA */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <button className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-stone-700 hover:text-stone-900 border border-stone-200 hover:bg-stone-50 rounded-full transition cursor-pointer">
+          <Link
+            href="/admin/login"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-stone-700 hover:text-amber-700 border border-stone-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-full transition"
+            title="Admin Dashboard Portal"
+          >
             <User className="w-3.5 h-3.5 text-stone-500" />
-            <span>Sign in</span>
-          </button>
+            <span>Admin</span>
+          </Link>
           <Link
             href="/make-puzzle"
             className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-xs font-extrabold bg-[#ffb703] hover:bg-[#e0a102] text-stone-950 rounded-full shadow-sm hover:shadow transition"

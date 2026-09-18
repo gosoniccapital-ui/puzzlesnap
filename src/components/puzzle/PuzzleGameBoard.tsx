@@ -27,6 +27,7 @@ interface PuzzleGameBoardProps {
   productUrl?: string;
   productPriceOriginal?: string;
   productPriceSale?: string;
+  initialRoomId?: string;
 }
 
 const DIFFICULTY_MAP = {
@@ -47,6 +48,7 @@ export default function PuzzleGameBoard({
   productUrl,
   productPriceOriginal,
   productPriceSale,
+  initialRoomId,
 }: PuzzleGameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -84,6 +86,7 @@ export default function PuzzleGameBoard({
   const [coopRoomId, setCoopRoomId] = useState("");
   const [coopPlayers, setCoopPlayers] = useState<RemotePlayer[]>([]);
   const [isCoopConnected, setIsCoopConnected] = useState(false);
+  const [coopToast, setCoopToast] = useState<string | null>(null);
   const coopEngineRef = useRef<RealtimeRoomEngine | null>(null);
 
   // Load player name from localStorage
@@ -275,6 +278,22 @@ export default function PuzzleGameBoard({
     setCoopRoomId("");
     setCoopPlayers([]);
   }, []);
+
+  // Auto-connect to Co-Op room if URL param ?room=... or initialRoomId is provided
+  useEffect(() => {
+    let targetRoom = initialRoomId;
+    if (!targetRoom && typeof window !== "undefined") {
+      const urlParam = new URLSearchParams(window.location.search).get("room");
+      if (urlParam) targetRoom = urlParam;
+    }
+
+    if (targetRoom && targetRoom !== coopRoomId) {
+      handleConnectCoopRoom(targetRoom);
+      setCoopToast(`Đã tham gia phòng Co-Op: ${targetRoom}`);
+      const timer = setTimeout(() => setCoopToast(null), 4500);
+      return () => clearTimeout(timer);
+    }
+  }, [initialRoomId, handleConnectCoopRoom, coopRoomId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -503,6 +522,14 @@ export default function PuzzleGameBoard({
           <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-amber-500/90 text-stone-950 text-xs font-black shadow-md backdrop-blur-xs flex items-center gap-1.5 animate-in fade-in duration-200 select-none pointer-events-none">
             <span className="inline-block w-2 h-2 rounded-full bg-stone-950 animate-pulse" />
             <span>Xoay mảnh: Spacebar / Chuột phải / Chạm đúp</span>
+          </div>
+        )}
+
+        {/* Co-Op Auto-Connected Toast Banner */}
+        {coopToast && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-2xl bg-emerald-600 text-white text-xs font-black shadow-xl border border-emerald-400 flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+            <span className="inline-block w-2 h-2 rounded-full bg-white animate-pulse" />
+            <span>{coopToast}</span>
           </div>
         )}
 

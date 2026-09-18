@@ -6,6 +6,7 @@ import {
   deleteScoreRecord,
 } from "@/lib/data/scores-data";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ADMIN_COOKIE_NAME, verifyAdminToken } from "@/lib/auth/admin-session";
 
 // Simple in-memory rate limiter for score submissions (sliding 1-minute window)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -175,6 +176,15 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const sessionCookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+  const isAuthenticated = await verifyAdminToken(sessionCookie);
+  if (!isAuthenticated) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized: Valid admin session required" },
+      { status: 401 }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
