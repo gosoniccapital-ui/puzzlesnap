@@ -17,6 +17,14 @@ export interface PieceSyncEvent {
   senderId: string;
 }
 
+export interface RoomPuzzleMeta {
+  puzzleId?: string;
+  puzzleSlug?: string;
+  title: string;
+  image: string;
+  difficulty?: string;
+}
+
 const PLAYER_COLORS = [
   "#f59e0b", // Amber
   "#3b82f6", // Blue
@@ -34,15 +42,18 @@ export class RealtimeRoomEngine {
   public localPlayerId: string;
   public localPlayerName: string;
   public localColor: string;
+  public roomMeta?: RoomPuzzleMeta;
   public players: Map<string, RemotePlayer> = new Map();
   private onPlayerUpdateCallback?: (players: RemotePlayer[]) => void;
   private onPieceSyncCallback?: (event: PieceSyncEvent) => void;
   private onSnapCallback?: (event: PieceSyncEvent) => void;
+  private onRoomMetaCallback?: (meta: RoomPuzzleMeta) => void;
 
-  constructor(roomId: string, playerName: string) {
+  constructor(roomId: string, playerName: string, roomMeta?: RoomPuzzleMeta) {
     this.roomId = roomId;
     this.localPlayerId = "pl-" + Math.random().toString(36).substring(2, 9);
     this.localPlayerName = playerName || "Player " + Math.floor(Math.random() * 100);
+    this.roomMeta = roomMeta;
     const savedColor = typeof window !== "undefined" ? localStorage.getItem("cunfashion_player_color") : null;
     this.localColor = savedColor || PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)];
   }
@@ -70,14 +81,21 @@ export class RealtimeRoomEngine {
     }
   }
 
+  public setRoomMeta(meta: RoomPuzzleMeta) {
+    this.roomMeta = meta;
+    this.broadcastRoomMeta(meta);
+  }
+
   public connect(
     onPlayersChange: (players: RemotePlayer[]) => void,
     onPieceSync: (event: PieceSyncEvent) => void,
-    onSnap: (event: PieceSyncEvent) => void
+    onSnap: (event: PieceSyncEvent) => void,
+    onRoomMeta?: (meta: RoomPuzzleMeta) => void
   ) {
     this.onPlayerUpdateCallback = onPlayersChange;
     this.onPieceSyncCallback = onPieceSync;
     this.onSnapCallback = onSnap;
+    this.onRoomMetaCallback = onRoomMeta;
 
     // Fallback broadcast channel using local BroadcastChannel API when Supabase is not online/configured
     if (typeof window !== "undefined" && window.BroadcastChannel) {
@@ -87,6 +105,9 @@ export class RealtimeRoomEngine {
         if (type === "presence") {
           if (payload.id !== this.localPlayerId) {
             this.players.set(payload.id, payload);
+            if (payload.roomMeta && this.onRoomMetaCallback) {
+              this.onRoomMetaCallback(payload.roomMeta);
+            }
             this.notifyPlayers();
           }
         } else if (type === "piece_move") {
@@ -97,16 +118,25 @@ export class RealtimeRoomEngine {
           if (payload.senderId !== this.localPlayerId) {
             this.onSnapCallback?.(payload);
           }
+        } else if (type === "request_room_meta") {
+          if (this.roomMeta) {
+            this.broadcastRoomMeta(this.roomMeta);
+          }
+        } else if (type === "room_meta") {
+          if (payload && this.onRoomMetaCallback) {
+            this.onRoomMetaCallback(payload);
+          }
         }
       };
 
-      // Announce self presence
+      // Announce self presence with room metadata if host
       bc.postMessage({
         type: "presence",
         payload: {
           id: this.localPlayerId,
           name: this.localPlayerName,
           color: this.localColor,
+          roomMeta: this.roomMeta,
           lastActive: Date.now(),
         },
       });
@@ -141,6 +171,9 @@ export class RealtimeRoomEngine {
                   lastActive: Date.now(),
                 });
                 this.players.set(key, remotePlayers[remotePlayers.length - 1]);
+                if (presence.roomMeta && this.onRoomMetaCallback) {
+                  this.onRoomMetaCallback(presence.roomMeta);
+                }
               }
             }
             this.notifyPlayers();
@@ -155,11 +188,22 @@ export class RealtimeRoomEngine {
               this.onSnapCallback?.(payload);
             }
           })
+          .on("broadcast", { event: "request_room_meta" }, () => {
+            if (this.roomMeta) {
+              this.broadcastRoomMeta(this.roomMeta);
+            }
+          })
+          .on("broadcast", { event: "room_meta" }, ({ payload }) => {
+            if (payload && this.onRoomMetaCallback) {
+              this.onRoomMetaCallback(payload);
+            }
+          })
           .subscribe(async (status) => {
             if (status === "SUBSCRIBED") {
               await roomChannel.track({
                 name: this.localPlayerName,
                 color: this.localColor,
+                roomMeta: this.roomMeta,
                 joinedAt: Date.now(),
               });
             }
@@ -244,6 +288,41 @@ export class RealtimeRoomEngine {
       this.channel.postMessage({
         type: "piece_snap",
         payload,
+      });
+    }
+  }
+
+  public broadcastRoomMeta(meta?: RoomPuzzleMeta) {
+    const payload = meta || this.roomMeta;
+    if (!payload || !this.channel) return;
+
+    if (this.channel.send) {
+      this.channel.send({
+        type: "broadcast",
+        event: "room_meta",
+        payload,
+      });
+    } else if (this.channel.postMessage) {
+      this.channel.postMessage({
+        type: "room_meta",
+        payload,
+      });
+    }
+  }
+
+  public requestRoomMeta() {
+    if (!this.channel) return;
+
+    if (this.channel.send) {
+      this.channel.send({
+        type: "broadcast",
+        event: "request_room_meta",
+        payload: { senderId: this.localPlayerId },
+      });
+    } else if (this.channel.postMessage) {
+      this.channel.postMessage({
+        type: "request_room_meta",
+        payload: { senderId: this.localPlayerId },
       });
     }
   }

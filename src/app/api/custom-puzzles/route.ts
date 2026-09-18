@@ -157,12 +157,36 @@ export async function POST(request: NextRequest) {
 
     customPuzzlesStore.set(id, record);
 
-    if (isSupabaseConfigured && supabase && !image.startsWith("data:")) {
+    let finalImageUrl = image;
+
+    if (isSupabaseConfigured && supabase) {
       try {
+        if (image.startsWith("data:")) {
+          const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const contentType = matches[1];
+            const buffer = Buffer.from(matches[2], "base64");
+            const ext = contentType.split("/")[1] || "jpg";
+            const filePath = `custom-puzzles/${id}.${ext}`;
+            const { error: uploadError } = await supabase.storage
+              .from("puzzle-images")
+              .upload(filePath, buffer, { contentType, upsert: true });
+
+            if (!uploadError) {
+              const { data: publicData } = supabase.storage
+                .from("puzzle-images")
+                .getPublicUrl(filePath);
+              if (publicData?.publicUrl) {
+                finalImageUrl = publicData.publicUrl;
+              }
+            }
+          }
+        }
+
         await supabase.from("puzzles").insert({
           slug: id,
           title: cleanTitle,
-          image_url: image,
+          image_url: finalImageUrl,
           difficulty: cleanDifficulty,
           is_custom: true,
         });

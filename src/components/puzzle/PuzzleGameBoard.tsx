@@ -28,6 +28,7 @@ interface PuzzleGameBoardProps {
   productPriceOriginal?: string;
   productPriceSale?: string;
   initialRoomId?: string;
+  customPuzzleId?: string;
 }
 
 const DIFFICULTY_MAP = {
@@ -49,6 +50,7 @@ export default function PuzzleGameBoard({
   productPriceOriginal,
   productPriceSale,
   initialRoomId,
+  customPuzzleId,
 }: PuzzleGameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -256,6 +258,24 @@ export default function PuzzleGameBoard({
     };
   }, []);
 
+  // Safe helper to build Co-Op room URL preserving all current query parameters (?id=..., ?img=..., ?diff=...)
+  const getShareableRoomUrl = useCallback(
+    (targetRoomId: string) => {
+      if (typeof window === "undefined" || !targetRoomId) return "";
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("room", targetRoomId);
+        if (customPuzzleId && !url.searchParams.has("id")) {
+          url.searchParams.set("id", customPuzzleId);
+        }
+        return url.toString();
+      } catch {
+        return `${window.location.origin}${window.location.pathname}?room=${targetRoomId}`;
+      }
+    },
+    [customPuzzleId]
+  );
+
   // Co-Op Room Handlers
   const handleConnectCoopRoom = useCallback((targetRoomId?: string) => {
     const roomId = targetRoomId || "ROOM-" + Math.floor(1000 + Math.random() * 9000);
@@ -265,7 +285,15 @@ export default function PuzzleGameBoard({
       coopEngineRef.current.disconnect();
     }
 
-    const coopEngine = new RealtimeRoomEngine(roomId, playerName);
+    const roomMeta = {
+      puzzleId: customPuzzleId,
+      puzzleSlug,
+      title,
+      image: imageSrc,
+      difficulty,
+    };
+
+    const coopEngine = new RealtimeRoomEngine(roomId, playerName, roomMeta);
     coopEngine.connect(
       (updatedPlayers) => {
         setCoopPlayers([...updatedPlayers]);
@@ -294,7 +322,7 @@ export default function PuzzleGameBoard({
 
     coopEngineRef.current = coopEngine;
     setIsCoopConnected(true);
-  }, [playerName]);
+  }, [playerName, customPuzzleId, puzzleSlug, title, imageSrc, difficulty]);
 
   const handleLeaveCoopRoom = useCallback(() => {
     if (coopEngineRef.current) {
@@ -627,7 +655,7 @@ export default function PuzzleGameBoard({
         isOpen={showCoopModal}
         onClose={() => setShowCoopModal(false)}
         roomId={coopRoomId}
-        roomUrl={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?room=${coopRoomId}` : ""}
+        roomUrl={coopRoomId ? getShareableRoomUrl(coopRoomId) : ""}
         players={coopPlayers}
         localPlayerName={playerName || "You"}
         isConnected={isCoopConnected}
