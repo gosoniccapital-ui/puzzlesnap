@@ -148,8 +148,8 @@ test("Admin Auth: Tampered signature must fail verification", async () => {
   const token = await createAdminToken(24);
   const [payload, signature] = token.split(".");
   
-  // Alter the last character of signature
-  const tamperedSig = signature.slice(0, -1) + (signature.slice(-1) === "a" ? "b" : "a");
+  // Alter the first character of signature (guarantees cryptographic mismatch)
+  const tamperedSig = (signature[0] === "a" ? "b" : "a") + signature.slice(1);
   const tamperedToken = `${payload}.${tamperedSig}`;
 
   const isValid = await verifyAdminToken(tamperedToken);

@@ -75,7 +75,16 @@ export async function GET(request: NextRequest) {
 
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        return NextResponse.json({ success: true, source: "supabase", data });
+        const normalizedData = data.map((s: any) => ({
+          id: s.id,
+          puzzleSlug: s.puzzle_slug || s.puzzleSlug,
+          playerName: s.player_name || s.playerName || "Anonymous",
+          pieceCount: s.piece_count || s.pieceCount,
+          elapsedSeconds: s.elapsed_seconds || s.elapsedSeconds,
+          moves: s.moves || 0,
+          createdAt: s.created_at || s.createdAt || new Date().toISOString(),
+        }));
+        return NextResponse.json({ success: true, source: "supabase", data: normalizedData });
       }
     } catch {
       // Fallback

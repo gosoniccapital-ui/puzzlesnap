@@ -79,17 +79,22 @@
 
 ## 5. 🚀 Trạng Thái Kiểm Thử & Triển Khai Thực Tế
 
-### Kết Quả Unit & Invariant Tests (42/42 Passed)
+### Kết Quả Unit & Invariant Tests (44/44 Passed 100%)
 ```bash
 > node --test tests/*.test.mjs
 
 ✔ Admin Auth: Valid HMAC token should verify successfully
+✔ Admin Auth: Tampered signature must fail verification
+✔ Admin Auth: Tampered payload must fail verification
+✔ Admin Auth: Expired token must be rejected
+✔ Admin Auth: Token signed with different secret must be rejected
 ✔ Admin Passcode: Exact match passes and incorrect passcodes fail
 ✔ Rate Limiter Logic: Blocks IP after exceeding max attempts
 ✔ Middleware Logic: Route protection and mutation gate matrix
 ✔ API: GET /api/daily should return today's daily puzzle
 ✔ API: GET /api/puzzles should support category and query filters
 ✔ API: GET and POST /api/scores should persist and sort leaderboard entries
+✔ API: POST /api/scores should sanitize XSS tags and enforce input validation
 ✔ E-Commerce: Sample fashion puzzles must have valid voucher and product info
 ✔ DisjointSet: should merge pieces correctly and maintain groups
 ✔ Edge Generation: guarantees outer boundaries are flat and adjacent edges are complementary
@@ -98,10 +103,12 @@
 ✔ Drag Interruption Invariant: Escape key and window blur cleanly roll back cluster positions
 ✔ Realtime Multiplayer Room Engine Invariants
 ✔ Custom Puzzle Sharing & Alignment Invariants
+✔ Custom puzzle security: rejects private and loopback IP hosts
+✔ Multiplayer Co-Op: cluster translation preserves relative distances between members
 ✔ Amazon Associates Tag: cuncute-20 verification
 ✔ Style Advisor Engine: US Market Generation with Detected Items
 ✔ Chrome Extension: Manifest V3 validation
-ℹ tests 42 | suites 2 | pass 42 | fail 0
+ℹ tests 44 | suites 2 | pass 44 | fail 0
 ```
 
 ### Bằng Chứng Live URL Verification
@@ -109,10 +116,13 @@
 - **Cun Style Advisor**: `https://cunfashion.com/style-advisor` -> `HTTP 200 OK`
 - **Standalone Demo**: `https://cunfashion.com/cun-style-advisor.html` -> `HTTP 200 OK`
 - **Vercel Deployment ID**: `dpl_HoHcDZcnZiFbsmzXNVWW9xFyQkkd`
+
 ## 6. 🛠️ Cập Nhật Fix Lỗi Layout & Đồng Bộ Hóa Giao Diện (Post-Deployment Hotline)
 - **Nguyên nhân gốc (Root Cause) lỗi layout trên `cun-style-advisor.html`**:
   File HTML ban đầu dùng link external CDN `<script src="https://cdn.tailwindcss.com">` và `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/...">`. Do `next.config.mjs` có CSP header nghiêm ngặt (`script-src 'self'`), trình duyệt trên live domain `https://cunfashion.com` đã chặn toàn bộ script và style từ CDN bên ngoài, dẫn đến file HTML bị mất toàn bộ styling.
 - **Biện pháp khắc phục triệt để**:
   1. Đã nhúng 100% **CSS nội bộ (self-contained inline CSS)** vào `public/cun-style-advisor.html`, loại bỏ hoàn toàn mọi phụ thuộc vào CDN bên ngoài. Trang web hiện hiển thị đẹp mắt, đầy đủ responsive và không bao giờ bị CSP chặn.
   2. Đồng bộ hóa 100% giao diện giữa `https://cunfashion.com/style-advisor` và `https://cunfashion.com/cun-style-advisor.html` về tông màu sáng thanh lịch, form 5 tiêu chí chuẩn mực từ Google Doc của Đại Ka, có sẵn nút nạp nhanh ảnh mẫu Blazer Đỏ, và bộ switcher linh hoạt `[ 🖥️ Wide ]` / `[ 📱 Mobile ]`.
-- **Live Verification**: Cả 2 trang đều trả về **HTTP 200 OK**, kích thước đầy đủ, giao diện đồng nhất 1:1.
+  3. **Chuẩn hóa Supabase Leaderboard Schema (`/api/scores`)**: Tự động chuyển đổi các trường snake_case từ Supabase DB (`player_name`, `elapsed_seconds`, `piece_count`) sang chuẩn camelCase (`playerName`, `elapsedSeconds`, `pieceCount`) để hiển thị đầy đủ tên người chơi trên bảng xếp hạng mà không bị undefined.
+  4. **Gia cố kiểm thử HMAC Signature**: Sửa đổi cơ chế test giả mạo signature để thay đổi byte dữ liệu thực tế thay vì byte padding, đảm bảo kiểm thử toàn vẹn 100% (44/44 tests passed).
+- **Live Verification**: Toàn bộ hệ thống đều trả về **HTTP 200 OK**, kích thước đầy đủ, giao diện đồng nhất 1:1.
