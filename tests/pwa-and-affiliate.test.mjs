@@ -43,3 +43,30 @@ test('Style Advisor: Zero fake shop links in VN and US catalogs', () => {
     assert.ok(item.link.includes('tag=cuncute-20'), 'Amazon item must have affiliate tag: ' + item.id);
   }
 });
+
+test('Puzzle Interactions: incrementLikes and incrementPlays update counter cleanly', async () => {
+  const { incrementLikes, incrementPlays, getPuzzleBySlug } = await import('../src/lib/data/puzzles-data.ts');
+  const slug = 'colorful-fireworks-jigsaw-puzzle';
+  const before = getPuzzleBySlug(slug);
+  assert.ok(before, 'Puzzle must exist');
+  const initialLikes = before.likes;
+  const initialPlays = before.plays;
+
+  const newLikes = incrementLikes(slug);
+  assert.equal(newLikes, initialLikes + 1);
+
+  const newPlays = incrementPlays(slug);
+  assert.equal(newPlays, initialPlays + 1);
+
+  assert.equal(before.likes, initialLikes + 1);
+  assert.equal(before.plays, initialPlays + 1);
+});
+
+test('UI Components: PwaRegister and PuzzleLikeButton exist', () => {
+  const pwaComponent = path.resolve('src', 'components', 'pwa', 'PwaRegister.tsx');
+  assert.ok(fs.existsSync(pwaComponent), 'PwaRegister.tsx must exist');
+
+  const likeButton = path.resolve('src', 'components', 'puzzle', 'PuzzleLikeButton.tsx');
+  assert.ok(fs.existsSync(likeButton), 'PuzzleLikeButton.tsx must exist');
+});
+

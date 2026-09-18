@@ -1,6 +1,7 @@
 import React from "react";
 import PuzzleGameBoard from "@/components/puzzle/PuzzleGameBoard";
 import PuzzleShareButton from "@/components/puzzle/PuzzleShareButton";
+import PuzzleLikeButton from "@/components/puzzle/PuzzleLikeButton";
 import Link from "next/link";
 import { getPuzzleBySlug } from "@/lib/data/puzzles-data";
 
@@ -54,6 +55,7 @@ export default async function PuzzleDetailPage({ params, searchParams }: PuzzleP
         </nav>
 
         <div className="flex items-center gap-2">
+          <PuzzleLikeButton slug={slug} initialLikes={puzzle?.likes} />
           <PuzzleShareButton title={title} />
         </div>
       </div>

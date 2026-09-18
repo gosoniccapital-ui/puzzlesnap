@@ -132,6 +132,20 @@ export default function PuzzleGameBoard({
     fetchLeaderboard();
   }, [fetchLeaderboard]);
 
+  // Track play count on session mount
+  useEffect(() => {
+    if (!puzzleSlug) return;
+    try {
+      fetch("/api/puzzles/interact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: puzzleSlug, action: "play" }),
+      }).catch(() => {});
+    } catch {
+      // Non-blocking
+    }
+  }, [puzzleSlug]);
+
   // Timer interval
   useEffect(() => {
     if (isPaused || isVictory) return;

@@ -48,6 +48,30 @@ export async function GET(request: NextRequest) {
   const all = searchParams.get("all");
 
   if (all === "true") {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("puzzle_scores")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(100);
+
+        if (!error && data && data.length > 0) {
+          const normalizedData = data.map((s: any) => ({
+            id: s.id,
+            puzzleSlug: s.puzzle_slug || s.puzzleSlug,
+            playerName: s.player_name || s.playerName || "Anonymous",
+            pieceCount: s.piece_count || s.pieceCount,
+            elapsedSeconds: s.elapsed_seconds || s.elapsedSeconds,
+            moves: s.moves || 0,
+            createdAt: s.created_at || s.createdAt || new Date().toISOString(),
+          }));
+          return NextResponse.json({ success: true, source: "supabase", count: normalizedData.length, data: normalizedData });
+        }
+      } catch {
+        // Fallback to local
+      }
+    }
     const scores = getAllScores();
     return NextResponse.json({ success: true, count: scores.length, data: scores });
   }
@@ -202,6 +226,15 @@ export async function DELETE(request: NextRequest) {
   }
 
   const deleted = deleteScoreRecord(id);
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from("puzzle_scores").delete().eq("id", id);
+    } catch (dbErr) {
+      console.warn("[scores] Supabase delete score warning:", dbErr);
+    }
+  }
+
   if (deleted) {
     return NextResponse.json({ success: true, message: "Score deleted successfully" });
   }

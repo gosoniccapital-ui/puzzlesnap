@@ -285,4 +285,19 @@ export function updatePuzzleItem(
   return PUZZLES_DATA[index];
 }
 
+export function incrementLikes(slug: string): number | null {
+  const puzzle = PUZZLES_DATA.find((p) => p.slug === slug);
+  if (!puzzle) return null;
+  puzzle.likes = (puzzle.likes || 0) + 1;
+  return puzzle.likes;
+}
+
+export function incrementPlays(slug: string): number | null {
+  const puzzle = PUZZLES_DATA.find((p) => p.slug === slug);
+  if (!puzzle) return null;
+  puzzle.plays = (puzzle.plays || 0) + 1;
+  return puzzle.plays;
+}
+
+
 
