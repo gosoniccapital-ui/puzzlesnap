@@ -89,11 +89,24 @@ export default function PuzzleGameBoard({
   const [coopToast, setCoopToast] = useState<string | null>(null);
   const coopEngineRef = useRef<RealtimeRoomEngine | null>(null);
 
-  // Load player name from localStorage
+  // Load player name from localStorage and listen to profile changes
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("cunfashion_player_name") || localStorage.getItem("puzzlesnap_player_name");
       if (saved) setPlayerName(saved);
+
+      const handleProfileUpdate = (e: Event) => {
+        const customEvent = e as CustomEvent<{ name: string; color: string }>;
+        if (customEvent.detail?.name) {
+          setPlayerName(customEvent.detail.name);
+          if (coopEngineRef.current) {
+            coopEngineRef.current.updateLocalProfile(customEvent.detail.name, customEvent.detail.color);
+          }
+        }
+      };
+
+      window.addEventListener("player_profile_updated", handleProfileUpdate);
+      return () => window.removeEventListener("player_profile_updated", handleProfileUpdate);
     }
   }, []);
 

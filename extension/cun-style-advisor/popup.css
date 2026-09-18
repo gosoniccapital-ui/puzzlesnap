@@ -1,0 +1,370 @@
+﻿/* Cun Style Advisor Popup Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 380px;
+  max-height: 580px;
+  overflow-y: auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #fafafa;
+  color: #18181b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Header */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #ffffff;
+  border-bottom: 1px solid #e4e4e7;
+  padding: 12px 16px;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(219, 39, 119, 0.3);
+}
+
+.brand-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #18181b;
+}
+
+.brand-subtitle {
+  font-size: 10px;
+  color: #71717a;
+}
+
+.header-link {
+  font-size: 11px;
+  font-weight: 700;
+  color: #db2777;
+  text-decoration: none;
+  background: #fdf2f8;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.header-link:hover {
+  background: #fce7f3;
+}
+
+/* Main */
+.main-container {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Section Card */
+.section-card {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #52525b;
+}
+
+.btn-text-danger {
+  background: none;
+  border: none;
+  color: #e11d48;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Preview Area */
+.preview-area {
+  border: 1px dashed #d4d4d8;
+  border-radius: 12px;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fafafa;
+  position: relative;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 12px 10px;
+}
+
+.empty-icon {
+  font-size: 24px;
+}
+
+.empty-text {
+  font-size: 11px;
+  color: #71717a;
+  margin: 6px 0 10px;
+  line-height: 1.4;
+}
+
+.btn-upload {
+  display: inline-block;
+  background: #fdf2f8;
+  color: #be185d;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  border: 1px solid #fbcfe8;
+  transition: all 0.2s;
+}
+
+.btn-upload:hover {
+  background: #fce7f3;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.preview-img {
+  max-width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.source-tag {
+  font-size: 10px;
+  color: #db2777;
+  font-weight: 600;
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* Form Grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #71717a;
+  text-transform: uppercase;
+}
+
+.form-select, .form-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #18181b;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-select:focus, .form-input:focus {
+  border-color: #db2777;
+}
+
+/* Action Button */
+.btn-primary {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #db2777, #be185d);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(219, 39, 119, 0.25);
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+/* Results */
+.results-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.advice-card {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.advice-text {
+  font-size: 11px;
+  color: #881337;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.products-header {
+  margin-top: 4px;
+}
+
+.products-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #18181b;
+}
+
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-item {
+  display: flex;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  padding: 8px;
+  align-items: center;
+}
+
+.product-img {
+  width: 54px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f4f4f5;
+  flex-shrink: 0;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-platform {
+  font-size: 9px;
+  font-weight: 700;
+  color: #db2777;
+  background: #fdf2f8;
+  padding: 2px 5px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.product-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #18181b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 2px 0;
+}
+
+.product-price {
+  font-size: 11px;
+  font-weight: 800;
+  color: #e11d48;
+}
+
+.btn-buy {
+  background: #18181b;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.btn-buy:hover {
+  background: #db2777;
+}
+
+/* Footer */
+.app-footer {
+  padding: 10px 16px 14px;
+  background: #ffffff;
+  border-top: 1px solid #e4e4e7;
+  text-align: center;
+}
+
+.footer-btn {
+  font-size: 11px;
+  font-weight: 700;
+  color: #71717a;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-btn:hover {
+  color: #db2777;
+}
+
+.hidden {
+  display: none !important;
+}

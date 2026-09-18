@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cun Style Advisor</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-row">
+      <div class="logo-wrap">
+        <span class="logo-badge">C</span>
+        <div>
+          <h1 class="brand-title">Cun Style Advisor</h1>
+          <p class="brand-subtitle">Gợi ý phối đồ chuẩn gu khi lướt web</p>
+        </div>
+      </div>
+      <a href="https://cunfashion.com/style-advisor" target="_blank" class="header-link" title="Mở trang web">
+        🌐 Web
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Active Image Preview -->
+    <div class="section-card image-card">
+      <div class="card-header">
+        <span class="card-label">1. Trang phục phân tích</span>
+        <button id="btnRemoveImage" class="btn-text-danger hidden">✕ Xóa</button>
+      </div>
+
+      <div id="imagePreviewContainer" class="preview-area empty">
+        <div id="emptyState" class="empty-state">
+          <span class="empty-icon">📷</span>
+          <p class="empty-text">Click chuột phải vào ảnh bất kỳ trên web & chọn <b>"Tư vấn phối đồ"</b> hoặc chọn ảnh bên dưới</p>
+          <label class="btn-upload">
+            <span>Chọn ảnh từ máy</span>
+            <input type="file" id="fileInput" accept="image/*" class="file-input-hidden" />
+          </label>
+        </div>
+        <img id="previewImage" class="preview-img hidden" alt="Selected outfit" />
+      </div>
+      <p id="imageSourceTag" class="source-tag hidden">✨ Nhận diện từ trang web đang xem</p>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="section-card">
+      <div class="card-header">
+        <span class="card-label">2. Tiêu chí lựa chọn</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="selectOccasion">Dịp sử dụng</label>
+          <select id="selectOccasion" class="form-select">
+            <option value="casual">Casual / Hàng ngày</option>
+            <option value="work">Đi làm / Công sở</option>
+            <option value="date">Hẹn hò lãng mạn</option>
+            <option value="party">Party / Sự kiện</option>
+            <option value="travel">Du lịch / Dạo phố</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="selectStyle">Phong cách</label>
+          <select id="selectStyle" class="form-select">
+            <option value="minimal">Minimal / Tối giản</option>
+            <option value="elegant">Elegant / Thanh lịch</option>
+            <option value="street">Streetwear</option>
+            <option value="romantic">Romantic / Nữ tính</option>
+            <option value="classic">Classic / Cổ điển</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="selectBudget">Ngân sách</label>
+          <select id="selectBudget" class="form-select">
+            <option value="low">Dưới 500k</option>
+            <option value="mid">500k - 1.5tr</option>
+            <option value="high">Trên 1.5tr</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="inputColor">Màu ưa thích</label>
+          <input type="text" id="inputColor" placeholder="Hồng pastel, đen, be..." class="form-input" />
+        </div>
+      </div>
+
+      <button id="btnAnalyze" class="btn-primary">
+        <span>✨ Phân Tích & Gợi Ý Sản Phẩm</span>
+      </button>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" class="results-container hidden">
+      <div class="section-card advice-card">
+        <div class="card-header">
+          <span class="card-label">💡 Lời khuyên Stylist</span>
+        </div>
+        <p id="adviceText" class="advice-text"></p>
+      </div>
+
+      <div class="products-header">
+        <h3 class="products-title">Sản Phẩm Phối Đồ Gợi Ý (Affiliate)</h3>
+      </div>
+      <div id="productsList" class="products-list"></div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <a href="https://cunfashion.com/style-advisor" target="_blank" class="footer-btn">
+      <span>Mở toàn màn hình trên CunFashion.com →</span>
+    </a>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Cun Style Advisor - Tư Vấn Thời Trang Khi Lướt Web",
+  "version": "1.0.0",
+  "description": "Đề xuất gợi ý phối đồ, phong cách thời trang và sản phẩm liên quan ngay khi lướt web trên Shopee, TikTok Shop, Pinterest, Zara...",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Cun Style Advisor"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}

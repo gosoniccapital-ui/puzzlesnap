@@ -1,16 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/brand/Logo";
 import { CATEGORIES_LIST } from "@/lib/data/puzzles-data";
-import { Search, ChevronDown, User, Sparkles } from "lucide-react";
+import { Search, ChevronDown, Sparkles, Users } from "lucide-react";
+import PlayerProfileModal from "@/components/puzzle/PlayerProfileModal";
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCategoriesMenu, setShowCategoriesMenu] = useState(false);
+  const [playerName, setPlayerName] = useState("Người chơi");
+  const [playerColor, setPlayerColor] = useState("#f59e0b");
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const loadProfile = () => {
+      if (typeof window !== "undefined") {
+        const name = localStorage.getItem("cunfashion_player_name") || localStorage.getItem("puzzlesnap_player_name");
+        const color = localStorage.getItem("cunfashion_player_color");
+        if (name) setPlayerName(name);
+        if (color) setPlayerColor(color);
+      }
+    };
+    loadProfile();
+
+    const handleUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ name: string; color: string }>;
+      if (customEvent.detail) {
+        if (customEvent.detail.name) setPlayerName(customEvent.detail.name);
+        if (customEvent.detail.color) setPlayerColor(customEvent.detail.color);
+      }
+    };
+    window.addEventListener("player_profile_updated", handleUpdate);
+    return () => window.removeEventListener("player_profile_updated", handleUpdate);
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +67,14 @@ export default function Navbar() {
           >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             Lookbook
+          </Link>
+
+          <Link
+            href="/style-advisor"
+            className="hover:text-pink-600 transition flex items-center gap-1.5 text-pink-600 font-extrabold"
+          >
+            <Sparkles className="w-4 h-4 text-pink-500 fill-pink-500" />
+            Style Advisor
           </Link>
 
           {/* Categories Mega Dropdown */}
@@ -104,16 +138,22 @@ export default function Navbar() {
           <Search className="w-4 h-4 text-stone-400 absolute left-3 pointer-events-none" />
         </form>
 
-        {/* Right: Admin Portal Link / CTA */}
+        {/* Right: Player Profile / Co-Op / CTA */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            href="/admin/login"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-stone-700 hover:text-amber-700 border border-stone-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-full transition"
-            title="Admin Dashboard Portal"
+          <button
+            type="button"
+            onClick={() => setIsProfileModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-stone-700 hover:text-amber-700 bg-stone-100/90 hover:bg-amber-50 border border-stone-200/90 hover:border-amber-300 rounded-full transition cursor-pointer shadow-xs"
+            title="Đổi tên hiển thị & màu đại diện phòng chơi"
           >
-            <User className="w-3.5 h-3.5 text-stone-500" />
-            <span>Admin</span>
-          </Link>
+            <span
+              className="w-3 h-3 rounded-full border border-white shadow-xs shrink-0"
+              style={{ backgroundColor: playerColor }}
+            />
+            <span className="max-w-[100px] truncate">{playerName}</span>
+            <Users className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+          </button>
+
           <Link
             href="/make-puzzle"
             className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-xs font-extrabold bg-[#ffb703] hover:bg-[#e0a102] text-stone-950 rounded-full shadow-sm hover:shadow transition"
@@ -122,6 +162,13 @@ export default function Navbar() {
           </Link>
         </div>
       </div>
+
+      {isProfileModalOpen && (
+        <PlayerProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+        />
+      )}
     </header>
   );
 }

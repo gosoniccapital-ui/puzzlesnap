@@ -23,12 +23,21 @@ export async function GET(request: NextRequest) {
       if (category) {
         dbQuery = dbQuery.eq("category_slug", category);
       }
+      if (query) {
+        dbQuery = dbQuery.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
+      }
       if (limit) {
         dbQuery = dbQuery.limit(parseInt(limit, 10));
       }
       const { data, error } = await dbQuery;
       if (!error && data && data.length > 0) {
-        return NextResponse.json({ success: true, source: "supabase", data });
+        const normalizedData = data.map((p: any) => ({
+          ...p,
+          slug: p.slug || (p.title ? p.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : p.id),
+          categorySlug: p.category_slug || p.categorySlug || "general",
+          imageSrc: p.image_url || p.imageSrc,
+        }));
+        return NextResponse.json({ success: true, source: "supabase", data: normalizedData });
       }
     } catch {
       // Fallback to local data

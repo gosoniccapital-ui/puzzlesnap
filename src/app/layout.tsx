@@ -28,6 +28,11 @@ export default function RootLayout({
           <div className="max-w-7xl mx-auto px-4 space-y-2">
             <p className="font-bold text-stone-700">CunFashion — Free Online Jigsaw Puzzles</p>
             <p>© 2026 CunFashion. All rights reserved.</p>
+            <div className="pt-2">
+              <a href="/admin/login" className="text-stone-300 hover:text-stone-500 text-[11px] transition">
+                Admin Access
+              </a>
+            </div>
           </div>
         </footer>
       </body>

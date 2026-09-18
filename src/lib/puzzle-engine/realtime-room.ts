@@ -43,7 +43,31 @@ export class RealtimeRoomEngine {
     this.roomId = roomId;
     this.localPlayerId = "pl-" + Math.random().toString(36).substring(2, 9);
     this.localPlayerName = playerName || "Player " + Math.floor(Math.random() * 100);
-    this.localColor = PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)];
+    const savedColor = typeof window !== "undefined" ? localStorage.getItem("cunfashion_player_color") : null;
+    this.localColor = savedColor || PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)];
+  }
+
+  public updateLocalProfile(name: string, color: string) {
+    this.localPlayerName = name;
+    this.localColor = color;
+    if (this.channel?.track) {
+      this.channel.track({
+        id: this.localPlayerId,
+        name: this.localPlayerName,
+        color: this.localColor,
+        lastActive: Date.now(),
+      });
+    } else if (this.channel?.postMessage) {
+      this.channel.postMessage({
+        type: "presence",
+        payload: {
+          id: this.localPlayerId,
+          name: this.localPlayerName,
+          color: this.localColor,
+          lastActive: Date.now(),
+        },
+      });
+    }
   }
 
   public connect(
