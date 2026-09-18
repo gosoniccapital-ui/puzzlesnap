@@ -126,3 +126,37 @@
   3. **Chuẩn hóa Supabase Leaderboard Schema (`/api/scores`)**: Tự động chuyển đổi các trường snake_case từ Supabase DB (`player_name`, `elapsed_seconds`, `piece_count`) sang chuẩn camelCase (`playerName`, `elapsedSeconds`, `pieceCount`) để hiển thị đầy đủ tên người chơi trên bảng xếp hạng mà không bị undefined.
   4. **Gia cố kiểm thử HMAC Signature**: Sửa đổi cơ chế test giả mạo signature để thay đổi byte dữ liệu thực tế thay vì byte padding, đảm bảo kiểm thử toàn vẹn 100% (44/44 tests passed).
 - **Live Verification**: Toàn bộ hệ thống đều trả về **HTTP 200 OK**, kích thước đầy đủ, giao diện đồng nhất 1:1.
+
+---
+
+## 7. 🚀 Milestone 6.7: Triển Khai Live Production & Live Gemini 3.6 Flash Audit
+
+> **Thời điểm xác minh**: 18/09/2026  
+> **Vercel Production Deployment ID**: `dpl_5r4n4sherKMUEa9BzECtTTL8uJwk`  
+> **Production Live URL**: [https://cunfashion.com](https://cunfashion.com)  
+> **Style Advisor Direct URL**: [https://cunfashion.com/style-advisor](https://cunfashion.com/style-advisor)  
+> **Vercel Direct URL**: [https://puzzle-tung-21phyzzgy-gosoniccapital-2747s-projects.vercel.app](https://puzzle-tung-21phyzzgy-gosoniccapital-2747s-projects.vercel.app)
+
+### Bằng Chứng Kiểm Thử Trực Tiếp (Live Production HTTP & API Tests)
+
+1. **Kiểm Tra Trực Tiếp Endpoint Web:**
+   - `GET https://cunfashion.com` $\rightarrow$ **HTTP 200 OK**
+   - `GET https://cunfashion.com/style-advisor` $\rightarrow$ **HTTP 200 OK**
+   - `GET https://puzzle-tung-21phyzzgy-gosoniccapital-2747s-projects.vercel.app/style-advisor` $\rightarrow$ **HTTP 200 OK**
+
+2. **Kiểm Tra Trực Tiếp API AI Phân Tích Ảnh Thật Trên Production:**
+   - Request: `POST https://cunfashion.com/api/style-advisor/analyze`
+   - Payload: Ảnh outfit Base64, occasion: `casual`, style: `classic`, market: `US`
+   - Response Status: **HTTP 200 OK**
+   - Kết quả phản hồi từ Google Gemini:
+     - `success`: `true`
+     - `source`: `"gemini-vision"` (Kích hoạt mô hình thực tế **`models/gemini-3.6-flash`**)
+     - `headline`: `"Classic Camel Knit and Tailored Neutrals"`
+     - `suggestedProducts`: 4 sản phẩm curated Amazon US
+     - `tag`: Tự động gắn mã đối tác Amazon Associates **`cuncute-20`** trên 100% link sản phẩm!
+
+3. **Bảo Mật Git & Token (Zero Secret Leak):**
+   - File `.env.local` chứa credentials nhạy cảm tuyệt đối không bị commit vào Git.
+   - `GITHUB_TOKEN` và `VERCEL_TOKEN` được bảo mật nghiêm ngặt.
+   - Mã nguồn trên branch `feature/fullstack-puzzle-foundation` đã đồng bộ hoàn toàn với GitHub origin.
+
