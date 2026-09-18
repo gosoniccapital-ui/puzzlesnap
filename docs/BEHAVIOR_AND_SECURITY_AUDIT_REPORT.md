@@ -176,4 +176,30 @@
 | **PWA & Offline Capability** | ✅ **Đã kích hoạt & Đăng ký Thật** | `public/site.webmanifest`, `public/sw.js`, `src/components/pwa/PwaRegister.tsx`, `src/app/layout.tsx` | Đã mount `<PwaRegister />` vào `layout.tsx`, Service Worker đăng ký thành công, cache v1 các asset tĩnh, manifest standalone chuẩn. |
 | **Mobile & Responsive UX** | ✅ **100% Hoàn thành thật** | `src/components/layout/Navbar.tsx`, `src/app/style-advisor/page.tsx`, `public/cun-style-advisor.html` | Đầy đủ viewport meta, touch gesture trên Canvas, drawer di động, bộ chuyển đổi `[ 🖥️ Wide ]` và `[ 📱 Mobile ]`. |
 | **Homepage Dynamic Binding** | ⚠️ **Đề xuất tối ưu hóa** | `src/app/page.tsx:L9-10` | Hiện đọc từ `PUZZLES_DATA`. Khuyến nghị chuyển sang fetch từ `/api/puzzles` để puzzle mới thêm từ Admin tự động xuất hiện ra trang chủ. |
+| **Categories Library** | ⚠️ **Một phần Placeholder** | `src/lib/data/puzzles-data.ts:L21-37` | 5/15 danh mục đã có puzzles (`fashion-lookbook`, `holidays`, `nature`, `animals`, `places`). 10 danh mục còn lại hiển thị trạng thái chờ thêm puzzle. |
+
+---
+
+## 9. 🔬 Chẩn Đoán Lỗi Console & Nâng Cấp Hoàn Thiện (/style-advisor)
+
+> **Thời điểm xác minh**: 18/09/2026  
+> **Vercel Production Deployment**: `dpl_2Uj3YRbDi6unqWbmpvGPV2HAQMxY`  
+> **Live URL**: [https://cunfashion.com/style-advisor](https://cunfashion.com/style-advisor)
+
+### 1. Phân Tích Các Thông Báo Trong DevTools Console Của Đại Ka
+1. **Lỗi CSP Vercel Live Toolbar (`loading the script 'https://vercel.live/...' violates CSP`)**:
+   - *Nguyên nhân*: Vercel tự động tiêm feedback script trên preview/production nhưng header CSP trong `next.config.mjs` chưa khai báo `https://vercel.live`.
+   - *Xử lý triệt để*: Đã bổ sung `https://vercel.live` vào `script-src`, `style-src`, `connect-src`, `frame-src`, và `img-src`. Lỗi đỏ console biến mất hoàn toàn.
+2. **Thông báo `[PWA] Service worker registered successfully`**:
+   - *Đánh giá*: Service worker đã đăng ký chuẩn xác trên phạm vi `https://cunfashion.com/`, bộ nhớ cache v1 đã kích hoạt thành công.
+3. **Phát hiện quan trọng: Nút "Phân tích & Gợi ý sản phẩm" trước đó chưa kích hoạt API thật**:
+   - *Nguyên nhân*: Hàm `handleAnalyze` trong `page.tsx` trước đó dùng `setTimeout(..., 600)` gọi logic heuristic nội bộ của client, chưa thực sự gửi HTTP Request lên `/api/style-advisor/analyze`.
+   - *Nâng cấp hoàn thiện*: Đã đấu nối trực tiếp `fetch('/api/style-advisor/analyze', { method: 'POST', ... })`.
+   - *Hỗ trợ phân tích ảnh Unsplash/URL*: Server hiện tự động fetch và chuyển đổi cả ảnh URL lẫn Base64 sang buffer để Google Gemini 3.6 Flash phân tích trực tiếp.
+   - *Thêm bộ chọn thị trường (Market Selector)*: Hỗ trợ chuyển đổi mượt mà giữa **🇺🇸 US / Global (Amazon Associates `tag=cuncute-20`)** và **🇻🇳 Việt Nam (Shopee / TikTok Shop / Lazada)** kèm theo ngôn ngữ và thang ngân sách tương ứng.
+
+### 2. Bằng Chứng Xác Minh Live Production (API & Vision)
+- **Request US**: Trả về `source: "gemini-vision"`, `headline: "Modern Office Polish: Satin Bomber & Sharp Monochrome Tailoring"`, 6 sản phẩm Amazon gắn `tag=cuncute-20`.
+- **Request VN**: Trả về `source: "gemini-vision"`, `headline: "Biến Hóa Bomber Nâu Đồng Cùng Phong Cách Smart-Casual Thanh Lịch"`, tư vấn tiếng Việt và link tìm kiếm Shopee.
+- **Automated Tests**: **49/49 passed 100%** (`node --test tests/*.test.mjs`).
 
