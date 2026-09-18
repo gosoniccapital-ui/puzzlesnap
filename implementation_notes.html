@@ -1,143 +1,166 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Implementation Notes — Sprint 6.1: Admin Security & Passcode Auth Gate</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Implementation Notes: Co-Op Room Link Sharing & Host Metadata Sync</title>
   <style>
     :root {
-      --bg: #fbfaf7;
-      --card-bg: #ffffff;
-      --primary: #d97706;
-      --primary-accent: #ffb703;
-      --text: #1c1917;
-      --text-muted: #78716c;
-      --border: #e7e5e4;
-      --tag-bg: #fef3c7;
-      --tag-text: #92400e;
-      --code-bg: #f5f5f4;
+      --bg: #0c0a09;
+      --card-bg: #1c1917;
+      --border: #292524;
+      --amber: #f59e0b;
+      --amber-light: #fde68a;
+      --emerald: #10b981;
+      --text: #e7e5e4;
+      --text-muted: #a8a29e;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 2rem 1rem;
       background-color: var(--bg);
       color: var(--text);
+      font-family: var(--font-family);
       line-height: 1.6;
-      margin: 0;
-      padding: 40px 20px;
     }
     .container {
-      max-width: 860px;
+      max-width: 900px;
       margin: 0 auto;
       background: var(--card-bg);
-      padding: 40px;
-      border-radius: 24px;
       border: 1px solid var(--border);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      color: var(--amber);
+      font-size: 1.875rem;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    h2 {
+      font-size: 1.25rem;
+      color: var(--amber-light);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-top: 2rem;
     }
     .badge {
       display: inline-block;
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 4px 12px;
+      padding: 0.25rem 0.75rem;
       border-radius: 9999px;
-      background: var(--tag-bg);
-      color: var(--tag-text);
-      border: 1px solid #fde68a;
-      margin-bottom: 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
     }
-    h1 {
-      font-size: 28px;
-      font-weight: 900;
-      margin: 0 0 8px 0;
-      letter-spacing: -0.02em;
-    }
-    .subtitle {
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-bottom: 32px;
-    }
-    h2 {
-      font-size: 18px;
-      font-weight: 800;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 8px;
-      margin-top: 32px;
-      color: #292524;
+    .badge-success {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border-color: rgba(16, 185, 129, 0.3);
     }
     ul {
-      padding-left: 20px;
+      padding-left: 1.5rem;
     }
     li {
-      margin-bottom: 8px;
+      margin-bottom: 0.5rem;
     }
     code {
-      background: var(--code-bg);
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 13px;
-      color: #b45309;
+      background: #000;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.375rem;
+      color: var(--amber);
+      font-family: monospace;
+      font-size: 0.9em;
     }
-    .alert-box {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-left: 4px solid #16a34a;
-      padding: 16px;
-      border-radius: 12px;
-      margin: 20px 0;
-      font-size: 14px;
+    .callout {
+      background: rgba(245, 158, 11, 0.08);
+      border-left: 4px solid var(--amber);
+      padding: 1rem 1.25rem;
+      border-radius: 0.5rem;
+      margin: 1.5rem 0;
     }
-    .footer {
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-      font-size: 12px;
-      color: var(--text-muted);
-      text-align: center;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    th {
+      background: #141210;
+      color: var(--amber-light);
+      font-size: 0.85rem;
+    }
+    td {
+      font-size: 0.875rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <span class="badge">Sprint 6.1 &bull; Living Spec & Architecture Decisions</span>
-    <h1>CunFashion Admin Security & Passcode Auth Gate</h1>
-    <p class="subtitle">Dự án: CunFashion Web Full Stack (cunfashion.com) &bull; Quyền sở hữu: Đại Ka</p>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span class="badge">Milestone 6.10</span>
+      <span class="badge badge-success">53/53 Tests Passing</span>
+    </div>
 
-    <div class="alert-box">
-      <strong>Bảo Toàn Trạng Thái Tuyệt Đối:</strong> Hệ thống đã được kiểm thử với 16/16 Unit Tests PASS 100%, Next.js 15.5.25 Build hoàn thành với Exit Code 0, và không có bất kỳ rò rỉ secret nào trên Git.
+    <h1>🧩 Co-Op Room Link Sharing & Host Sync Living Spec</h1>
+
+    <div class="callout">
+      <strong>Vấn đề cốt lõi giải quyết:</strong> Khi người dùng chia sẻ link phòng Co-Op từ trang <code>/make-puzzle?id=pz-xxxx</code>, hàm sinh link trước đây chỉ lấy <code>window.location.pathname</code> khiến toàn bộ query string <code>?id=...</code> bị mất, chỉ còn <code>/make-puzzle?room=ROOM-xxxx</code>. Người nhận mở link nhìn thấy trang upload ảnh trống.
     </div>
 
     <h2>1. Unspecified & Implicit Decisions</h2>
     <ul>
-      <li><strong>Web Crypto API Standard (crypto.subtle):</strong> Thay vì dùng module <code>crypto</code> độc quyền của Node.js, toàn bộ token HMAC-SHA256 được xây dựng trên chuẩn W3C Web Crypto. Quyết định này giúp code chạy mượt mà $100\%$ trên Next.js Edge Middleware mà không bao giờ gặp lỗi thiếu polyfill trên Vercel Edge.</li>
-      <li><strong>Cấu trúc Token Compact:</strong> Token được lưu dạng <code>base64url(payload).base64url(signature)</code> không cần thư viện bên thứ 3 (như jsonwebtoken hay jose), giữ bundle size của Middleware chỉ 34.8 kB.</li>
-      <li><strong>Timing-Safe Comparison:</strong> Cả việc so khớp Passcode và xác thực chữ ký HMAC đều sử dụng thuật toán so sánh constant-time (bitwise XOR), ngăn chặn triệt để kỹ thuật tấn công đo thời gian (Timing Attack).</li>
-      <li><strong>Suspense Boundary cho Login Page:</strong> Bọc form login trong <code>&lt;Suspense&gt;</code> để tuân thủ quy tắc App Router của Next.js khi sử dụng hook <code>useSearchParams()</code>, bảo đảm trang render tĩnh tối ưu.</li>
+      <li><strong>Dual-Path Recovery (P2P Host Sync + URL Persistence):</strong> Thay vì chỉ sửa việc giữ query string trên URL, chúng tôi thiết kế thêm cơ chế <em>Host Sync</em> qua Realtime Channel. Khi Khách vào phòng mà thiếu ID hoặc serverless cache hết hạn, Khách tự động broadcast <code>request_room_meta</code> tới Chủ phòng và nhận ảnh/tiêu đề trực tiếp từ Host.</li>
+      <li><strong>Auto-URL Enrichment:</strong> Ngay khi người tạo câu đố bấm chơi tại <code>/make-puzzle</code>, hệ thống tự động lưu ID vào URL bằng <code>window.history.replaceState</code> mà không cần người dùng phải bấm nút Share thủ công.</li>
+      <li><strong>Graceful Degradation Timeout:</strong> Màn hình kết nối phòng có timeout 8 giây. Nếu Chủ phòng đã offline hoặc không tìm thấy phòng, hệ thống hiển thị banner lỗi rõ ràng và nút cho phép tự tạo phòng mới.</li>
     </ul>
 
-    <h2>2. Deviations from Initial Specification</h2>
+    <h2>2. Deviations from Specification</h2>
     <ul>
-      <li><em>Không có sai lệch:</em> Mọi yêu cầu của Đại Ka (Biến môi trường bảo mật, giao diện login CunFashion, API login/logout, Middleware chặn /admin và API mutations, nút Logout trên dashboard) đều được tuân thủ chính xác $100\%$.</li>
+      <li>Không có sự thay đổi về giao diện của phòng chơi ngoài việc bổ sung màn hình loading khi đang đồng bộ câu đố từ Host.</li>
+      <li>Bảo đảm tương thích ngược 100% với các trang câu đố có sẵn tại <code>/puzzle/[slug]</code>.</li>
     </ul>
 
     <h2>3. Considered Trade-offs</h2>
-    <ul>
-      <li><strong>In-Memory Rate Limiting vs. Redis/Upstash:</strong> Ở quy mô hiện tại của Sprint 6.1, việc dùng in-memory sliding window Map cho serverless instance là phương án tối giản (Simplicity First), không làm phát sinh chi phí hạ tầng bên ngoài. Nếu sau này cần phân tán đa vùng, có thể nâng cấp lên KV/Redis mà không thay đổi interface API.</li>
-      <li><strong>Session Cookie vs. JWT Bearer Header:</strong> Chọn Cookie <code>HttpOnly, Secure, SameSite=Strict</code> giúp bảo vệ người dùng khỏi tấn công XSS đánh cắp token và tấn công CSRF, đồng thời trình duyệt tự động gửi cookie trong các request quản trị.</li>
-    </ul>
+    <table>
+      <thead>
+        <tr>
+          <th>Phương án</th>
+          <th>Ưu điểm</th>
+          <th>Nhược điểm</th>
+          <th>Quyết định</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Chỉ sửa <code>new URL()</code> để giữ query param trên URL</td>
+          <td>Đơn giản, ít dòng code nhất</td>
+          <td>Vẫn gãy nếu Vercel serverless cold-start xóa mất record trong in-memory Map của <code>/api/custom-puzzles</code></td>
+          <td>Không chọn riêng lẻ (cần kết hợp)</td>
+        </tr>
+        <tr>
+          <td>Kết hợp URL Preservation + Host Sync qua Realtime Channel + Supabase Storage Persistence</td>
+          <td>Chống chịu lỗi 3 tầng: URL có ID + DB có ảnh + Host có thể stream trực tiếp cho Guest</td>
+          <td>Cần mở rộng thêm event trong <code>RealtimeRoomEngine</code></td>
+          <td><strong>Được chọn (Tối ưu tuyệt đối)</strong></td>
+        </tr>
+      </tbody>
+    </table>
 
-    <h2>4. Maintenance Notes</h2>
+    <h2>4. Maintenance & Code Review Notes</h2>
     <ul>
-      <li>Mật khẩu quản trị mặc định: Được khai báo an toàn trong <code>.env.local</code> với biến <code>ADMIN_MASTER_PASSWORD</code>.</li>
-      <li>Khi deploy lên Vercel Production: Chỉ cần thêm 2 biến <code>ADMIN_MASTER_PASSWORD</code> và <code>ADMIN_SESSION_SECRET</code> vào Vercel Environment Variables.</li>
-      <li>File kiểm thử: <code>tests/admin-auth.test.mjs</code> có thể chạy định kỳ bằng <code>node --test tests/admin-auth.test.mjs</code>.</li>
+      <li><strong>Realtime Room Engine:</strong> File <code>src/lib/puzzle-engine/realtime-room.ts</code> hỗ trợ cả Supabase Realtime Channel và BroadcastChannel API (cho local dev khi không có Supabase key).</li>
+      <li><strong>Automated Tests:</strong> File <code>tests/coop-room-sharing.test.mjs</code> được thêm vào để đảm bảo không xảy ra regression về query params khi ai đó vô tình sửa lại <code>PuzzleGameBoard.tsx</code>.</li>
     </ul>
-
-    <div class="footer">
-      Thực hiện bởi AI Pair Programming Agent &bull; Phương pháp luận: Karpathy Guidelines + Vibe Engineering Workflow &bull; 2026
-    </div>
   </div>
 </body>
 </html>
