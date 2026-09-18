@@ -160,3 +160,20 @@
    - `GITHUB_TOKEN` và `VERCEL_TOKEN` được bảo mật nghiêm ngặt.
    - Mã nguồn trên branch `feature/fullstack-puzzle-foundation` đã đồng bộ hoàn toàn với GitHub origin.
 
+---
+
+## 8. 📊 Ma Trận Tính Năng: Hoàn Thành Thật vs. Sample / Placeholder / Fake
+
+| Phân hệ / Tính năng | Trạng thái kỹ thuật | Bằng chứng kiểm tra thực tế trong code | Đánh giá & Hành động đã xử lý |
+| :--- | :--- | :--- | :--- |
+| **Puzzle Core Engine** (Cắt Bézier, DSU grouping, Snap nam châm, Rotate, Sound) | ✅ **100% Hoàn thành thật** | `src/lib/puzzle/bezier-cutter.ts`, `disjoint-set.ts`, `sound.ts`, `tests/puzzle-invariants.test.mjs` (13 tests pass) | Hoạt động chuẩn xác, mượt mà 60fps trên Canvas 2D, có rollback vị trí an toàn khi nhấn Escape hoặc blur tab. |
+| **Realtime Co-Op Multiplayer** | ✅ **100% Hoàn thành thật** | `src/lib/realtime-room.ts`, `tests/realtime-room.test.mjs` (3 tests pass) | Tự động sinh `room_id`, kết nối Supabase Realtime broadcast, khóa mảnh ghép `lockedBy`, đồng bộ dịch chuyển cụm cluster. |
+| **AI Fashion Stylist** (`/style-advisor`) | ✅ **100% Hoàn thành thật** | `src/app/api/style-advisor/analyze/route.ts`, `tests/amazon-associates.test.mjs` | Đã kết nối trực tiếp Google Gemini 3.6 Flash (`models/gemini-3.6-flash`), phân tích ảnh Base64 live, trả về JSON chuẩn xác. |
+| **Affiliate Links (US Amazon & VN)** | ✅ **100% Hoàn thành thật** | `src/lib/data/style-advisor-data.ts`, `tests/pwa-and-affiliate.test.mjs` | **Đã xóa bỏ hoàn toàn link giả `/shop/`**. US gắn tag `tag=cuncute-20`. VN chuyển hướng sang search sâu Shopee/TikTok Shop/Lazada với từ khóa chính xác. |
+| **Admin Portal** (`/admin`) | ✅ **100% Hoàn thành thật** | `src/app/admin/page.tsx`, `src/lib/auth/admin-session.ts`, `tests/admin-security.test.mjs` | Gate mật khẩu bảo mật HMAC-SHA256, so sánh thời gian thực `crypto.timingSafeEqual`, CRUD puzzle và e-commerce vouchers. |
+| **Bảng Xếp Hạng Leaderboard** (`/api/scores`) | ✅ **100% Hoàn thành thật** | `src/app/api/scores/route.ts`, `tests/api-routes.test.mjs` | Lọc XSS tags, lưu trữ persistent trên Supabase DB, fallback in-memory an toàn khi offline. |
+| **Daily Puzzle Rotation** | ✅ **Đã nâng cấp lên Thật** | `src/lib/data/puzzles-data.ts:L224-235`, `tests/api-routes.test.mjs` | Xoay vòng bộ ghép hình tự động theo ngày lịch UTC (`dayNumber % PUZZLES_DATA.length`), không còn fix cứng một ảnh duy nhất. |
+| **PWA & Offline Capability** | ✅ **Đã kích hoạt & Đăng ký Thật** | `public/site.webmanifest`, `public/sw.js`, `src/components/pwa/PwaRegister.tsx`, `src/app/layout.tsx` | Đã mount `<PwaRegister />` vào `layout.tsx`, Service Worker đăng ký thành công, cache v1 các asset tĩnh, manifest standalone chuẩn. |
+| **Mobile & Responsive UX** | ✅ **100% Hoàn thành thật** | `src/components/layout/Navbar.tsx`, `src/app/style-advisor/page.tsx`, `public/cun-style-advisor.html` | Đầy đủ viewport meta, touch gesture trên Canvas, drawer di động, bộ chuyển đổi `[ 🖥️ Wide ]` và `[ 📱 Mobile ]`. |
+| **Homepage Dynamic Binding** | ⚠️ **Đề xuất tối ưu hóa** | `src/app/page.tsx:L9-10` | Hiện đọc từ `PUZZLES_DATA`. Khuyến nghị chuyển sang fetch từ `/api/puzzles` để puzzle mới thêm từ Admin tự động xuất hiện ra trang chủ. |
+

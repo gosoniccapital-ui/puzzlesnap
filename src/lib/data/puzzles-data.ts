@@ -222,7 +222,14 @@ export const PUZZLES_DATA: PuzzleItem[] = [
 ];
 
 export function getDailyPuzzle(): PuzzleItem {
-  return PUZZLES_DATA.find((p) => p.isDaily) || PUZZLES_DATA[0];
+  // Deterministic calendar rotation based on day number so every day serves a fresh puzzle
+  const dayNumber = Math.floor(Date.now() / 86400000);
+  const index = Math.abs(dayNumber) % PUZZLES_DATA.length;
+  const puzzle = PUZZLES_DATA[index] || PUZZLES_DATA[0];
+  return {
+    ...puzzle,
+    isDaily: true,
+  };
 }
 
 export function getPuzzleBySlug(slug: string): PuzzleItem | undefined {
