@@ -5,6 +5,10 @@ import path from "node:path";
 
 import {
   STYLE_CATALOG,
+  AMAZON_STYLE_CATALOG,
+  AMAZON_ASSOCIATE_TAG,
+  buildAmazonSearchUrl,
+  buildAmazonProductUrl,
   generateStylistAdvice
 } from "../src/lib/data/style-advisor-data.ts";
 
@@ -18,18 +22,36 @@ test("Style Advisor: Catalog integrity check", () => {
     assert.ok(item.price, "Product must have a price");
     assert.ok(item.img, "Product must have an image");
     assert.ok(item.link, "Product must have an affiliate link");
-    assert.ok(["Shopee", "TikTok Shop", "Lazada", "CunFashion"].includes(item.platform), "Platform must be recognized");
+    assert.ok(["Amazon", "Shopee", "TikTok Shop", "Lazada", "CunFashion"].includes(item.platform), "Platform must be recognized");
     assert.ok(Array.isArray(item.occasions) && item.occasions.length > 0, "Occasions must be non-empty");
   }
 });
 
-test("Style Advisor: generateStylistAdvice produces valid output for Work occasion", () => {
+test("Amazon Associates: StoreID cuncute-20 tag invariant", () => {
+  assert.equal(AMAZON_ASSOCIATE_TAG, "cuncute-20", "Store ID must match cuncute-20");
+
+  for (const item of AMAZON_STYLE_CATALOG) {
+    assert.ok(item.link.includes("tag=cuncute-20"), `Product ${item.id} must have tag=cuncute-20 in link`);
+    assert.equal(item.market, "US", "Amazon items must have market=US");
+    assert.ok(item.price.startsWith("$"), `Amazon price ${item.price} must be in USD`);
+  }
+
+  const testSearchUrl = buildAmazonSearchUrl("cropped trench coat for women");
+  assert.ok(testSearchUrl.includes("tag=cuncute-20"), "Search URL must include tag=cuncute-20");
+  assert.ok(testSearchUrl.includes("amazon.com/s"), "Search URL must target Amazon search");
+
+  const testProductUrl = buildAmazonProductUrl("B09V7N7Y6B");
+  assert.equal(testProductUrl, "https://www.amazon.com/dp/B09V7N7Y6B?tag=cuncute-20");
+});
+
+test("Style Advisor: generateStylistAdvice produces valid output for Work occasion (VN)", () => {
   const result = generateStylistAdvice({
     occasion: "work",
     style: "elegant",
     budget: "low",
     color: "hồng pastel",
-    hasCustomImage: true
+    hasCustomImage: true,
+    market: "VN"
   });
 
   assert.ok(result.headline.includes("Đi làm / Công sở"), "Headline should reflect occasion");
@@ -39,13 +61,32 @@ test("Style Advisor: generateStylistAdvice produces valid output for Work occasi
   assert.ok(result.styleTips.some(tip => tip.includes("phân tích tỉ lệ")), "Should include custom image tip");
 });
 
+test("Style Advisor: generateStylistAdvice produces valid output for US Amazon market", () => {
+  const result = generateStylistAdvice({
+    occasion: "casual",
+    style: "classic",
+    budget: "low",
+    color: "camel",
+    hasCustomImage: true,
+    market: "US"
+  });
+
+  assert.equal(result.market, "US");
+  assert.ok(result.headline.includes("Casual"), "Headline should reflect US casual look");
+  assert.ok(result.suggestedProducts.every(p => p.market === "US"), "All suggestions must be US products");
+  assert.ok(result.suggestedProducts.every(p => p.link.includes("tag=cuncute-20")), "All suggestions must have affiliate tag");
+  assert.ok(result.detectedItems && result.detectedItems.length >= 2, "Must return detected items for visual search");
+  assert.ok(result.detectedItems.every(d => d.amazonUrl.includes("tag=cuncute-20")), "Detected items must have Amazon search affiliate URL");
+});
+
 test("Style Advisor: generateStylistAdvice produces valid output for Party occasion with High budget", () => {
   const result = generateStylistAdvice({
     occasion: "party",
     style: "romantic",
     budget: "high",
     color: "đen",
-    hasCustomImage: false
+    hasCustomImage: false,
+    market: "VN"
   });
 
   assert.ok(result.headline.includes("Tiệc tùng"), "Headline should reflect party occasion");
