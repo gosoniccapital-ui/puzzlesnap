@@ -283,7 +283,7 @@ export default function PuzzleGameBoard({
         if (customPuzzleId && !url.searchParams.has("id")) {
           url.searchParams.set("id", customPuzzleId);
         }
-        return url.toString();
+        return `${url.origin}${url.pathname}?${url.searchParams.toString()}`;
       } catch {
         return `${window.location.origin}${window.location.pathname}?room=${targetRoomId}`;
       }
@@ -295,6 +295,9 @@ export default function PuzzleGameBoard({
   const handleConnectCoopRoom = useCallback((targetRoomId?: string) => {
     userExplicitlyLeftRoomRef.current = false;
     const roomId = targetRoomId || "ROOM-" + Math.floor(1000 + Math.random() * 9000);
+    if (coopRoomId === roomId && isCoopConnected && coopEngineRef.current) {
+      return;
+    }
     setCoopRoomId(roomId);
 
     // Sync room ID to browser address bar without page reload
@@ -303,7 +306,7 @@ export default function PuzzleGameBoard({
         const url = new URL(window.location.href);
         if (url.searchParams.get("room") !== roomId) {
           url.searchParams.set("room", roomId);
-          window.history.replaceState(null, "", url.pathname + url.search);
+          window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`);
         }
       } catch {
         // Non-blocking fallback
@@ -410,6 +413,9 @@ export default function PuzzleGameBoard({
     }
   }, []);
 
+  const handleConnectCoopRoomRef = useRef(handleConnectCoopRoom);
+  handleConnectCoopRoomRef.current = handleConnectCoopRoom;
+
   // Auto-connect to Co-Op room if URL param ?room=... or initialRoomId is provided
   useEffect(() => {
     if (userExplicitlyLeftRoomRef.current) return;
@@ -421,12 +427,12 @@ export default function PuzzleGameBoard({
     }
 
     if (targetRoom && targetRoom !== coopRoomId) {
-      handleConnectCoopRoom(targetRoom);
+      handleConnectCoopRoomRef.current(targetRoom);
       setCoopToast(`Đã tham gia phòng Co-Op: ${targetRoom}`);
       const timer = setTimeout(() => setCoopToast(null), 4500);
       return () => clearTimeout(timer);
     }
-  }, [initialRoomId, handleConnectCoopRoom, coopRoomId]);
+  }, [initialRoomId, coopRoomId]);
 
   // Cleanup on unmount
   useEffect(() => {

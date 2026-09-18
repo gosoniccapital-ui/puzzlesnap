@@ -94,6 +94,7 @@ function MakePuzzleContent() {
             }
             setIsPlaying(true);
             setIsConnectingRoom(false);
+            engine.disconnect();
           }
         }
       );
@@ -120,9 +121,7 @@ function MakePuzzleContent() {
       return () => {
         clearTimeout(retryTimer);
         clearTimeout(timeoutTimer);
-        if (!resolved) {
-          engine.disconnect();
-        }
+        engine.disconnect();
       };
     }
 
@@ -156,13 +155,16 @@ function MakePuzzleContent() {
           if (typeof window !== "undefined") {
             const url = new URL(window.location.href);
             url.searchParams.set("id", data.data.id);
-            window.history.replaceState(null, "", url.pathname + url.search);
+            window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`);
           }
         }
       })
-      .catch((err) => console.warn("Auto-saving custom puzzle failed:", err));
+      .catch((err) => {
+        console.warn("Auto-persist custom puzzle failed:", err);
+      });
   }, [isPlaying, selectedImage, customPuzzleId, puzzleTitle, difficulty]);
 
+  // Handle image upload from user device
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -185,15 +187,18 @@ function MakePuzzleContent() {
 
   const handleCreateShareLink = async () => {
     if (!selectedImage) return;
-
     try {
       setIsSharing(true);
       const currentRoom = searchParams.get("room");
-      const roomQuery = currentRoom ? `&room=${encodeURIComponent(currentRoom)}` : "";
+      const url = new URL(window.location.href);
+      if (currentRoom) {
+        url.searchParams.set("room", currentRoom);
+      }
 
       // 1. If we already have a persisted customPuzzleId, reuse it immediately
       if (customPuzzleId) {
-        const urlWithId = window.location.origin + "/make-puzzle?id=" + customPuzzleId + roomQuery;
+        url.searchParams.set("id", customPuzzleId);
+        const urlWithId = `${url.origin}${url.pathname}?${url.searchParams.toString()}`;
         setShareUrl(urlWithId);
         await navigator.clipboard.writeText(urlWithId);
         setCopied(true);
@@ -204,7 +209,10 @@ function MakePuzzleContent() {
 
       // 2. If it is already a web URL, encode directly into query param or save id
       if (selectedImage.startsWith("http://") || selectedImage.startsWith("https://")) {
-        const directUrl = window.location.origin + "/make-puzzle?img=" + encodeURIComponent(selectedImage) + "&title=" + encodeURIComponent(puzzleTitle) + "&diff=" + difficulty + roomQuery;
+        url.searchParams.set("img", selectedImage);
+        url.searchParams.set("title", puzzleTitle);
+        url.searchParams.set("diff", difficulty);
+        const directUrl = `${url.origin}${url.pathname}?${url.searchParams.toString()}`;
         setShareUrl(directUrl);
         await navigator.clipboard.writeText(directUrl);
         setCopied(true);
@@ -230,7 +238,8 @@ function MakePuzzleContent() {
           setSelectedImage(data.data.image);
           setIsCloudStored(true);
         }
-        const urlWithId = window.location.origin + "/make-puzzle?id=" + data.data.id + roomQuery;
+        url.searchParams.set("id", data.data.id);
+        const urlWithId = `${url.origin}${url.pathname}?${url.searchParams.toString()}`;
         setShareUrl(urlWithId);
         await navigator.clipboard.writeText(urlWithId);
         setCopied(true);

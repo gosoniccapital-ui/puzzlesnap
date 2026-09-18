@@ -52,7 +52,10 @@ const PLAYER_COLORS = [
 ];
 
 export class RealtimeRoomEngine {
-  private channel: any = null;
+  public channel: any = null;
+  private supabaseChannel: any = null;
+  private bc: BroadcastChannel | null = null;
+  private isSubscribed: boolean = false;
   public roomId: string;
   public localPlayerId: string;
   public localPlayerName: string;
@@ -79,20 +82,23 @@ export class RealtimeRoomEngine {
   public updateLocalProfile(name: string, color: string) {
     this.localPlayerName = name;
     this.localColor = color;
-    if (this.channel?.track) {
-      this.channel.track({
+    if (this.supabaseChannel?.track) {
+      this.supabaseChannel.track({
         id: this.localPlayerId,
         name: this.localPlayerName,
         color: this.localColor,
+        roomMeta: this.roomMeta,
         lastActive: Date.now(),
       });
-    } else if (this.channel?.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "presence",
         payload: {
           id: this.localPlayerId,
           name: this.localPlayerName,
           color: this.localColor,
+          roomMeta: this.roomMeta,
           lastActive: Date.now(),
         },
       });
@@ -121,7 +127,7 @@ export class RealtimeRoomEngine {
     this.onBoardSyncCallback = onBoardSync;
     this.onRequestBoardSyncCallback = onRequestBoardSync;
 
-    // Fallback broadcast channel using local BroadcastChannel API when Supabase is not online/configured
+    // 1. Local BroadcastChannel for zero-latency local tab communication
     if (typeof window !== "undefined" && window.BroadcastChannel) {
       const bc = new BroadcastChannel("cunfashion-puzzle-room-" + this.roomId);
       bc.onmessage = (ev) => {
@@ -151,7 +157,7 @@ export class RealtimeRoomEngine {
             this.onRoomMetaCallback(payload);
           }
         } else if (type === "room_victory") {
-          if (payload && this.onVictoryCallback) {
+          if (payload && payload.winnerId !== this.localPlayerId && this.onVictoryCallback) {
             this.onVictoryCallback(payload);
           }
         } else if (type === "board_sync") {
@@ -175,16 +181,27 @@ export class RealtimeRoomEngine {
         },
       });
 
+      this.bc = bc;
       this.channel = bc;
     }
 
-    // Connect to Supabase Realtime if configured
+    // 2. Connect to Supabase Realtime for cross-browser, cross-device multiplayer
     if (isSupabaseConfigured && supabase) {
       try {
         const channelName = "puzzle-room:" + this.roomId;
+
+        // Clean up any existing channel with the same topic in Supabase client cache to prevent "already subscribed" errors
+        const existing = supabase.getChannels().find(
+          (c: any) => c.topic === "realtime:" + channelName || c.topic === channelName
+        );
+        if (existing) {
+          supabase.removeChannel(existing);
+        }
+
         const roomChannel = supabase.channel(channelName, {
           config: {
             presence: { key: this.localPlayerId },
+            broadcast: { self: false, ack: false },
           },
         });
 
@@ -233,7 +250,7 @@ export class RealtimeRoomEngine {
             }
           })
           .on("broadcast", { event: "room_victory" }, ({ payload }) => {
-            if (payload && this.onVictoryCallback) {
+            if (payload && payload.winnerId !== this.localPlayerId && this.onVictoryCallback) {
               this.onVictoryCallback(payload);
             }
           })
@@ -247,15 +264,20 @@ export class RealtimeRoomEngine {
           })
           .subscribe(async (status) => {
             if (status === "SUBSCRIBED") {
+              this.isSubscribed = true;
               await roomChannel.track({
                 name: this.localPlayerName,
                 color: this.localColor,
                 roomMeta: this.roomMeta,
                 joinedAt: Date.now(),
               });
+              if (!this.roomMeta) {
+                this.requestRoomMeta();
+              }
             }
           });
 
+        this.supabaseChannel = roomChannel;
         this.channel = roomChannel;
       } catch (err) {
         console.warn("Supabase Realtime fallback to BroadcastChannel:", err);
@@ -266,10 +288,8 @@ export class RealtimeRoomEngine {
   }
 
   public broadcastCursor(cursor: { x: number; y: number }, activePieceId?: number | null) {
-    if (!this.channel) return;
-
-    if (this.channel.send) {
-      this.channel.send({
+    if (this.supabaseChannel?.send) {
+      this.supabaseChannel.send({
         type: "broadcast",
         event: "cursor_move",
         payload: {
@@ -278,8 +298,9 @@ export class RealtimeRoomEngine {
           activePieceId,
         },
       });
-    } else if (this.channel.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "presence",
         payload: {
           id: this.localPlayerId,
@@ -302,14 +323,15 @@ export class RealtimeRoomEngine {
       senderId: this.localPlayerId,
     };
 
-    if (this.channel?.send) {
-      this.channel.send({
+    if (this.supabaseChannel?.send) {
+      this.supabaseChannel.send({
         type: "broadcast",
         event: "piece_move",
         payload,
       });
-    } else if (this.channel?.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "piece_move",
         payload,
       });
@@ -325,14 +347,15 @@ export class RealtimeRoomEngine {
       senderId: this.localPlayerId,
     };
 
-    if (this.channel?.send) {
-      this.channel.send({
+    if (this.supabaseChannel?.send) {
+      this.supabaseChannel.send({
         type: "broadcast",
         event: "piece_snap",
         payload,
       });
-    } else if (this.channel?.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "piece_snap",
         payload,
       });
@@ -341,16 +364,17 @@ export class RealtimeRoomEngine {
 
   public broadcastRoomMeta(meta?: RoomPuzzleMeta) {
     const payload = meta || this.roomMeta;
-    if (!payload || !this.channel) return;
+    if (!payload) return;
 
-    if (this.channel.send) {
-      this.channel.send({
+    if (this.supabaseChannel?.send) {
+      this.supabaseChannel.send({
         type: "broadcast",
         event: "room_meta",
         payload,
       });
-    } else if (this.channel.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "room_meta",
         payload,
       });
@@ -358,16 +382,15 @@ export class RealtimeRoomEngine {
   }
 
   public requestRoomMeta() {
-    if (!this.channel) return;
-
-    if (this.channel.send) {
-      this.channel.send({
+    if (this.supabaseChannel?.send) {
+      this.supabaseChannel.send({
         type: "broadcast",
         event: "request_room_meta",
         payload: { senderId: this.localPlayerId },
       });
-    } else if (this.channel.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "request_room_meta",
         payload: { senderId: this.localPlayerId },
       });
@@ -384,14 +407,15 @@ export class RealtimeRoomEngine {
       timestamp: Date.now(),
     };
 
-    if (this.channel?.send) {
-      this.channel.send({
+    if (this.supabaseChannel?.send) {
+      this.supabaseChannel.send({
         type: "broadcast",
         event: "room_victory",
         payload,
       });
-    } else if (this.channel?.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "room_victory",
         payload,
       });
@@ -399,16 +423,15 @@ export class RealtimeRoomEngine {
   }
 
   public broadcastBoardSync(placedPieces: PlacedPieceSnapshot[]) {
-    if (!this.channel) return;
-
-    if (this.channel.send) {
-      this.channel.send({
+    if (this.supabaseChannel?.send) {
+      this.supabaseChannel.send({
         type: "broadcast",
         event: "board_sync",
         payload: placedPieces,
       });
-    } else if (this.channel.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "board_sync",
         payload: placedPieces,
       });
@@ -416,16 +439,15 @@ export class RealtimeRoomEngine {
   }
 
   public requestBoardSync() {
-    if (!this.channel) return;
-
-    if (this.channel.send) {
-      this.channel.send({
+    if (this.supabaseChannel?.send) {
+      this.supabaseChannel.send({
         type: "broadcast",
         event: "request_board_sync",
         payload: { senderId: this.localPlayerId },
       });
-    } else if (this.channel.postMessage) {
-      this.channel.postMessage({
+    }
+    if (this.bc?.postMessage) {
+      this.bc.postMessage({
         type: "request_board_sync",
         payload: { senderId: this.localPlayerId },
       });
@@ -438,11 +460,24 @@ export class RealtimeRoomEngine {
   }
 
   public disconnect() {
-    if (this.channel?.unsubscribe) {
-      this.channel.unsubscribe();
-    } else if (this.channel?.close) {
-      this.channel.close();
+    this.isSubscribed = false;
+    if (isSupabaseConfigured && supabase && this.supabaseChannel) {
+      try {
+        supabase.removeChannel(this.supabaseChannel);
+      } catch {
+        // Non-blocking cleanup
+      }
+      this.supabaseChannel = null;
     }
+    if (this.bc) {
+      try {
+        this.bc.close();
+      } catch {
+        // Non-blocking cleanup
+      }
+      this.bc = null;
+    }
+    this.channel = null;
     this.players.clear();
   }
 }
