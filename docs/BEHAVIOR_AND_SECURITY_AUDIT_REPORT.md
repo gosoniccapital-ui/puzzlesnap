@@ -4,7 +4,7 @@
 > **Thời gian thực hiện**: 18/09/2026  
 > **Phương pháp luận**: `/behavior-model-debugger` (Steve Ruiz Methodology) kết hợp `/vibe-engineering-workflow` & `/vibe-git-manager`.  
 > **Production Live URL**: [https://cunfashion.com](https://cunfashion.com) | [https://cunfashion.com/style-advisor](https://cunfashion.com/style-advisor)  
-> **Rollback Anchor**: `45e4eb5`
+> **Rollback Anchor**: `ee9b213` (Milestone 6.8 - PWA Service Worker & Real Affiliate Search Links)
 
 ---
 
