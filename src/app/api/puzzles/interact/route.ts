@@ -7,6 +7,16 @@ const interactionRateLimit = new Map<string, { count: number; resetTime: number 
 
 function isRateLimited(ip: string, limit = 60, windowMs = 60_000): boolean {
   const now = Date.now();
+
+  // Auto-prune stale entries if map gets large to prevent memory leak
+  if (interactionRateLimit.size > 500) {
+    for (const [key, val] of interactionRateLimit.entries()) {
+      if (now > val.resetTime) {
+        interactionRateLimit.delete(key);
+      }
+    }
+  }
+
   const entry = interactionRateLimit.get(ip);
   if (!entry || now > entry.resetTime) {
     interactionRateLimit.set(ip, { count: 1, resetTime: now + windowMs });

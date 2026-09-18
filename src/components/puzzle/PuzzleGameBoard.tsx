@@ -39,6 +39,17 @@ const DIFFICULTY_MAP = {
   supreme: { rows: 5, cols: 10, label: "Supreme (50 pcs)" },
 };
 
+// Stable pure time formatter function at module scope
+export function formatTime(totalSecs: number): string {
+  const hrs = Math.floor(totalSecs / 3600);
+  const mins = Math.floor((totalSecs % 3600) / 60);
+  const secs = totalSecs % 60;
+  if (hrs > 0) {
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
+
 export default function PuzzleGameBoard({
   imageSrc,
   title = "Daily Puzzle",
@@ -161,16 +172,6 @@ export default function PuzzleGameBoard({
     return () => clearInterval(interval);
   }, [isPaused, isVictory]);
 
-  const formatTime = (totalSecs: number) => {
-    const hrs = Math.floor(totalSecs / 3600);
-    const mins = Math.floor((totalSecs % 3600) / 60);
-    const secs = totalSecs % 60;
-    if (hrs > 0) {
-      return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-    }
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
   secondsRef.current = seconds;
   moveCountRef.current = moveCount;
 
@@ -189,7 +190,7 @@ export default function PuzzleGameBoard({
         moveCountRef.current
       );
     }
-  }, [formatTime]);
+  }, []);
 
   // Initialize Canvas Engine
   useEffect(() => {
@@ -295,6 +296,19 @@ export default function PuzzleGameBoard({
     userExplicitlyLeftRoomRef.current = false;
     const roomId = targetRoomId || "ROOM-" + Math.floor(1000 + Math.random() * 9000);
     setCoopRoomId(roomId);
+
+    // Sync room ID to browser address bar without page reload
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get("room") !== roomId) {
+          url.searchParams.set("room", roomId);
+          window.history.replaceState(null, "", url.pathname + url.search);
+        }
+      } catch {
+        // Non-blocking fallback
+      }
+    }
 
     if (coopEngineRef.current) {
       coopEngineRef.current.disconnect();

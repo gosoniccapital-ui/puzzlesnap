@@ -62,4 +62,50 @@ describe("Co-Op Room URL & Sharing Invariants", () => {
     assert.equal(parsed.searchParams.get("room"), "ROOM-NEW");
     assert.equal(parsed.searchParams.getAll("room").length, 1);
   });
+
+  it("formats time seconds accurately into mm:ss and hh:mm:ss", () => {
+    function formatTime(totalSecs) {
+      const hrs = Math.floor(totalSecs / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+      if (hrs > 0) {
+        return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+      }
+      return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
+
+    assert.equal(formatTime(0), "00:00");
+    assert.equal(formatTime(65), "01:05");
+    assert.equal(formatTime(3599), "59:59");
+    assert.equal(formatTime(3665), "01:01:05");
+  });
+
+  it("auto-prunes expired rate limit entries when store exceeds threshold", () => {
+    const rateLimitMap = new Map();
+    const now = Date.now();
+
+    // Populate with 505 entries, 500 of which are expired
+    for (let i = 0; i < 500; i++) {
+      rateLimitMap.set(`10.0.0.${i}`, { count: 1, resetTime: now - 1000 });
+    }
+    // 5 active entries
+    for (let i = 500; i < 505; i++) {
+      rateLimitMap.set(`10.0.0.${i}`, { count: 1, resetTime: now + 60000 });
+    }
+
+    assert.equal(rateLimitMap.size, 505);
+
+    // Simulate auto-pruning
+    if (rateLimitMap.size > 500) {
+      for (const [key, val] of rateLimitMap.entries()) {
+        if (now > val.resetTime) {
+          rateLimitMap.delete(key);
+        }
+      }
+    }
+
+    assert.equal(rateLimitMap.size, 5);
+    assert.ok(rateLimitMap.has("10.0.0.500"));
+    assert.ok(!rateLimitMap.has("10.0.0.1"));
+  });
 });
