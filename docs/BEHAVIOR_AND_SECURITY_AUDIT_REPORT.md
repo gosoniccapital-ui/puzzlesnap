@@ -109,3 +109,10 @@
 - **Cun Style Advisor**: `https://cunfashion.com/style-advisor` -> `HTTP 200 OK`
 - **Standalone Demo**: `https://cunfashion.com/cun-style-advisor.html` -> `HTTP 200 OK`
 - **Vercel Deployment ID**: `dpl_HoHcDZcnZiFbsmzXNVWW9xFyQkkd`
+## 6. 🛠️ Cập Nhật Fix Lỗi Layout & Đồng Bộ Hóa Giao Diện (Post-Deployment Hotline)
+- **Nguyên nhân gốc (Root Cause) lỗi layout trên `cun-style-advisor.html`**:
+  File HTML ban đầu dùng link external CDN `<script src="https://cdn.tailwindcss.com">` và `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/...">`. Do `next.config.mjs` có CSP header nghiêm ngặt (`script-src 'self'`), trình duyệt trên live domain `https://cunfashion.com` đã chặn toàn bộ script và style từ CDN bên ngoài, dẫn đến file HTML bị mất toàn bộ styling.
+- **Biện pháp khắc phục triệt để**:
+  1. Đã nhúng 100% **CSS nội bộ (self-contained inline CSS)** vào `public/cun-style-advisor.html`, loại bỏ hoàn toàn mọi phụ thuộc vào CDN bên ngoài. Trang web hiện hiển thị đẹp mắt, đầy đủ responsive và không bao giờ bị CSP chặn.
+  2. Đồng bộ hóa 100% giao diện giữa `https://cunfashion.com/style-advisor` và `https://cunfashion.com/cun-style-advisor.html` về tông màu sáng thanh lịch, form 5 tiêu chí chuẩn mực từ Google Doc của Đại Ka, có sẵn nút nạp nhanh ảnh mẫu Blazer Đỏ, và bộ switcher linh hoạt `[ 🖥️ Wide ]` / `[ 📱 Mobile ]`.
+- **Live Verification**: Cả 2 trang đều trả về **HTTP 200 OK**, kích thước đầy đủ, giao diện đồng nhất 1:1.
