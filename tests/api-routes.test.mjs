@@ -43,8 +43,8 @@ test("API: GET and POST /api/scores should persist and sort leaderboard entries"
       puzzleSlug: testSlug,
       playerName: uniqueName,
       pieceCount: 16,
-      elapsedSeconds: 25,
-      moves: 8,
+      elapsedSeconds: 5,
+      moves: 3,
     }),
   });
   assert.equal(postRes.status, 200);

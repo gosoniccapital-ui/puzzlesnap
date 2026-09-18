@@ -1,0 +1,240 @@
+import { supabase, isSupabaseConfigured } from "../supabase/client";
+
+export interface RemotePlayer {
+  id: string;
+  name: string;
+  color: string;
+  cursor?: { x: number; y: number };
+  activePieceId?: number | null;
+  lastActive: number;
+}
+
+export interface PieceSyncEvent {
+  pieceId: number;
+  currentPos: { x: number; y: number };
+  rotation: number;
+  isPlaced: boolean;
+  senderId: string;
+}
+
+const PLAYER_COLORS = [
+  "#f59e0b", // Amber
+  "#3b82f6", // Blue
+  "#10b981", // Emerald
+  "#ec4899", // Pink
+  "#8b5cf6", // Purple
+  "#f97316", // Orange
+  "#06b6d4", // Cyan
+  "#84cc16", // Lime
+];
+
+export class RealtimeRoomEngine {
+  private channel: any = null;
+  public roomId: string;
+  public localPlayerId: string;
+  public localPlayerName: string;
+  public localColor: string;
+  public players: Map<string, RemotePlayer> = new Map();
+  private onPlayerUpdateCallback?: (players: RemotePlayer[]) => void;
+  private onPieceSyncCallback?: (event: PieceSyncEvent) => void;
+  private onSnapCallback?: (event: PieceSyncEvent) => void;
+
+  constructor(roomId: string, playerName: string) {
+    this.roomId = roomId;
+    this.localPlayerId = "pl-" + Math.random().toString(36).substring(2, 9);
+    this.localPlayerName = playerName || "Player " + Math.floor(Math.random() * 100);
+    this.localColor = PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)];
+  }
+
+  public connect(
+    onPlayersChange: (players: RemotePlayer[]) => void,
+    onPieceSync: (event: PieceSyncEvent) => void,
+    onSnap: (event: PieceSyncEvent) => void
+  ) {
+    this.onPlayerUpdateCallback = onPlayersChange;
+    this.onPieceSyncCallback = onPieceSync;
+    this.onSnapCallback = onSnap;
+
+    // Fallback broadcast channel using local BroadcastChannel API when Supabase is not online/configured
+    if (typeof window !== "undefined" && window.BroadcastChannel) {
+      const bc = new BroadcastChannel("cunfashion-puzzle-room-" + this.roomId);
+      bc.onmessage = (ev) => {
+        const { type, payload } = ev.data;
+        if (type === "presence") {
+          if (payload.id !== this.localPlayerId) {
+            this.players.set(payload.id, payload);
+            this.notifyPlayers();
+          }
+        } else if (type === "piece_move") {
+          if (payload.senderId !== this.localPlayerId) {
+            this.onPieceSyncCallback?.(payload);
+          }
+        } else if (type === "piece_snap") {
+          if (payload.senderId !== this.localPlayerId) {
+            this.onSnapCallback?.(payload);
+          }
+        }
+      };
+
+      // Announce self presence
+      bc.postMessage({
+        type: "presence",
+        payload: {
+          id: this.localPlayerId,
+          name: this.localPlayerName,
+          color: this.localColor,
+          lastActive: Date.now(),
+        },
+      });
+
+      this.channel = bc;
+    }
+
+    // Connect to Supabase Realtime if configured
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const channelName = "puzzle-room:" + this.roomId;
+        const roomChannel = supabase.channel(channelName, {
+          config: {
+            presence: { key: this.localPlayerId },
+          },
+        });
+
+        roomChannel
+          .on("presence", { event: "sync" }, () => {
+            const state = roomChannel.presenceState();
+            const remotePlayers: RemotePlayer[] = [];
+            for (const [key, presences] of Object.entries(state)) {
+              if (key === this.localPlayerId) continue;
+              const presence = (presences as any[])[0];
+              if (presence) {
+                remotePlayers.push({
+                  id: key,
+                  name: presence.name || "Player",
+                  color: presence.color || "#3b82f6",
+                  cursor: presence.cursor,
+                  activePieceId: presence.activePieceId,
+                  lastActive: Date.now(),
+                });
+                this.players.set(key, remotePlayers[remotePlayers.length - 1]);
+              }
+            }
+            this.notifyPlayers();
+          })
+          .on("broadcast", { event: "piece_move" }, ({ payload }) => {
+            if (payload.senderId !== this.localPlayerId) {
+              this.onPieceSyncCallback?.(payload);
+            }
+          })
+          .on("broadcast", { event: "piece_snap" }, ({ payload }) => {
+            if (payload.senderId !== this.localPlayerId) {
+              this.onSnapCallback?.(payload);
+            }
+          })
+          .subscribe(async (status) => {
+            if (status === "SUBSCRIBED") {
+              await roomChannel.track({
+                name: this.localPlayerName,
+                color: this.localColor,
+                joinedAt: Date.now(),
+              });
+            }
+          });
+
+        this.channel = roomChannel;
+      } catch (err) {
+        console.warn("Supabase Realtime fallback to BroadcastChannel:", err);
+      }
+    }
+
+    this.notifyPlayers();
+  }
+
+  public broadcastCursor(cursor: { x: number; y: number }, activePieceId?: number | null) {
+    if (!this.channel) return;
+
+    if (this.channel.send) {
+      this.channel.send({
+        type: "broadcast",
+        event: "cursor_move",
+        payload: {
+          senderId: this.localPlayerId,
+          cursor,
+          activePieceId,
+        },
+      });
+    } else if (this.channel.postMessage) {
+      this.channel.postMessage({
+        type: "presence",
+        payload: {
+          id: this.localPlayerId,
+          name: this.localPlayerName,
+          color: this.localColor,
+          cursor,
+          activePieceId,
+          lastActive: Date.now(),
+        },
+      });
+    }
+  }
+
+  public broadcastPieceMove(pieceId: number, currentPos: { x: number; y: number }, rotation: number) {
+    const payload: PieceSyncEvent = {
+      pieceId,
+      currentPos,
+      rotation,
+      isPlaced: false,
+      senderId: this.localPlayerId,
+    };
+
+    if (this.channel?.send) {
+      this.channel.send({
+        type: "broadcast",
+        event: "piece_move",
+        payload,
+      });
+    } else if (this.channel?.postMessage) {
+      this.channel.postMessage({
+        type: "piece_move",
+        payload,
+      });
+    }
+  }
+
+  public broadcastPieceSnap(pieceId: number, currentPos: { x: number; y: number }) {
+    const payload: PieceSyncEvent = {
+      pieceId,
+      currentPos,
+      rotation: 0,
+      isPlaced: true,
+      senderId: this.localPlayerId,
+    };
+
+    if (this.channel?.send) {
+      this.channel.send({
+        type: "broadcast",
+        event: "piece_snap",
+        payload,
+      });
+    } else if (this.channel?.postMessage) {
+      this.channel.postMessage({
+        type: "piece_snap",
+        payload,
+      });
+    }
+  }
+
+  private notifyPlayers() {
+    const list = Array.from(this.players.values());
+    this.onPlayerUpdateCallback?.(list);
+  }
+
+  public disconnect() {
+    if (this.channel?.unsubscribe) {
+      this.channel.unsubscribe();
+    } else if (this.channel?.close) {
+      this.channel.close();
+    }
+    this.players.clear();
+  }
+}

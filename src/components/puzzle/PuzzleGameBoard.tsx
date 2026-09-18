@@ -12,6 +12,8 @@ import PuzzleLeaderboard, { LeaderboardItem } from "./PuzzleLeaderboard";
 import PuzzleVictoryModal from "./PuzzleVictoryModal";
 import PuzzlePreviewModal from "./PuzzlePreviewModal";
 import PuzzleZoomWidget from "./PuzzleZoomWidget";
+import PuzzleCoopModal from "./PuzzleCoopModal";
+import { RealtimeRoomEngine, RemotePlayer } from "@/lib/puzzle-engine/realtime-room";
 
 export type { LeaderboardItem };
 
@@ -76,6 +78,13 @@ export default function PuzzleGameBoard({
   const [playerName, setPlayerName] = useState("");
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
   const [scoreSubmitted, setScoreSubmitted] = useState(false);
+
+  // Multiplayer Co-Op state
+  const [showCoopModal, setShowCoopModal] = useState(false);
+  const [coopRoomId, setCoopRoomId] = useState("");
+  const [coopPlayers, setCoopPlayers] = useState<RemotePlayer[]>([]);
+  const [isCoopConnected, setIsCoopConnected] = useState(false);
+  const coopEngineRef = useRef<RealtimeRoomEngine | null>(null);
 
   // Load player name from localStorage
   useEffect(() => {
@@ -172,6 +181,16 @@ export default function PuzzleGameBoard({
           onZoomChange: (scale) => {
             setZoomPercent(Math.round(scale * 100));
           },
+          onPieceMove: (pieceId, currentPos, rotation) => {
+            if (coopEngineRef.current) {
+              coopEngineRef.current.broadcastPieceMove(pieceId, currentPos, rotation);
+            }
+          },
+          onPieceSnap: (pieceId, currentPos) => {
+            if (coopEngineRef.current) {
+              coopEngineRef.current.broadcastPieceSnap(pieceId, currentPos);
+            }
+          },
         },
         16,
         cutStyle,
@@ -204,6 +223,66 @@ export default function PuzzleGameBoard({
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleResize);
+    };
+  }, []);
+
+  // Co-Op Room Handlers
+  const handleConnectCoopRoom = useCallback((targetRoomId?: string) => {
+    const roomId = targetRoomId || "ROOM-" + Math.floor(1000 + Math.random() * 9000);
+    setCoopRoomId(roomId);
+
+    if (coopEngineRef.current) {
+      coopEngineRef.current.disconnect();
+    }
+
+    const coopEngine = new RealtimeRoomEngine(roomId, playerName);
+    coopEngine.connect(
+      (updatedPlayers) => {
+        setCoopPlayers([...updatedPlayers]);
+      },
+      (pieceEvent) => {
+        if (engineRef.current) {
+          engineRef.current.updateRemotePiece(
+            pieceEvent.pieceId,
+            pieceEvent.currentPos,
+            pieceEvent.rotation,
+            false
+          );
+        }
+      },
+      (snapEvent) => {
+        if (engineRef.current) {
+          engineRef.current.updateRemotePiece(
+            snapEvent.pieceId,
+            snapEvent.currentPos,
+            0,
+            true
+          );
+        }
+      }
+    );
+
+    coopEngineRef.current = coopEngine;
+    setIsCoopConnected(true);
+  }, [playerName]);
+
+  const handleLeaveCoopRoom = useCallback(() => {
+    if (coopEngineRef.current) {
+      coopEngineRef.current.disconnect();
+      coopEngineRef.current = null;
+    }
+    setIsCoopConnected(false);
+    setCoopRoomId("");
+    setCoopPlayers([]);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (coopEngineRef.current) {
+        coopEngineRef.current.disconnect();
+        coopEngineRef.current = null;
+      }
     };
   }, []);
 
@@ -385,6 +464,9 @@ export default function PuzzleGameBoard({
         onToggleMute={toggleMute}
         onShuffle={handleShuffle}
         onSolve={handleSolve}
+        isCoopConnected={isCoopConnected}
+        coopPlayerCount={coopPlayers.length + 1}
+        onOpenCoopModal={() => setShowCoopModal(true)}
       />
 
       {/* 2. Main Canvas Interactive Workspace */}
@@ -484,6 +566,19 @@ export default function PuzzleGameBoard({
         onClose={() => setShowPreviewModal(false)}
         title={title}
         imageSrc={imageSrc}
+      />
+
+      {/* 5. Multiplayer Co-Op Modal */}
+      <PuzzleCoopModal
+        isOpen={showCoopModal}
+        onClose={() => setShowCoopModal(false)}
+        roomId={coopRoomId}
+        roomUrl={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?room=${coopRoomId}` : ""}
+        players={coopPlayers}
+        localPlayerName={playerName || "You"}
+        isConnected={isCoopConnected}
+        onConnectRoom={handleConnectCoopRoom}
+        onLeaveRoom={handleLeaveCoopRoom}
       />
     </div>
   );

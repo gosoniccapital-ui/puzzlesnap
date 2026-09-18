@@ -20,6 +20,7 @@ import {
   ZoomIn,
   ZoomOut,
   Image as ImageIcon,
+  Users,
 } from "lucide-react";
 
 export interface PuzzleToolbarProps {
@@ -67,6 +68,10 @@ export interface PuzzleToolbarProps {
   onToggleMute: () => void;
   onShuffle: () => void;
   onSolve: () => void;
+  // Co-Op Multiplayer
+  isCoopConnected?: boolean;
+  coopPlayerCount?: number;
+  onOpenCoopModal?: () => void;
 }
 
 export default function PuzzleToolbar({
@@ -105,6 +110,9 @@ export default function PuzzleToolbar({
   onToggleMute,
   onShuffle,
   onSolve,
+  isCoopConnected,
+  coopPlayerCount,
+  onOpenCoopModal,
 }: PuzzleToolbarProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-stone-50 border-b border-stone-200">
@@ -245,6 +253,27 @@ export default function PuzzleToolbar({
           {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-stone-500" /> : <Maximize className="w-3.5 h-3.5 text-stone-500" />}
           <span className="hidden md:inline">Fullscreen</span>
         </button>
+
+        {/* Multiplayer Co-Op Button */}
+        {onOpenCoopModal && (
+          <button
+            onClick={onOpenCoopModal}
+            className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs font-bold border transition flex items-center gap-1.5 shadow-2xs cursor-pointer ${
+              isCoopConnected
+                ? "bg-emerald-500 text-stone-950 border-emerald-400 font-black shadow-emerald-500/20"
+                : "bg-amber-500 hover:bg-amber-400 text-stone-950 border-amber-400 font-extrabold shadow-amber-500/20"
+            }`}
+            title="Chơi cùng bạn bè (Multiplayer Co-op Room)"
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">
+              {isCoopConnected ? `Co-op (${coopPlayerCount || 1})` : "Rủ bạn chơi"}
+            </span>
+            {isCoopConnected && (
+              <span className="inline-block w-2 h-2 rounded-full bg-stone-950 animate-pulse" />
+            )}
+          </button>
+        )}
 
         {/* Zoom Control Group on Toolbar */}
         <div className="hidden sm:flex items-center bg-white rounded-lg border border-stone-200 shadow-2xs p-0.5">

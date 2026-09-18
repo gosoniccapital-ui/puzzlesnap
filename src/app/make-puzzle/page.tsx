@@ -1,11 +1,13 @@
-"use client";
+﻿"use client";
 
-import React, { useState, useRef } from "react";
-import { Upload, Sparkles, Image as ImageIcon, ArrowRight, Check, Loader2, CloudUpload } from "lucide-react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { Upload, Sparkles, Image as ImageIcon, ArrowRight, Check, Loader2, CloudUpload, Share2, Copy, Users } from "lucide-react";
 import PuzzleGameBoard from "@/components/puzzle/PuzzleGameBoard";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
-export default function MakePuzzlePage() {
+function MakePuzzleContent() {
+  const searchParams = useSearchParams();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [puzzleTitle, setPuzzleTitle] = useState<string>("My Custom Puzzle");
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium");
@@ -13,13 +15,47 @@ export default function MakePuzzlePage() {
   const [copied, setCopied] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isCloudStored, setIsCloudStored] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string>("");
+  const [isSharing, setIsSharing] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load puzzle from URL query params if opened from a shared link (?id=... or ?img=...)
+  useEffect(() => {
+    const idParam = searchParams.get("id");
+    const imgParam = searchParams.get("img");
+    const titleParam = searchParams.get("title");
+    const diffParam = searchParams.get("diff");
+
+    if (idParam) {
+      // Fetch custom puzzle by shared ID
+      fetch("/api/custom-puzzles?id=" + encodeURIComponent(idParam))
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && json.data) {
+            setSelectedImage(json.data.image);
+            setPuzzleTitle(json.data.title || "Shared Puzzle");
+            if (json.data.difficulty) setDifficulty(json.data.difficulty as any);
+            setIsPlaying(true);
+          }
+        })
+        .catch((err) => console.error("Failed to load shared puzzle:", err));
+    } else if (imgParam) {
+      setSelectedImage(decodeURIComponent(imgParam));
+      if (titleParam) setPuzzleTitle(decodeURIComponent(titleParam));
+      if (diffParam && ["easy", "medium", "hard"].includes(diffParam)) {
+        setDifficulty(diffParam as any);
+      }
+      setIsPlaying(true);
+    }
+  }, [searchParams]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPuzzleTitle(file.name.replace(/\.[^/.]+$/, ""));
+      const cleanName = file.name.replace(/\.[^/.]+$/, "");
+      setPuzzleTitle(cleanName);
       setIsCloudStored(false);
 
       // 1. Immediate local preview via FileReader for zero-delay UX
@@ -36,7 +72,7 @@ export default function MakePuzzlePage() {
         try {
           setIsUploading(true);
           const ext = file.name.split(".").pop() || "jpg";
-          const uniquePath = `custom-puzzles/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+          const uniquePath = "custom-puzzles/" + Date.now() + "-" + Math.random().toString(36).substring(2, 8) + "." + ext;
 
           const { data, error } = await supabase.storage
             .from("puzzle-images")
@@ -64,29 +100,75 @@ export default function MakePuzzlePage() {
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCreateShareLink = async () => {
+    if (!selectedImage) return;
+
+    try {
+      setIsSharing(true);
+      // 1. If it is already a web URL, encode directly into query param or save id
+      if (selectedImage.startsWith("http://") || selectedImage.startsWith("https://")) {
+        const directUrl = window.location.origin + "/make-puzzle?img=" + encodeURIComponent(selectedImage) + "&title=" + encodeURIComponent(puzzleTitle) + "&diff=" + difficulty;
+        setShareUrl(directUrl);
+        await navigator.clipboard.writeText(directUrl);
+        setCopied(true);
+        setShowShareModal(true);
+        setTimeout(() => setCopied(false), 2500);
+        return;
+      }
+
+      // 2. If it's a data URL / local file, persist via custom-puzzles API
+      const res = await fetch("/api/custom-puzzles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: puzzleTitle,
+          image: selectedImage,
+          difficulty,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.data?.id) {
+        const urlWithId = window.location.origin + "/make-puzzle?id=" + data.data.id;
+        setShareUrl(urlWithId);
+        await navigator.clipboard.writeText(urlWithId);
+        setCopied(true);
+        setShowShareModal(true);
+        setTimeout(() => setCopied(false), 2500);
+      }
+    } catch (err) {
+      console.error("Failed to generate share link:", err);
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   if (isPlaying && selectedImage) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => setIsPlaying(false)}
-            className="text-xs font-semibold px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 transition"
+            className="text-xs font-semibold px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 transition cursor-pointer"
           >
             ← Back to Customizer
           </button>
-          <button
-            onClick={handleCopyLink}
-            className="text-xs font-semibold px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 transition flex items-center gap-1.5"
-          >
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
-            {copied ? "Link Copied!" : "Share Puzzle"}
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCreateShareLink}
+              disabled={isSharing}
+              className="text-xs font-semibold px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 transition flex items-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
+            >
+              {isSharing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : copied ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <Share2 className="w-3.5 h-3.5" />
+              )}
+              <span>{isSharing ? "Creating Link..." : copied ? "Link Copied!" : "Share Puzzle"}</span>
+            </button>
+          </div>
         </div>
 
         <PuzzleGameBoard
@@ -94,6 +176,59 @@ export default function MakePuzzlePage() {
           title={puzzleTitle}
           initialDifficulty={difficulty}
         />
+
+        {/* Share Modal Dialog */}
+        {showShareModal && (
+          <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+            <div className="bg-stone-900 border border-stone-800 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black">
+                    <Share2 className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Share Your Puzzle</h3>
+                    <p className="text-xs text-stone-400">Anyone with this link can play this puzzle immediately</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="text-stone-400 hover:text-white text-lg font-bold p-1 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-stone-300">Sharable Puzzle Link</label>
+                <div className="flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-xl p-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareUrl}
+                    className="bg-transparent text-xs text-amber-300 font-mono w-full outline-none select-all"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareUrl);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copied ? "Copied" : "Copy"}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2 text-xs text-amber-200">
+                <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Link đã được sao chép vào bộ nhớ tạm! Bạn có thể dán gửi ngay cho bạn bè qua Zalo, Messenger, Telegram...</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -202,7 +337,7 @@ export default function MakePuzzlePage() {
             {/* Launch Button */}
             <button
               onClick={() => setIsPlaying(true)}
-              className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-base shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-base shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Play Puzzle Now</span>
               <ArrowRight className="w-5 h-5" />
@@ -211,5 +346,13 @@ export default function MakePuzzlePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function MakePuzzlePage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-stone-400">Loading Puzzle Maker...</div>}>
+      <MakePuzzleContent />
+    </Suspense>
   );
 }

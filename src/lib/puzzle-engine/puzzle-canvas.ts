@@ -8,6 +8,8 @@ export interface EngineEvents {
   onVictory?: () => void;
   onMove?: () => void;
   onZoomChange?: (zoomScale: number) => void;
+  onPieceMove?: (pieceId: number, currentPos: Point, rotation: number) => void;
+  onPieceSnap?: (pieceId: number, currentPos: Point) => void;
 }
 
 export class PuzzleCanvasEngine {
@@ -271,6 +273,32 @@ export class PuzzleCanvasEngine {
     this.selectedPieceId = null;
     soundFx.playVictory();
     this.events.onVictory?.();
+    this.requestRender();
+  }
+
+  /**
+   * Updates piece position, rotation, and placement status from remote multiplayer co-op players
+   */
+  public updateRemotePiece(pieceId: number, pos: Point, rotation: number, isPlaced: boolean) {
+    const piece = this.pieces.find((p) => p.id === pieceId);
+    if (!piece) return;
+
+    piece.currentPos = { ...pos };
+    piece.rotation = rotation;
+    if (isPlaced && !piece.isPlaced) {
+      piece.isPlaced = true;
+      piece.currentPos = { ...piece.originalPos };
+      piece.rotation = 0;
+      piece.zIndex = 0;
+      soundFx.playSnap(1);
+
+      const placedCount = this.pieces.filter((p) => p.isPlaced).length;
+      this.events.onProgress?.(placedCount, this.pieces.length);
+      if (placedCount === this.pieces.length) {
+        soundFx.playVictory();
+        this.events.onVictory?.();
+      }
+    }
     this.requestRender();
   }
 
@@ -655,6 +683,7 @@ export class PuzzleCanvasEngine {
             x: initial.x + dx,
             y: initial.y + dy,
           };
+          this.events.onPieceMove?.(id, this.pieces[id].currentPos, this.pieces[id].rotation);
         }
       });
 
@@ -747,6 +776,7 @@ export class PuzzleCanvasEngine {
           gp.isPlaced = true;
           gp.rotation = 0;
           gp.zIndex = 0; // lock to board layer
+          this.events.onPieceSnap?.(groupId, gp.currentPos);
         });
 
         snappedAny = true;
@@ -939,32 +969,18 @@ export class PuzzleCanvasEngine {
       this.ctx.shadowOffsetY = 3;
     }
 
-    // B. Clip to Piece Path
+    // B. Clip to Piece Path and align full image to board coordinates
     this.ctx.save();
     this.ctx.clip(piece.path);
 
-    // Calculate source rect from original image
-    const srcScaleX = this.image.naturalWidth / this.boardBounds.width;
-    const srcScaleY = this.image.naturalHeight / this.boardBounds.height;
-
-    // Piece offset relative to board
-    const cellBoardOffsetX = piece.col * piece.width;
-    const cellBoardOffsetY = piece.row * piece.height;
-
-    // Expand drawing boundary by 45% for tabs
-    const tabMargin = Math.max(piece.width, piece.height) * 0.45;
-
-    const srcX = Math.max(0, (cellBoardOffsetX - tabMargin) * srcScaleX);
-    const srcY = Math.max(0, (cellBoardOffsetY - tabMargin) * srcScaleY);
-    const srcW = (piece.width + tabMargin * 2) * srcScaleX;
-    const srcH = (piece.height + tabMargin * 2) * srcScaleY;
-
-    const destX = -tabMargin;
-    const destY = -tabMargin;
-    const destW = piece.width + tabMargin * 2;
-    const destH = piece.height + tabMargin * 2;
-
-    this.ctx.drawImage(this.image, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+    // Exact board-aligned rendering: origin of piece is (0, 0), so full image top-left is at (-col * width, -row * height)
+    this.ctx.drawImage(
+      this.image,
+      -piece.col * piece.width,
+      -piece.row * piece.height,
+      this.boardBounds.width,
+      this.boardBounds.height
+    );
     this.ctx.restore(); // end clip
 
     // C. Embossed Stroke / Bevel border & Selection Highlight
