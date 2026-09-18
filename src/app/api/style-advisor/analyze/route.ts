@@ -115,7 +115,7 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
   ]
 }`;
 
-          const candidateModels = ["gemini-3.6-flash", "gemini-2.5-flash-lite", "gemini-flash-latest"];
+          const candidateModels = ["gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-flash-latest"];
           let parsed: any = null;
 
           for (const modelName of candidateModels) {
@@ -162,49 +162,46 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
           }
 
           if (parsed) {
+            const detectedItems: DetectedOutfitItem[] = (parsed.detectedItems || []).map(
+              (item: any, idx: number) => ({
+                id: `ai-item-${idx + 1}`,
+                name: item.name || "Fashion Piece",
+                category: item.category || "top",
+                color: item.color || "Neutral",
+                style: item.style || "",
+                searchQuery: item.searchQuery || `${item.name} for women`,
+                amazonUrl: buildAmazonSearchUrl(item.searchQuery || `${item.name} for women`)
+              })
+            );
 
-              const detectedItems: DetectedOutfitItem[] = (parsed.detectedItems || []).map(
-                (item: any, idx: number) => ({
-                  id: `ai-item-${idx + 1}`,
-                  name: item.name || "Fashion Piece",
-                  category: item.category || "top",
-                  color: item.color || "Neutral",
-                  style: item.style || "",
-                  searchQuery: item.searchQuery || `${item.name} for women`,
-                  amazonUrl: buildAmazonSearchUrl(item.searchQuery || `${item.name} for women`)
-                })
-              );
+            const catalogPool = market === "US" ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
+            let matchedProducts: StyleProduct[] = [];
 
-              // Match best products from curated Amazon catalog
-              const catalogPool = market === "US" ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
-              let matchedProducts: StyleProduct[] = [];
-
-              if (detectedItems.length > 0) {
-                const categories = detectedItems.map((d) => d.category);
-                matchedProducts = catalogPool.filter((p) => categories.includes(p.category));
-              }
-
-              if (matchedProducts.length < 3) {
-                matchedProducts = catalogPool.slice(0, 6);
-              }
-
-              const result: AdviceResult = {
-                headline: parsed.headline || `Curated Look: ${occasion} • ${style}`,
-                adviceText: parsed.adviceText || "Tailored outfit recommendations curated by CunFashion AI.",
-                overallStyle: parsed.overallStyle || style,
-                palette: parsed.palette || [
-                  { name: "Primary", hex: "#27272A" },
-                  { name: "Accent", hex: "#D4D4D8" }
-                ],
-                styleTips: parsed.styleTips || [],
-                detectedItems,
-                suggestedProducts: matchedProducts.slice(0, 6),
-                market: market === "US" ? "US" : "VN",
-                source: "gemini-vision"
-              };
-
-              return NextResponse.json({ success: true, data: result });
+            if (detectedItems.length > 0) {
+              const categories = detectedItems.map((d) => d.category);
+              matchedProducts = catalogPool.filter((p) => categories.includes(p.category));
             }
+
+            if (matchedProducts.length < 3) {
+              matchedProducts = catalogPool.slice(0, 6);
+            }
+
+            const result: AdviceResult = {
+              headline: parsed.headline || `Curated Look: ${occasion} • ${style}`,
+              adviceText: parsed.adviceText || "Tailored outfit recommendations curated by CunFashion AI.",
+              overallStyle: parsed.overallStyle || style,
+              palette: parsed.palette || [
+                { name: "Primary", hex: "#27272A" },
+                { name: "Accent", hex: "#D4D4D8" }
+              ],
+              styleTips: parsed.styleTips || [],
+              detectedItems,
+              suggestedProducts: matchedProducts.slice(0, 6),
+              market: market === "US" ? "US" : "VN",
+              source: "gemini-vision"
+            };
+
+            return NextResponse.json({ success: true, data: result });
           }
         }
       } catch (geminiError) {
