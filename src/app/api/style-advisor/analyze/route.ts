@@ -71,7 +71,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    const rawKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    const apiKey = rawKey ? rawKey.replace(/^["']|["']$/g, "").trim() : "";
 
     // Check if Gemini Vision can be invoked
     if (apiKey && typeof image === "string" && image.startsWith("data:image/")) {
@@ -114,39 +115,53 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
   ]
 }`;
 
-          const geminiRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [
-                  {
-                    parts: [
-                      { text: prompt },
-                      {
-                        inlineData: {
-                          mimeType: mimeType,
-                          data: base64Data
-                        }
-                      }
-                    ]
-                  }
-                ],
-                generationConfig: {
-                  responseMimeType: "application/json",
-                  temperature: 0.3
-                }
-              })
-            }
-          );
+          const candidateModels = ["gemini-3.6-flash", "gemini-2.5-flash-lite", "gemini-flash-latest"];
+          let parsed: any = null;
 
-          if (geminiRes.ok) {
-            const geminiData = await geminiRes.json();
-            const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (rawText) {
-              const cleanedText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-              const parsed = JSON.parse(cleanedText);
+          for (const modelName of candidateModels) {
+            try {
+              const geminiRes = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    contents: [
+                      {
+                        parts: [
+                          { text: prompt },
+                          {
+                            inlineData: {
+                              mimeType: mimeType,
+                              data: base64Data
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    generationConfig: {
+                      responseMimeType: "application/json",
+                      temperature: 0.3
+                    }
+                  })
+                }
+              );
+
+              if (geminiRes.ok) {
+                const geminiData = await geminiRes.json();
+                const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (rawText) {
+                  const cleanedText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+                  parsed = JSON.parse(cleanedText);
+                  break;
+                }
+              }
+            } catch (modelErr) {
+              console.warn(`Model ${modelName} call failed, trying next:`, modelErr);
+            }
+          }
+
+          if (parsed) {
 
               const detectedItems: DetectedOutfitItem[] = (parsed.detectedItems || []).map(
                 (item: any, idx: number) => ({
