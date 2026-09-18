@@ -13,7 +13,7 @@ import PuzzleVictoryModal from "./PuzzleVictoryModal";
 import PuzzlePreviewModal from "./PuzzlePreviewModal";
 import PuzzleZoomWidget from "./PuzzleZoomWidget";
 import PuzzleCoopModal from "./PuzzleCoopModal";
-import { RealtimeRoomEngine, RemotePlayer } from "@/lib/puzzle-engine/realtime-room";
+import { RealtimeRoomEngine, RemotePlayer, VictorySyncEvent, PlacedPieceSnapshot } from "@/lib/puzzle-engine/realtime-room";
 
 export type { LeaderboardItem };
 
@@ -56,6 +56,8 @@ export default function PuzzleGameBoard({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<PuzzleCanvasEngine | null>(null);
   const userExplicitlyLeftRoomRef = useRef(false);
+  const secondsRef = useRef(0);
+  const moveCountRef = useRef(0);
 
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard" | "very-hard" | "supreme">(
     initialDifficulty
@@ -90,6 +92,7 @@ export default function PuzzleGameBoard({
   const [coopPlayers, setCoopPlayers] = useState<RemotePlayer[]>([]);
   const [isCoopConnected, setIsCoopConnected] = useState(false);
   const [coopToast, setCoopToast] = useState<string | null>(null);
+  const [remoteVictory, setRemoteVictory] = useState<VictorySyncEvent | null>(null);
   const coopEngineRef = useRef<RealtimeRoomEngine | null>(null);
 
   // Load player name from localStorage and listen to profile changes
@@ -168,6 +171,9 @@ export default function PuzzleGameBoard({
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  secondsRef.current = seconds;
+  moveCountRef.current = moveCount;
+
   const handleVictory = useCallback(() => {
     setIsVictory(true);
     setScoreSubmitted(false);
@@ -176,7 +182,14 @@ export default function PuzzleGameBoard({
       spread: 80,
       origin: { y: 0.6 },
     });
-  }, []);
+    if (coopEngineRef.current) {
+      coopEngineRef.current.broadcastVictory(
+        formatTime(secondsRef.current),
+        secondsRef.current,
+        moveCountRef.current
+      );
+    }
+  }, [formatTime]);
 
   // Initialize Canvas Engine
   useEffect(() => {
@@ -318,9 +331,43 @@ export default function PuzzleGameBoard({
             0,
             true
           );
+          setCoopToast("🎯 Bạn bè vừa ghép đúng một mảnh!");
+        }
+      },
+      undefined,
+      // onVictory: khi có người trong phòng về đích
+      (victoryEvent) => {
+        setRemoteVictory(victoryEvent);
+        soundFx.playVictory();
+        confetti({
+          particleCount: 180,
+          spread: 90,
+          origin: { y: 0.5 },
+        });
+        setCoopToast(`🏆 ${victoryEvent.winnerName} đã hoàn thành câu đố trong ${victoryEvent.timeFormatted}!`);
+      },
+      // onBoardSync: đồng bộ các mảnh ghép đã hoàn thành từ phòng
+      (placedList) => {
+        if (engineRef.current && Array.isArray(placedList) && placedList.length > 0) {
+          engineRef.current.applyBoardSync(placedList);
+          setCoopToast(`Đã đồng bộ ${placedList.length} mảnh ghép từ phòng!`);
+        }
+      },
+      // onRequestBoardSync: khi có người mới vào phòng xin trạng thái bàn cờ
+      () => {
+        if (engineRef.current && coopEngineRef.current) {
+          const placed = engineRef.current.getPlacedPieces();
+          if (placed.length > 0) {
+            coopEngineRef.current.broadcastBoardSync(placed);
+          }
         }
       }
     );
+
+    // Request initial board state from host/members after connect
+    setTimeout(() => {
+      coopEngine.requestBoardSync();
+    }, 600);
 
     coopEngineRef.current = coopEngine;
     setIsCoopConnected(true);
@@ -679,6 +726,48 @@ export default function PuzzleGameBoard({
         onConnectRoom={handleConnectCoopRoom}
         onLeaveRoom={handleLeaveCoopRoom}
       />
+
+      {/* 6. Remote Player Victory Notification Modal */}
+      {remoteVictory && !isVictory && (
+        <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-stone-900 border border-amber-500/40 rounded-3xl p-6 max-w-md w-full space-y-5 text-center shadow-2xl">
+            <div className="w-16 h-16 rounded-3xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-3xl animate-bounce">
+              🏆
+            </div>
+            <div className="space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-500/20 text-amber-300">
+                Phòng Co-Op Có Người Về Đích!
+              </span>
+              <h3 className="text-2xl font-black text-white">
+                {remoteVictory.winnerName} Đã Thắng!
+              </h3>
+              <p className="text-sm text-stone-300">
+                Đã hoàn thành câu đố trong <strong>{remoteVictory.timeFormatted}</strong> với <strong>{remoteVictory.moves} lượt đi</strong>!
+              </p>
+            </div>
+            <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs text-amber-200 text-left">
+              💡 Bạn có thể tiếp tục tự ghép cho xong bức tranh của mình, hoặc bấm &quot;Chơi Ván Mới&quot; cùng phòng!
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRemoteVictory(null)}
+                className="flex-1 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white text-xs font-bold transition cursor-pointer"
+              >
+                Tiếp tục ghép
+              </button>
+              <button
+                onClick={() => {
+                  setRemoteVictory(null);
+                  handleShuffle();
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition cursor-pointer"
+              >
+                Chơi Ván Mới
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

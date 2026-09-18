@@ -21,7 +21,7 @@ test('PWA: Service Worker public/sw.js exists and defines caching lifecycle', ()
   const swPath = path.resolve('public', 'sw.js');
   assert.ok(fs.existsSync(swPath), 'public/sw.js must exist');
   const swContent = fs.readFileSync(swPath, 'utf8');
-  assert.ok(swContent.includes('cunfashion-cache-v1'), 'Must have versioned cache name');
+  assert.ok(/cunfashion-cache-v\d+/.test(swContent), 'Must have versioned cache name');
   assert.ok(swContent.includes('install'), 'Must have install event');
   assert.ok(swContent.includes('activate'), 'Must have activate event');
   assert.ok(swContent.includes('fetch'), 'Must have fetch event');

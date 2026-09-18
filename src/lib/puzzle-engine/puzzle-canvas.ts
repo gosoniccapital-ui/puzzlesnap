@@ -317,6 +317,38 @@ export class PuzzleCanvasEngine {
     this.requestRender();
   }
 
+  public getPlacedPieces() {
+    return this.pieces
+      .filter((p) => p.isPlaced)
+      .map((p) => ({
+        pieceId: p.id,
+        currentPos: { ...p.currentPos },
+        rotation: p.rotation,
+      }));
+  }
+
+  public applyBoardSync(placedList: Array<{ pieceId: number; currentPos: Point; rotation: number }>) {
+    if (!Array.isArray(placedList) || placedList.length === 0) return;
+
+    let hasNewPlaced = false;
+    placedList.forEach((remote) => {
+      const piece = this.pieces.find((p) => p.id === remote.pieceId);
+      if (piece && !piece.isPlaced) {
+        piece.isPlaced = true;
+        piece.currentPos = { ...piece.originalPos };
+        piece.rotation = 0;
+        piece.zIndex = 0;
+        hasNewPlaced = true;
+      }
+    });
+
+    if (hasNewPlaced) {
+      const placedCount = this.pieces.filter((p) => p.isPlaced).length;
+      this.events.onProgress?.(placedCount, this.pieces.length);
+      this.requestRender();
+    }
+  }
+
   public toggleRotationMode(enabled?: boolean) {
     this.enableRotation = enabled !== undefined ? enabled : !this.enableRotation;
     if (!this.enableRotation) {

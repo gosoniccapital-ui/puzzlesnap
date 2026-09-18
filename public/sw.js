@@ -1,10 +1,12 @@
-﻿// CunFashion PWA Service Worker v1.0.0
-const CACHE_NAME = 'cunfashion-cache-v1';
+// CunFashion PWA Service Worker v2.0.0
+const CACHE_NAME = 'cunfashion-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/site.webmanifest',
   '/images/puzzle-icon-192.png',
   '/images/puzzle-icon-512.png',
+  '/images/brand/logo-animated.webp',
+  '/images/brand/cunfashion-transparent.webp',
   '/cun-style-advisor.html'
 ];
 

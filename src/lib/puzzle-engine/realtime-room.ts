@@ -25,6 +25,21 @@ export interface RoomPuzzleMeta {
   difficulty?: string;
 }
 
+export interface VictorySyncEvent {
+  winnerId: string;
+  winnerName: string;
+  timeFormatted: string;
+  seconds: number;
+  moves: number;
+  timestamp: number;
+}
+
+export interface PlacedPieceSnapshot {
+  pieceId: number;
+  currentPos: { x: number; y: number };
+  rotation: number;
+}
+
 const PLAYER_COLORS = [
   "#f59e0b", // Amber
   "#3b82f6", // Blue
@@ -48,6 +63,9 @@ export class RealtimeRoomEngine {
   private onPieceSyncCallback?: (event: PieceSyncEvent) => void;
   private onSnapCallback?: (event: PieceSyncEvent) => void;
   private onRoomMetaCallback?: (meta: RoomPuzzleMeta) => void;
+  private onVictoryCallback?: (event: VictorySyncEvent) => void;
+  private onBoardSyncCallback?: (pieces: PlacedPieceSnapshot[]) => void;
+  private onRequestBoardSyncCallback?: () => void;
 
   constructor(roomId: string, playerName: string, roomMeta?: RoomPuzzleMeta) {
     this.roomId = roomId;
@@ -90,12 +108,18 @@ export class RealtimeRoomEngine {
     onPlayersChange: (players: RemotePlayer[]) => void,
     onPieceSync: (event: PieceSyncEvent) => void,
     onSnap: (event: PieceSyncEvent) => void,
-    onRoomMeta?: (meta: RoomPuzzleMeta) => void
+    onRoomMeta?: (meta: RoomPuzzleMeta) => void,
+    onVictory?: (event: VictorySyncEvent) => void,
+    onBoardSync?: (pieces: PlacedPieceSnapshot[]) => void,
+    onRequestBoardSync?: () => void
   ) {
     this.onPlayerUpdateCallback = onPlayersChange;
     this.onPieceSyncCallback = onPieceSync;
     this.onSnapCallback = onSnap;
     this.onRoomMetaCallback = onRoomMeta;
+    this.onVictoryCallback = onVictory;
+    this.onBoardSyncCallback = onBoardSync;
+    this.onRequestBoardSyncCallback = onRequestBoardSync;
 
     // Fallback broadcast channel using local BroadcastChannel API when Supabase is not online/configured
     if (typeof window !== "undefined" && window.BroadcastChannel) {
@@ -126,6 +150,16 @@ export class RealtimeRoomEngine {
           if (payload && this.onRoomMetaCallback) {
             this.onRoomMetaCallback(payload);
           }
+        } else if (type === "room_victory") {
+          if (payload && this.onVictoryCallback) {
+            this.onVictoryCallback(payload);
+          }
+        } else if (type === "board_sync") {
+          if (payload && this.onBoardSyncCallback) {
+            this.onBoardSyncCallback(payload);
+          }
+        } else if (type === "request_board_sync") {
+          this.onRequestBoardSyncCallback?.();
         }
       };
 
@@ -197,6 +231,19 @@ export class RealtimeRoomEngine {
             if (payload && this.onRoomMetaCallback) {
               this.onRoomMetaCallback(payload);
             }
+          })
+          .on("broadcast", { event: "room_victory" }, ({ payload }) => {
+            if (payload && this.onVictoryCallback) {
+              this.onVictoryCallback(payload);
+            }
+          })
+          .on("broadcast", { event: "board_sync" }, ({ payload }) => {
+            if (payload && this.onBoardSyncCallback) {
+              this.onBoardSyncCallback(payload);
+            }
+          })
+          .on("broadcast", { event: "request_board_sync" }, () => {
+            this.onRequestBoardSyncCallback?.();
           })
           .subscribe(async (status) => {
             if (status === "SUBSCRIBED") {
@@ -322,6 +369,64 @@ export class RealtimeRoomEngine {
     } else if (this.channel.postMessage) {
       this.channel.postMessage({
         type: "request_room_meta",
+        payload: { senderId: this.localPlayerId },
+      });
+    }
+  }
+
+  public broadcastVictory(timeFormatted: string, seconds: number, moves: number) {
+    const payload: VictorySyncEvent = {
+      winnerId: this.localPlayerId,
+      winnerName: this.localPlayerName,
+      timeFormatted,
+      seconds,
+      moves,
+      timestamp: Date.now(),
+    };
+
+    if (this.channel?.send) {
+      this.channel.send({
+        type: "broadcast",
+        event: "room_victory",
+        payload,
+      });
+    } else if (this.channel?.postMessage) {
+      this.channel.postMessage({
+        type: "room_victory",
+        payload,
+      });
+    }
+  }
+
+  public broadcastBoardSync(placedPieces: PlacedPieceSnapshot[]) {
+    if (!this.channel) return;
+
+    if (this.channel.send) {
+      this.channel.send({
+        type: "broadcast",
+        event: "board_sync",
+        payload: placedPieces,
+      });
+    } else if (this.channel.postMessage) {
+      this.channel.postMessage({
+        type: "board_sync",
+        payload: placedPieces,
+      });
+    }
+  }
+
+  public requestBoardSync() {
+    if (!this.channel) return;
+
+    if (this.channel.send) {
+      this.channel.send({
+        type: "broadcast",
+        event: "request_board_sync",
+        payload: { senderId: this.localPlayerId },
+      });
+    } else if (this.channel.postMessage) {
+      this.channel.postMessage({
+        type: "request_board_sync",
         payload: { senderId: this.localPlayerId },
       });
     }

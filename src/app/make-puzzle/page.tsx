@@ -213,9 +213,12 @@ function MakePuzzleContent() {
 
     try {
       setIsSharing(true);
+      const currentRoom = searchParams.get("room");
+      const roomQuery = currentRoom ? `&room=${encodeURIComponent(currentRoom)}` : "";
+
       // 1. If it is already a web URL, encode directly into query param or save id
       if (selectedImage.startsWith("http://") || selectedImage.startsWith("https://")) {
-        const directUrl = window.location.origin + "/make-puzzle?img=" + encodeURIComponent(selectedImage) + "&title=" + encodeURIComponent(puzzleTitle) + "&diff=" + difficulty;
+        const directUrl = window.location.origin + "/make-puzzle?img=" + encodeURIComponent(selectedImage) + "&title=" + encodeURIComponent(puzzleTitle) + "&diff=" + difficulty + roomQuery;
         setShareUrl(directUrl);
         await navigator.clipboard.writeText(directUrl);
         setCopied(true);
@@ -236,7 +239,7 @@ function MakePuzzleContent() {
       });
       const data = await res.json();
       if (data.success && data.data?.id) {
-        const urlWithId = window.location.origin + "/make-puzzle?id=" + data.data.id;
+        const urlWithId = window.location.origin + "/make-puzzle?id=" + data.data.id + roomQuery;
         setShareUrl(urlWithId);
         await navigator.clipboard.writeText(urlWithId);
         setCopied(true);
