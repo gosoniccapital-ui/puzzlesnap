@@ -51,4 +51,5 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - Milestone 5.1 (Mobile Touch, Zoom Matrix, GitHub & Vercel Production): `03802b6`
 - Milestone 6.1 (Admin Security & Passcode Auth Gate): `7548772`
 - [x] Milestone 6.2 (Gamified E-Commerce Voucher & Shop The Look): `0e8793d`
-- [x] Milestone 6.3 (Tab Clipping Alignment, Art Sharing & Multiplayer Co-Op Engine): Fix tab margin clipping, implement query/ID-based art sharing, add real-time multiplayer co-op room engine with 30/30 tests passing 100%.
+- [x] Milestone 6.3 (Tab Clipping Alignment, Art Sharing & Multiplayer Co-Op Engine): Fix tab margin clipping, implement query/ID-based art sharing, add real-time multiplayer co-op room engine with 30/30 tests passing 100%. Commit: `8b6e999`.
+- [x] Milestone 6.4 (Behavior Model Audit, Anti-Placeholder Clean-up & Security Hardening): Eliminated dead buttons (Embed, Navbar Sign in, Puzzle Share), enabled instant co-op auto-join via ?room= query param with toast indicator, fortified custom-puzzles API with IP rate limiting, 5MB payload cap, and memory FIFO eviction, reinforced mutation APIs with defense-in-depth token verification. 33/33 tests passing 100%, production build verified. Commit: `9c31aa8`.
