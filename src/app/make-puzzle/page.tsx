@@ -34,6 +34,8 @@ function MakePuzzleContent() {
     const diffParam = searchParams.get("diff");
     const roomParam = searchParams.get("room");
 
+    let cleanupFn: (() => void) | undefined;
+
     if (idParam) {
       setCustomPuzzleId(idParam);
       // Fetch custom puzzle by shared ID
@@ -47,12 +49,12 @@ function MakePuzzleContent() {
             setIsPlaying(true);
           } else if (roomParam) {
             // Fallback: If in-memory record expired on serverless but room exists, sync from Host!
-            connectAndSyncFromHost(roomParam);
+            cleanupFn = connectAndSyncFromHost(roomParam);
           }
         })
         .catch((err) => {
           console.error("Failed to load shared puzzle:", err);
-          if (roomParam) connectAndSyncFromHost(roomParam);
+          if (roomParam) cleanupFn = connectAndSyncFromHost(roomParam);
         });
     } else if (imgParam) {
       setSelectedImage(decodeURIComponent(imgParam));
@@ -63,7 +65,7 @@ function MakePuzzleContent() {
       setIsPlaying(true);
     } else if (roomParam) {
       // Direct Co-Op room link without id (e.g. ?room=ROOM-6939) -> Sync from Host!
-      connectAndSyncFromHost(roomParam);
+      cleanupFn = connectAndSyncFromHost(roomParam);
     }
 
     function connectAndSyncFromHost(targetRoom: string) {
@@ -118,8 +120,15 @@ function MakePuzzleContent() {
       return () => {
         clearTimeout(retryTimer);
         clearTimeout(timeoutTimer);
+        if (!resolved) {
+          engine.disconnect();
+        }
       };
     }
+
+    return () => {
+      cleanupFn?.();
+    };
   }, [searchParams]);
 
   // Auto-persist custom puzzle and update URL with ?id=... as soon as game begins

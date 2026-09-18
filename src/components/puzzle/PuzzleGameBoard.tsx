@@ -55,6 +55,7 @@ export default function PuzzleGameBoard({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<PuzzleCanvasEngine | null>(null);
+  const userExplicitlyLeftRoomRef = useRef(false);
 
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard" | "very-hard" | "supreme">(
     initialDifficulty
@@ -278,6 +279,7 @@ export default function PuzzleGameBoard({
 
   // Co-Op Room Handlers
   const handleConnectCoopRoom = useCallback((targetRoomId?: string) => {
+    userExplicitlyLeftRoomRef.current = false;
     const roomId = targetRoomId || "ROOM-" + Math.floor(1000 + Math.random() * 9000);
     setCoopRoomId(roomId);
 
@@ -325,6 +327,7 @@ export default function PuzzleGameBoard({
   }, [playerName, customPuzzleId, puzzleSlug, title, imageSrc, difficulty]);
 
   const handleLeaveCoopRoom = useCallback(() => {
+    userExplicitlyLeftRoomRef.current = true;
     if (coopEngineRef.current) {
       coopEngineRef.current.disconnect();
       coopEngineRef.current = null;
@@ -332,10 +335,24 @@ export default function PuzzleGameBoard({
     setIsCoopConnected(false);
     setCoopRoomId("");
     setCoopPlayers([]);
+
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has("room")) {
+          url.searchParams.delete("room");
+          window.history.replaceState(null, "", url.pathname + url.search);
+        }
+      } catch {
+        // Fallback
+      }
+    }
   }, []);
 
   // Auto-connect to Co-Op room if URL param ?room=... or initialRoomId is provided
   useEffect(() => {
+    if (userExplicitlyLeftRoomRef.current) return;
+
     let targetRoom = initialRoomId;
     if (!targetRoom && typeof window !== "undefined") {
       const urlParam = new URLSearchParams(window.location.search).get("room");
