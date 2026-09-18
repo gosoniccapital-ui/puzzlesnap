@@ -1,4 +1,4 @@
-﻿/** @type {import('next').NextConfig} */
+/** @type {import('next').NextConfig} */
 const securityHeaders = [
   {
     key: "X-DNS-Prefetch-Control",
@@ -31,9 +31,9 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://*.supabase.in",
+      "img-src 'self' data: blob: https: https://images.unsplash.com https://*.supabase.co https://*.supabase.in https://m.media-amazon.com https://images-na.ssl-images-amazon.com",
       "media-src 'self' data: blob:",
-      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co",
+      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://generativelanguage.googleapis.com",
       "frame-ancestors 'self'",
     ].join("; "),
   },
@@ -54,6 +54,14 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "*.supabase.in",
+      },
+      {
+        protocol: "https",
+        hostname: "m.media-amazon.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images-na.ssl-images-amazon.com",
       },
     ],
   },

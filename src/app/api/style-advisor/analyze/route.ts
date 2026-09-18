@@ -9,11 +9,21 @@ import {
   StyleProduct
 } from "@/lib/data/style-advisor-data";
 
-// In-memory sliding window rate limiter: max 20 requests / min per IP
+// In-memory sliding window rate limiter: max 20 requests / min per IP with auto-pruning
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 function isRateLimited(identifier: string, limit = 20, windowMs = 60_000): boolean {
   const now = Date.now();
+
+  // Auto-prune stale entries if map gets large to prevent memory leak
+  if (rateLimitMap.size > 500) {
+    for (const [key, val] of rateLimitMap.entries()) {
+      if (now > val.resetTime) {
+        rateLimitMap.delete(key);
+      }
+    }
+  }
+
   const entry = rateLimitMap.get(identifier);
 
   if (!entry || now > entry.resetTime) {
@@ -52,6 +62,14 @@ export async function POST(request: NextRequest) {
       color = "",
       market = "US"
     } = body;
+
+    // Security guard: protect against giant base64 payloads (> 4MB)
+    if (typeof image === "string" && image.length > 5_500_000) {
+      return NextResponse.json(
+        { success: false, error: "Image payload exceeds max allowed size (4MB)." },
+        { status: 413 }
+      );
+    }
 
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 

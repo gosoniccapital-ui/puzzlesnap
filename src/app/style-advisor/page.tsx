@@ -79,17 +79,52 @@ export default function StyleAdvisorPage() {
     setTimeout(() => setToastMessage(null), 2800);
   };
 
-  const handleImageFile = (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      showToast("Vui lòng chọn ảnh dung lượng dưới 5MB");
+  const compressImage = (file: File, maxDimension = 1200, quality = 0.82): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          return reject(new Error("Canvas context failed"));
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleImageFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      showToast("Vui lòng chỉ chọn tệp hình ảnh");
       return;
     }
     setImageName(file.name);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setSelectedImage(ev.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedDataUrl = await compressImage(file);
+      setSelectedImage(compressedDataUrl);
+    } catch {
+      // Fallback to FileReader if canvas compression fails
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setSelectedImage(ev.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
