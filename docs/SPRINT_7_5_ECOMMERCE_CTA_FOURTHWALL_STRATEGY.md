@@ -94,5 +94,6 @@ Là CEO và Lead PM của dự án, giải pháp toàn diện nhất được l�
    ```
 2. **Next.js 15 Production Build:**
    * Biên dịch thành công 19/19 routes tĩnh và serverless API sạch sẽ, không có lỗi kiểu TypeScript hay ESLint.
-3. **Domain Probe Xác Thực Trực Tiếp:**
-   * `curl.exe -I "https://cute.cunfashion.com/?coupon=CUNFASHION2026"` ➜ **HTTP 200 OK**.
+4. **PWA Service Worker Cache-Busting (v3):**
+   * **Root Cause:** Trình duyệt phía Client đã cache các bundle JS cũ qua Service Worker `cunfashion-cache-v2` (chiến lược Stale-While-Revalidate). Do đó, dù Vercel đã deploy bản mới, trình duyệt vẫn ưu tiên dùng file cached cũ khiến nút CTA chưa cập nhật tức thì.
+   * **Fix:** Cập nhật `CACHE_NAME = 'cunfashion-cache-v3'` trong `public/sw.js`. Khi trình duyệt phát hiện worker mới, event `activate` sẽ tự động xóa toàn bộ cache cũ của v2 (`caches.delete(cacheName)`), giải phóng tức thì bundle mới nhất cho người dùng.
