@@ -129,3 +129,19 @@ Trước khi `git commit`, Agent **BẮT BUỘC** kiểm tra theo thứ tự:
   - `.env.local` (ưu tiên cho Next.js / frontend)
   - Hoặc `.env` (được đưa vào `.gitignore`).
 - Tạo file mẫu `.env.example` (chỉ chứa tên biến không chứa giá trị thật) để commit lên GitHub cho người khác biết cách cấu hình.
+
+---
+
+## 🛡️ 6. Bộ 3 Nguyên Tắc Kỷ Luật Bất Biến (Identity & Credential Invariants - Anti-Assumption Gate)
+
+Tuyệt đối không được suy đoán tài khoản hay danh tính của người dùng. Mọi Agent **BẮT BUỘC** tuân thủ:
+
+1. **Config First, Never Assume (Kiểm tra file cấu hình trước):**
+   - Khi gặp bất kỳ lỗi xác thực nào (`401`, `403`, `Permission Denied`, `Bad Credentials`), việc **ĐẦU TIÊN** phải làm là kiểm tra file cấu hình môi trường cục bộ (`.env.local`, `.env`) xem có chứa token hoặc key xác thực sẵn có không (ví dụ: `GITHUB_TOKEN`, `VERCEL_TOKEN`).
+2. **Zero Guessing & Probe-First (Không suy diễn danh tính tài khoản):**
+   - Tuyệt đối không suy diễn tài khoản đang đăng nhập từ output lỗi của công cụ hệ điều hành (như Windows Credential Manager).
+   - Luôn dùng code kiểm chứng (probe) thực tế trên API của nhà cung cấp (`api.github.com/user`, `api.vercel.com/v2/user`) để xác định chính xác tài khoản đang được cấp quyền.
+3. **Safe Authenticated Push (Đẩy mã nguồn an toàn & bảo vệ bí mật):**
+   - Khi remote yêu cầu token, nạp token trực tiếp qua URL hoặc Authorization header trong phiên đẩy Git tạm thời, tuyệt đối không ghi token vào `.git/config`, không commit token vào Git history, và không in token ra màn hình terminal (Zero Secrets in Git).
+4. **Strict Verification Before Done (Chỉ báo hoàn thành khi có bằng chứng thực tế):**
+   - Không bao giờ báo hoàn thành nếu chưa chạy lệnh kiểm thử và kiểm tra mã phản hồi HTTP thực tế trên môi trường live. Mọi mốc hoàn thành đều phải được ghi nhận đầy đủ bằng chứng vào thư mục `docs/` và file `CONTEXT.md`.
