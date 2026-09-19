@@ -13,6 +13,16 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 function isRateLimited(identifier: string, limit = 10, windowMs = 60_000): boolean {
   const now = Date.now();
+
+  // Auto-prune stale entries if map gets large to prevent memory leaks
+  if (rateLimitMap.size > 500) {
+    for (const [key, val] of rateLimitMap.entries()) {
+      if (now > val.resetTime) {
+        rateLimitMap.delete(key);
+      }
+    }
+  }
+
   const entry = rateLimitMap.get(identifier);
 
   if (!entry || now > entry.resetTime) {
