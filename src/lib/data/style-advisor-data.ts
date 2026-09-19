@@ -37,7 +37,7 @@ export interface StyleProduct {
   budgetTier: "low" | "mid" | "high";
   colorTags: string[];
   asin?: string;
-  market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
+  market?: "ALL" | "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
 }
 
 export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
@@ -477,9 +477,90 @@ export interface AdviceResult {
   styleTips: string[];
   suggestedProducts: StyleProduct[];
   detectedItems?: DetectedOutfitItem[];
-  market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
+  market?: "ALL" | "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
   source?: "gemini-vision" | "gemini-text" | "openai-vision" | "ai-heuristic" | "rakuten-api" | "fourthwall-api";
   keyword?: string;
+}
+
+export interface SurpriseLook {
+  keyword: string;
+  occasion: string;
+  style: string;
+  budget: string;
+  color: string;
+  description: string;
+}
+
+export const SURPRISE_LOOKS: SurpriseLook[] = [
+  {
+    keyword: "Cardigan",
+    occasion: "casual",
+    style: "romantic",
+    budget: "mid",
+    color: "hồng pastel, be",
+    description: "Cardigan len dệt kim vintage ngọt ngào"
+  },
+  {
+    keyword: "Blazer",
+    occasion: "work",
+    style: "elegant",
+    budget: "mid",
+    color: "đen, xám than",
+    description: "Blazer dạ dáng suông thanh lịch công sở"
+  },
+  {
+    keyword: "Trench Coat",
+    occasion: "travel",
+    style: "classic",
+    budget: "high",
+    color: "khaki, camel",
+    description: "Trench Coat dáng dài Thu Đông chuẩn London Chic"
+  },
+  {
+    keyword: "Váy dạ hội",
+    occasion: "party",
+    style: "elegant",
+    budget: "high",
+    color: "đỏ rượu, đen satin",
+    description: "Váy dạ tiệc quyến rũ kiêu sa"
+  },
+  {
+    keyword: "Hoodie",
+    occasion: "casual",
+    style: "street",
+    budget: "low",
+    color: "trắng, xám",
+    description: "Hoodie oversized phóng khoáng hiện đại"
+  },
+  {
+    keyword: "Quần ống rộng",
+    occasion: "work",
+    style: "minimal",
+    budget: "mid",
+    color: "kem, be nhạt",
+    description: "Quần tây ống rộng tôn dáng hack chân dài"
+  },
+  {
+    keyword: "Vớ cute",
+    occasion: "casual",
+    style: "romantic",
+    budget: "low",
+    color: "trắng, pastel",
+    description: "Phụ kiện vớ tất cute CunCute phối sneaker"
+  },
+  {
+    keyword: "Sneaker",
+    occasion: "casual",
+    style: "street",
+    budget: "mid",
+    color: "trắng, vintage",
+    description: "Giày sneaker thể thao năng động dạo phố"
+  }
+];
+
+export function getRandomSurpriseLook(): SurpriseLook {
+  const index = Math.floor(Math.random() * SURPRISE_LOOKS.length);
+  return SURPRISE_LOOKS[index];
 }
 
 export function generateStylistAdvice({
@@ -488,7 +569,7 @@ export function generateStylistAdvice({
   budget,
   color,
   hasCustomImage,
-  market = "US",
+  market = "ALL",
   keyword = ""
 }: {
   occasion: string;
@@ -496,11 +577,16 @@ export function generateStylistAdvice({
   budget: string;
   color: string;
   hasCustomImage: boolean;
-  market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
+  market?: "ALL" | "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
   keyword?: string;
 }): AdviceResult {
-  const isUS = market === "US" || market === "RAKUTEN" || market === "FOURTHWALL";
-  const catalogPool = isUS ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
+  const isAll = market === "ALL";
+  const isUS = isAll || market === "US" || market === "RAKUTEN" || market === "FOURTHWALL";
+  const catalogPool = isAll
+    ? [...AMAZON_STYLE_CATALOG, ...VN_STYLE_CATALOG]
+    : isUS
+    ? AMAZON_STYLE_CATALOG
+    : VN_STYLE_CATALOG;
 
   const occasionLabels: Record<string, string> = {
     casual: isUS ? "Casual Daily & Errands" : "Đi chơi / Hàng ngày",

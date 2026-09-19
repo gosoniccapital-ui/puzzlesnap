@@ -19,27 +19,31 @@ import {
   Monitor,
   RotateCcw,
   Search,
-  Camera
+  Camera,
+  SlidersHorizontal,
+  Shuffle,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import {
   generateStylistAdvice,
   AdviceResult,
   StyleProduct,
-  STYLE_CATALOG
+  STYLE_CATALOG,
+  getRandomSurpriseLook
 } from "@/lib/data/style-advisor-data";
 
 export default function StyleAdvisorPage() {
   const [viewMode, setViewMode] = useState<"wide" | "mobile">("wide");
-  const [market, setMarket] = useState<"FOURTHWALL" | "RAKUTEN" | "US" | "VN">("FOURTHWALL");
-  const [selectedImage, setSelectedImage] = useState<string | null>(
-    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80"
-  );
-  const [imageName, setImageName] = useState<string>("ZXixb.jpg (Blazer đỏ công sở)");
-  const [occasion, setOccasion] = useState("work");
-  const [style, setStyle] = useState("elegant");
+  const [market, setMarket] = useState<"ALL" | "FOURTHWALL" | "RAKUTEN" | "US" | "VN">("ALL");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageName, setImageName] = useState<string>("");
+  const [occasion, setOccasion] = useState("all");
+  const [style, setStyle] = useState("all");
   const [keyword, setKeyword] = useState("");
-  const [budget, setBudget] = useState("mid");
+  const [budget, setBudget] = useState("all");
   const [color, setColor] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState<string>("");
   const [result, setResult] = useState<AdviceResult | null>(null);
@@ -61,17 +65,17 @@ export default function StyleAdvisorPage() {
     "Sneaker"
   ];
 
-  // Tự động phân tích look mẫu ban đầu để khách vào trang là thấy ngay kết quả trực quan
+  // Tự động phân tích look mẫu ban đầu trên tất cả các sàn để khách vào trang là thấy ngay kết quả trực quan
   useEffect(() => {
     fetch("/api/style-advisor/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        occasion: "work",
-        style: "elegant",
+        occasion: "casual",
+        style: "minimal",
         budget: "mid",
-        color: "đen, be, trung tính",
-        market: "FOURTHWALL",
+        color: "neutral",
+        market: "ALL",
       }),
     })
       .then((res) => res.json())
@@ -82,12 +86,12 @@ export default function StyleAdvisorPage() {
       })
       .catch(() => {
         const initialAdvice = generateStylistAdvice({
-          occasion: "work",
-          style: "elegant",
+          occasion: "casual",
+          style: "minimal",
           budget: "mid",
-          color: "đen, be, trung tính",
-          hasCustomImage: true,
-          market: "FOURTHWALL",
+          color: "neutral",
+          hasCustomImage: false,
+          market: "ALL",
         });
         setResult(initialAdvice);
       });
@@ -157,11 +161,12 @@ export default function StyleAdvisorPage() {
   const handleLoadDemoBlazer = () => {
     setSelectedImage("https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80");
     setImageName("ZXixb.jpg (Blazer đỏ công sở)");
+    setKeyword("");
     setOccasion("work");
     setStyle("elegant");
     setBudget("mid");
     setColor("đen, be, trung tính");
-    setMarket("US");
+    setMarket("ALL");
   };
 
   const handleAnalyze = async () => {
@@ -219,6 +224,56 @@ export default function StyleAdvisorPage() {
         resultRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
+  };
+
+  const handleSurpriseMe = () => {
+    const look = getRandomSurpriseLook();
+    setKeyword(look.keyword);
+    setOccasion(look.occasion);
+    setStyle(look.style);
+    setBudget(look.budget);
+    setColor(look.color);
+    setIsAnalyzing(true);
+    setAnalysisStatus(`Đang phối ngẫu hứng: "${look.description}"...`);
+
+    fetch("/api/style-advisor/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image: null,
+        keyword: look.keyword,
+        occasion: look.occasion,
+        style: look.style,
+        budget: look.budget,
+        color: look.color,
+        market,
+      }),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setResult(json.data);
+        }
+      })
+      .catch(() => {
+        const advice = generateStylistAdvice({
+          occasion: look.occasion,
+          style: look.style,
+          budget: look.budget,
+          color: look.color,
+          hasCustomImage: false,
+          market,
+          keyword: look.keyword,
+        });
+        setResult(advice);
+      })
+      .finally(() => {
+        setIsAnalyzing(false);
+        setAnalysisStatus("");
+        setTimeout(() => {
+          resultRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      });
   };
 
   const handleCopyLink = (product: StyleProduct) => {
@@ -327,55 +382,93 @@ export default function StyleAdvisorPage() {
           </p>
         </div>
 
-        {/* Card Form Chính: Keyword, Upload & Điền Tiêu Chí */}
-        <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 mb-6">
-          {/* 1. Nhập từ khóa / Tên món đồ cần tìm */}
-          <div className="mb-5 pb-5 border-b border-stone-100">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs sm:text-sm font-bold text-stone-800 flex items-center gap-1.5">
-                <Search className="w-4 h-4 text-pink-600" />
-                <span>1. Tìm kiếm theo từ khóa / Tên trang phục (Hoặc kết hợp ảnh bên dưới)</span>
-              </label>
-              {keyword && (
-                <button
-                  type="button"
-                  onClick={() => setKeyword("")}
-                  className="text-xs text-stone-400 hover:text-stone-700 font-medium flex items-center gap-1"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  Xóa từ khóa
-                </button>
-              )}
-            </div>
+        {/* Card Form Chính: Unified Omni-Search Bar + Upload Image + ALL Market + Filters */}
+        <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-4 sm:p-6 mb-6">
+          {/* Main Search Bar with Inline Camera & Search Button */}
+          <div className="relative flex items-center">
+            <Search className="w-5 h-5 text-stone-400 absolute left-4 pointer-events-none" />
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAnalyze();
+                }
+              }}
+              placeholder="Gõ món đồ hoặc phong cách bạn muốn tìm (ví dụ: blazer, cardigan, hoodie, váy dự tiệc...)"
+              className="w-full border-2 border-stone-200 rounded-2xl pl-12 pr-32 py-3.5 text-xs sm:text-sm bg-stone-50/70 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/15 outline-none transition font-medium text-stone-900 placeholder:text-stone-400 shadow-inner"
+            />
 
-            <div className="relative">
+            {/* Right Action Controls: Inline Camera + Submit */}
+            <div className="absolute right-2 flex items-center gap-1.5">
+              {/* Camera Icon Upload */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded-xl text-stone-500 hover:text-pink-600 hover:bg-pink-50 transition cursor-pointer"
+                title="Tải ảnh trang phục lên để AI Vision quét mẫu"
+              >
+                <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
               <input
-                type="text"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAnalyze();
-                  }
-                }}
-                placeholder="Nhập tên món đồ cần tìm (ví dụ: áo cardigan, blazer dạ, trench coat, váy dự tiệc, vớ cute...)"
-                className="w-full border border-stone-200 rounded-2xl pl-10 pr-24 py-3 text-xs sm:text-sm bg-stone-50/70 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800 placeholder:text-stone-400"
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
               />
-              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+
+              {/* Submit Search Button */}
               <button
                 type="button"
                 onClick={handleAnalyze}
                 disabled={isAnalyzing}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1"
+                className="bg-stone-900 hover:bg-pink-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1 shadow-sm cursor-pointer disabled:opacity-60"
               >
-                <span>Tìm</span>
-                <Sparkles className="w-3 h-3 text-pink-400" />
+                {isAnalyzing ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <span>Tìm</span>
+                    <Sparkles className="w-3 h-3 text-pink-300" />
+                  </>
+                )}
               </button>
             </div>
+          </div>
 
-            {/* Gợi ý từ khóa nhanh (Quick Tag Pills) */}
-            <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+          {/* Active Image Chip Preview */}
+          {selectedImage && (
+            <div className="mt-3 inline-flex items-center gap-2.5 bg-pink-50 border border-pink-200/90 rounded-2xl px-3 py-1.5 shadow-xs animate-in fade-in duration-200">
+              <img
+                src={selectedImage}
+                alt="Selected"
+                className="w-8 h-8 rounded-lg object-cover border border-pink-200"
+              />
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-bold text-pink-900 line-clamp-1">
+                  {imageName || "Ảnh trang phục đã tải lên"}
+                </span>
+                <span className="text-[10px] text-pink-600 font-medium">
+                  AI Vision sẵn sàng phân tích
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleClearImage}
+                className="ml-1 p-1 rounded-full text-pink-700 hover:bg-pink-200/60 transition cursor-pointer"
+                title="Xóa ảnh"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Quick Keywords & Surprise Me Button */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-stone-100">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-[11px] text-stone-400 font-medium mr-1">Gợi ý nhanh:</span>
               {QUICK_KEYWORDS.map((kw) => (
                 <button
@@ -392,76 +485,36 @@ export default function StyleAdvisorPage() {
                 </button>
               ))}
             </div>
+
+            {/* Surprise Me Button */}
+            <button
+              type="button"
+              onClick={handleSurpriseMe}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition shadow-2xs cursor-pointer"
+              title="Phối đồ ngẫu hứng không cần suy nghĩ"
+            >
+              <Shuffle className="w-3.5 h-3.5 text-amber-600" />
+              <span>🎲 Gợi ý ngẫu hứng</span>
+            </button>
           </div>
 
-          {/* 2. Upload ảnh (Tùy chọn) */}
-          <div className="mb-5">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs sm:text-sm font-bold text-stone-800 flex items-center gap-1.5">
-                <Camera className="w-4 h-4 text-stone-600" />
-                <span>2. Upload ảnh trang phục (Tùy chọn: AI Vision quét mẫu người mặc)</span>
-              </label>
-              {selectedImage && (
-                <button
-                  onClick={handleClearImage}
-                  className="text-xs text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  Xóa ảnh
-                </button>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                id="imageInput"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="block text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100 transition cursor-pointer"
-              />
-              <button
-                type="button"
-                onClick={handleLoadDemoBlazer}
-                className="text-[11px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold py-1.5 px-3 rounded-xl border border-rose-200 transition"
-              >
-                Ảnh Blazer đỏ mẫu
-              </button>
-            </div>
-
-            {/* Preview Image */}
-            {selectedImage && (
-              <div className="mt-3 relative bg-stone-50 rounded-2xl border border-stone-200 p-3 flex flex-col items-center justify-center">
-                <img
-                  src={selectedImage}
-                  alt="Preview"
-                  className="max-h-64 w-auto object-contain rounded-xl shadow-sm"
-                />
-                <span className="mt-2 text-[11px] text-stone-500 font-medium">
-                  {imageName || "Đã nạp ảnh thành công"}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Thị trường mục tiêu (Fourthwall, Rakuten, US Amazon, VN) */}
-          <div className="mb-4 pb-3 border-b border-stone-100 flex flex-wrap items-center justify-between gap-2">
+          {/* Sàn liên kết (Affiliate Market Selector) with ALL as default */}
+          <div className="mt-4 pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2">
             <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
-              Thị trường mua sắm (Affiliate Market):
+              Sàn mua sắm (Affiliate Market):
             </label>
             <div className="inline-flex flex-wrap rounded-xl bg-stone-100 p-1 border border-stone-200 gap-1">
               <button
                 type="button"
-                onClick={() => setMarket("FOURTHWALL")}
+                onClick={() => setMarket("ALL")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                  market === "FOURTHWALL"
-                    ? "bg-pink-600 text-white shadow-xs"
-                    : "text-stone-500 hover:text-stone-900"
+                  market === "ALL"
+                    ? "bg-stone-900 text-white shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
                 }`}
-                title="Sản phẩm thời trang độc quyền từ CunCute Store (cute.cunfashion.com)"
+                title="Quét & tổng hợp sản phẩm trên tất cả các sàn (Khuyên dùng)"
               >
-                <span>🌟 Cun Cute Store</span>
+                <span>🌐 Tất cả sàn (All)</span>
               </button>
               <button
                 type="button"
@@ -469,7 +522,7 @@ export default function StyleAdvisorPage() {
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   market === "RAKUTEN"
                     ? "bg-red-600 text-white shadow-xs"
-                    : "text-stone-500 hover:text-stone-900"
+                    : "text-stone-600 hover:text-stone-900"
                 }`}
                 title="Thời trang chính hãng qua Rakuten Advertising (Nike, Macy's, ASOS...)"
               >
@@ -480,11 +533,24 @@ export default function StyleAdvisorPage() {
                 onClick={() => setMarket("US")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   market === "US"
-                    ? "bg-white text-stone-900 shadow-xs border border-stone-200"
-                    : "text-stone-500 hover:text-stone-900"
+                    ? "bg-amber-500 text-stone-950 font-black shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
                 }`}
+                title="Amazon US Affiliate (StoreID: cuncute-20)"
               >
                 <span>📦 Amazon US</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarket("FOURTHWALL")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "FOURTHWALL"
+                    ? "bg-pink-600 text-white shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+                title="Sản phẩm thời trang độc quyền từ CunCute Store (cute.cunfashion.com)"
+              >
+                <span>🌟 Cun Cute Store</span>
               </button>
               <button
                 type="button"
@@ -492,7 +558,7 @@ export default function StyleAdvisorPage() {
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   market === "VN"
                     ? "bg-white text-stone-900 shadow-xs border border-stone-200"
-                    : "text-stone-500 hover:text-stone-900"
+                    : "text-stone-600 hover:text-stone-900"
                 }`}
               >
                 <span>🇻🇳 Shopee/TikTok</span>
@@ -500,105 +566,91 @@ export default function StyleAdvisorPage() {
             </div>
           </div>
 
-          {/* 2. Form Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                Dịp sử dụng
-              </label>
-              <select
-                value={occasion}
-                onChange={(e) => setOccasion(e.target.value)}
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800"
-              >
-                <option value="work">Đi làm</option>
-                <option value="casual">Casual / Hàng ngày</option>
-                <option value="date">Hẹn hò</option>
-                <option value="party">Party / Sự kiện</option>
-                <option value="travel">Du lịch</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                Phong cách
-              </label>
-              <select
-                value={style}
-                onChange={(e) => setStyle(e.target.value)}
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800"
-              >
-                <option value="elegant">Elegant / Thanh lịch</option>
-                <option value="minimal">Minimal / Tối giản</option>
-                <option value="street">Streetwear</option>
-                <option value="romantic">Romantic / Nữ tính</option>
-                <option value="classic">Classic</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                Ngân sách
-              </label>
-              <select
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800"
-              >
-                {market === "US" ? (
-                  <>
-                    <option value="low">Under $30 (Tiết kiệm)</option>
-                    <option value="mid">$30 - $80 (Tiêu chuẩn)</option>
-                    <option value="high">Over $80 (Cao cấp)</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="low">Dưới 500k (Tiết kiệm)</option>
-                    <option value="mid">500k - 1.5tr (Tiêu chuẩn)</option>
-                    <option value="high">Trên 1.5tr (Cao cấp)</option>
-                  </>
-                )}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                Màu ưa thích
-              </label>
-              <input
-                type="text"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                placeholder="Ví dụ: hồng pastel, đen, be..."
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800 placeholder-stone-400"
-              />
-            </div>
+          {/* Toggle Bộ Lọc Nâng Cao (Collapsible Filters) */}
+          <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-pink-600 transition cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-pink-600" />
+              <span>Bộ lọc nâng cao (Dịp, Phong cách, Ngân sách, Màu sắc)</span>
+              {showFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+            <span className="text-[11px] text-stone-400 font-medium">
+              {showFilters ? "Bấm để thu gọn" : "Tùy chọn thêm"}
+            </span>
           </div>
 
-          {/* Nút Phân Tích Màu Hồng Đặc Trưng */}
-          <button
-            onClick={handleAnalyze}
-            disabled={isAnalyzing}
-            className="mt-6 w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-pink-600/25 transition transform active:scale-[0.99] flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-75 cursor-pointer"
-          >
-            {isAnalyzing ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>{analysisStatus || "Đang tìm kiếm & phân tích..."}</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                <span>
-                  {keyword.trim()
-                    ? `Tìm kiếm "${keyword.trim()}" & Gợi ý phối đồ`
-                    : selectedImage
-                    ? "Phân tích ảnh & Gợi ý sản phẩm"
-                    : "Khám phá phong cách & Gợi ý sản phẩm"}
-                </span>
-              </>
-            )}
-          </button>
+          {/* Panel Bộ Lọc Nâng Cao */}
+          {showFilters && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-4 rounded-2xl bg-stone-50 border border-stone-200 animate-in fade-in duration-200">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                  Dịp sử dụng
+                </label>
+                <select
+                  value={occasion}
+                  onChange={(e) => setOccasion(e.target.value)}
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                >
+                  <option value="all">Tất cả / Mọi dịp</option>
+                  <option value="work">Đi làm / Công sở</option>
+                  <option value="casual">Casual / Hàng ngày</option>
+                  <option value="date">Hẹn hò lãng mạn</option>
+                  <option value="party">Party / Tiệc tùng</option>
+                  <option value="travel">Du lịch & Dạo phố</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                  Phong cách
+                </label>
+                <select
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value)}
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                >
+                  <option value="all">Tất cả / Đa dạng phong cách</option>
+                  <option value="elegant">Elegant / Thanh lịch</option>
+                  <option value="minimal">Minimal / Tối giản</option>
+                  <option value="street">Streetwear / Cá tính</option>
+                  <option value="romantic">Romantic / Nữ tính</option>
+                  <option value="classic">Classic / Cổ điển</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                  Ngân sách
+                </label>
+                <select
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                >
+                  <option value="all">Mọi mức giá</option>
+                  <option value="low">Tiết kiệm</option>
+                  <option value="mid">Tiêu chuẩn</option>
+                  <option value="high">Cao cấp</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                  Tông màu yêu thích
+                </label>
+                <input
+                  type="text"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  placeholder="Để trống hoặc gõ màu..."
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800 placeholder:text-stone-400"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Kết Quả Phân Tích */}
@@ -714,8 +766,8 @@ export default function StyleAdvisorPage() {
                             : p.platform === "Rakuten"
                             ? "bg-red-600 text-white"
                             : p.platform === "Amazon"
-                            ? "bg-amber-500 text-stone-950"
-                            : "bg-white/90 text-stone-800 backdrop-blur-sm"
+                            ? "bg-amber-500 text-stone-950 font-black"
+                            : "bg-stone-900 text-white"
                         }`}>
                           {p.platform}
                         </span>
@@ -755,17 +807,20 @@ export default function StyleAdvisorPage() {
                             ? "bg-pink-600 hover:bg-pink-700"
                             : p.platform === "Rakuten"
                             ? "bg-red-600 hover:bg-red-700"
+                            : p.platform === "Amazon"
+                            ? "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black"
                             : "bg-stone-900 hover:bg-pink-600"
                         }`}
                       >
+                        <ShoppingBag className="w-3.5 h-3.5" />
                         <span>
                           {p.platform === "CunCute Store"
                             ? "Mua tại CunCute Store"
                             : p.platform === "Rakuten"
-                            ? "Xem & Mua tại Brand"
+                            ? "Mua trên Rakuten"
                             : p.platform === "Amazon"
-                            ? "Xem trên Amazon"
-                            : "Xem & Mua ngay"}
+                            ? "Xem trên Amazon US"
+                            : "Xem trên Shopee / TikTok"}
                         </span>
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>

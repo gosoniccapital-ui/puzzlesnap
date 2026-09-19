@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       style = "minimal",
       budget = "low",
       color = "",
-      market = "US"
+      market = "ALL"
     } = body;
 
     const cleanKeyword = typeof keyword === "string" ? keyword.trim() : "";
@@ -260,13 +260,52 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
               accessory: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
             };
 
+            const isAll = market === "ALL" || !market;
             const isUS = market === "US";
+            const isVN = market === "VN";
             const isRakuten = market === "RAKUTEN";
             const isFourthwall = market === "FOURTHWALL";
 
             let multiSourceProducts: StyleProduct[] = [];
 
-            if (isFourthwall) {
+            if (isAll) {
+              const [fwItems, rkItems] = await Promise.all([
+                fetchFourthwallProducts(2, cleanKeyword || detectedItems[0]?.searchQuery),
+                searchRakutenProducts(cleanKeyword || detectedItems[0]?.searchQuery || `${style} ${occasion}`, 2)
+              ]);
+
+              const amzDetected: StyleProduct[] = detectedItems.slice(0, 3).map((item, idx) => {
+                const cat = item.category || "top";
+                return {
+                  id: `amz-agg-${idx + 1}`,
+                  name: item.name,
+                  category: cat,
+                  price: "Check on Amazon",
+                  originalPrice: "Best Deal",
+                  rating: 4.8,
+                  reviewCount: 280 + idx * 60,
+                  img: categoryImages[cat] || categoryImages.top,
+                  link: buildAmazonSearchUrl(item.searchQuery || item.name),
+                  platform: "Amazon" as const,
+                  tag: idx === 0 ? "Curated Look Match" : "Amazon's Choice",
+                  occasions: [occasion],
+                  styles: [style],
+                  budgetTier: (budget as any) || "mid",
+                  colorTags: [item.color || "neutral"],
+                  market: "US" as const
+                };
+              });
+
+              multiSourceProducts = [...fwItems, ...rkItems, ...amzDetected];
+              if (multiSourceProducts.length < 6) {
+                for (const catItem of catalogPool) {
+                  if (multiSourceProducts.length >= 6) break;
+                  if (!multiSourceProducts.some((p) => p.name === catItem.name)) {
+                    multiSourceProducts.push(catItem);
+                  }
+                }
+              }
+            } else if (isFourthwall) {
               const fwItems = await fetchFourthwallProducts(6, cleanKeyword || detectedItems[0]?.searchQuery);
               if (fwItems.length > 0) {
                 multiSourceProducts = fwItems;
@@ -277,9 +316,8 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
               if (rakutenItems.length > 0) {
                 multiSourceProducts = rakutenItems;
               } else {
-                // Graceful fallback to Fourthwall store if Rakuten merchants are not yet accepted
-                const fwFallback = await fetchFourthwallProducts(4, cleanKeyword);
-                multiSourceProducts = fwFallback.length > 0 ? fwFallback : AMAZON_STYLE_CATALOG.slice(0, 4);
+                // Fallback to Amazon style catalog if Rakuten merchants have no match for niche query
+                multiSourceProducts = AMAZON_STYLE_CATALOG.slice(0, 6);
               }
             }
 
@@ -351,15 +389,23 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
     }
 
     // Fallback: Smart heuristic styling based on curated catalog & options
+    const isAll = market === "ALL" || !market;
     let fallbackProducts: StyleProduct[] = [];
-    if (market === "FOURTHWALL") {
+    if (isAll) {
+      const [fw, rk] = await Promise.all([
+        fetchFourthwallProducts(2, cleanKeyword),
+        searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 2)
+      ]);
+      const amz = AMAZON_STYLE_CATALOG.slice(0, 3);
+      const vn = VN_STYLE_CATALOG.slice(0, 2);
+      fallbackProducts = [...fw, ...rk, ...amz, ...vn].slice(0, 8);
+    } else if (market === "FOURTHWALL") {
       fallbackProducts = await fetchFourthwallProducts(6, cleanKeyword);
     } else if (market === "RAKUTEN") {
       const rakutenSearchKey = cleanKeyword || `${style} ${occasion}`;
       fallbackProducts = await searchRakutenProducts(rakutenSearchKey, 6);
       if (fallbackProducts.length === 0) {
-        const fw = await fetchFourthwallProducts(4, cleanKeyword);
-        fallbackProducts = fw.length > 0 ? fw : AMAZON_STYLE_CATALOG.slice(0, 4);
+        fallbackProducts = AMAZON_STYLE_CATALOG.slice(0, 6);
       }
     }
 
@@ -374,8 +420,9 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
     });
 
     if (fallbackProducts.length > 0) {
-      fallbackAdvice.suggestedProducts = fallbackProducts.slice(0, 6);
-      fallbackAdvice.source = market === "FOURTHWALL" ? "fourthwall-api" : "rakuten-api";
+      fallbackAdvice.suggestedProducts = fallbackProducts.slice(0, 8);
+      if (market === "FOURTHWALL") fallbackAdvice.source = "fourthwall-api";
+      else if (market === "RAKUTEN") fallbackAdvice.source = "rakuten-api";
     }
 
     return NextResponse.json({

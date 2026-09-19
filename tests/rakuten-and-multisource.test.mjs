@@ -106,3 +106,29 @@ test('Style Advisor Data: generateStylistAdvice supports keyword-first input wit
   assert.ok(keywordAdvice.detectedItems?.[0]?.amazonUrl?.includes('Trench%20Coat'));
   assert.ok(keywordAdvice.styleTips.some(t => t.includes('Trench Coat')));
 });
+
+test('Style Advisor Data: generateStylistAdvice supports ALL market aggregator and flexible filters', () => {
+  const allAdvice = generateStylistAdvice({
+    occasion: 'all',
+    style: 'all',
+    budget: 'all',
+    color: '',
+    hasCustomImage: false,
+    market: 'ALL',
+    keyword: 'Blazer'
+  });
+
+  assert.equal(allAdvice.market, 'ALL');
+  assert.ok(allAdvice.suggestedProducts.length >= 4, 'Should aggregate products from multiple sources');
+  assert.ok(allAdvice.headline.includes('Blazer'));
+});
+
+test('Style Advisor Data: getRandomSurpriseLook returns valid presets', async () => {
+  const { getRandomSurpriseLook, SURPRISE_LOOKS } = await import('../src/lib/data/style-advisor-data.ts');
+  assert.ok(Array.isArray(SURPRISE_LOOKS) && SURPRISE_LOOKS.length >= 5);
+  const look = getRandomSurpriseLook();
+  assert.ok(look.keyword && typeof look.keyword === 'string');
+  assert.ok(look.occasion && typeof look.occasion === 'string');
+  assert.ok(look.style && typeof look.style === 'string');
+  assert.ok(look.description && typeof look.description === 'string');
+});
