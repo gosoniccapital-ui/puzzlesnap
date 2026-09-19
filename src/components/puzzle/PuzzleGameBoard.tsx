@@ -13,7 +13,7 @@ import PuzzleVictoryModal from "./PuzzleVictoryModal";
 import PuzzlePreviewModal from "./PuzzlePreviewModal";
 import PuzzleZoomWidget from "./PuzzleZoomWidget";
 import PuzzleCoopModal from "./PuzzleCoopModal";
-import { RealtimeRoomEngine, RemotePlayer } from "@/lib/puzzle-engine/realtime-room";
+import { RealtimeRoomEngine, RemotePlayer, VictorySyncEvent, PlacedPieceSnapshot } from "@/lib/puzzle-engine/realtime-room";
 
 export type { LeaderboardItem };
 
@@ -23,11 +23,14 @@ interface PuzzleGameBoardProps {
   puzzleSlug?: string;
   initialDifficulty?: "easy" | "medium" | "hard" | "very-hard" | "supreme";
   voucherCode?: string;
+  secondaryVoucherCode?: string;
   discountPercent?: number;
   productUrl?: string;
   productPriceOriginal?: string;
   productPriceSale?: string;
   initialRoomId?: string;
+  customPuzzleId?: string;
+  ctaText?: string;
 }
 
 const DIFFICULTY_MAP = {
@@ -38,21 +41,38 @@ const DIFFICULTY_MAP = {
   supreme: { rows: 5, cols: 10, label: "Supreme (50 pcs)" },
 };
 
+// Stable pure time formatter function at module scope
+export function formatTime(totalSecs: number): string {
+  const hrs = Math.floor(totalSecs / 3600);
+  const mins = Math.floor((totalSecs % 3600) / 60);
+  const secs = totalSecs % 60;
+  if (hrs > 0) {
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+}
+
 export default function PuzzleGameBoard({
   imageSrc,
   title = "Daily Puzzle",
   puzzleSlug = "colorful-fireworks-jigsaw-puzzle",
   initialDifficulty = "medium",
   voucherCode,
+  secondaryVoucherCode,
   discountPercent,
   productUrl,
   productPriceOriginal,
   productPriceSale,
   initialRoomId,
+  customPuzzleId,
+  ctaText,
 }: PuzzleGameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<PuzzleCanvasEngine | null>(null);
+  const userExplicitlyLeftRoomRef = useRef(false);
+  const secondsRef = useRef(0);
+  const moveCountRef = useRef(0);
 
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard" | "very-hard" | "supreme">(
     initialDifficulty
@@ -87,6 +107,7 @@ export default function PuzzleGameBoard({
   const [coopPlayers, setCoopPlayers] = useState<RemotePlayer[]>([]);
   const [isCoopConnected, setIsCoopConnected] = useState(false);
   const [coopToast, setCoopToast] = useState<string | null>(null);
+  const [remoteVictory, setRemoteVictory] = useState<VictorySyncEvent | null>(null);
   const coopEngineRef = useRef<RealtimeRoomEngine | null>(null);
 
   // Load player name from localStorage and listen to profile changes
@@ -132,6 +153,20 @@ export default function PuzzleGameBoard({
     fetchLeaderboard();
   }, [fetchLeaderboard]);
 
+  // Track play count on session mount
+  useEffect(() => {
+    if (!puzzleSlug) return;
+    try {
+      fetch("/api/puzzles/interact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: puzzleSlug, action: "play" }),
+      }).catch(() => {});
+    } catch {
+      // Non-blocking
+    }
+  }, [puzzleSlug]);
+
   // Timer interval
   useEffect(() => {
     if (isPaused || isVictory) return;
@@ -141,15 +176,8 @@ export default function PuzzleGameBoard({
     return () => clearInterval(interval);
   }, [isPaused, isVictory]);
 
-  const formatTime = (totalSecs: number) => {
-    const hrs = Math.floor(totalSecs / 3600);
-    const mins = Math.floor((totalSecs % 3600) / 60);
-    const secs = totalSecs % 60;
-    if (hrs > 0) {
-      return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-    }
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  secondsRef.current = seconds;
+  moveCountRef.current = moveCount;
 
   const handleVictory = useCallback(() => {
     setIsVictory(true);
@@ -159,6 +187,13 @@ export default function PuzzleGameBoard({
       spread: 80,
       origin: { y: 0.6 },
     });
+    if (coopEngineRef.current) {
+      coopEngineRef.current.broadcastVictory(
+        formatTime(secondsRef.current),
+        secondsRef.current,
+        moveCountRef.current
+      );
+    }
   }, []);
 
   // Initialize Canvas Engine
@@ -242,16 +277,59 @@ export default function PuzzleGameBoard({
     };
   }, []);
 
+  // Safe helper to build Co-Op room URL preserving all current query parameters (?id=..., ?img=..., ?diff=...)
+  const getShareableRoomUrl = useCallback(
+    (targetRoomId: string) => {
+      if (typeof window === "undefined" || !targetRoomId) return "";
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("room", targetRoomId);
+        if (customPuzzleId && !url.searchParams.has("id")) {
+          url.searchParams.set("id", customPuzzleId);
+        }
+        return `${url.origin}${url.pathname}?${url.searchParams.toString()}`;
+      } catch {
+        return `${window.location.origin}${window.location.pathname}?room=${targetRoomId}`;
+      }
+    },
+    [customPuzzleId]
+  );
+
   // Co-Op Room Handlers
   const handleConnectCoopRoom = useCallback((targetRoomId?: string) => {
+    userExplicitlyLeftRoomRef.current = false;
     const roomId = targetRoomId || "ROOM-" + Math.floor(1000 + Math.random() * 9000);
+    if (coopRoomId === roomId && isCoopConnected && coopEngineRef.current) {
+      return;
+    }
     setCoopRoomId(roomId);
+
+    // Sync room ID to browser address bar without page reload
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get("room") !== roomId) {
+          url.searchParams.set("room", roomId);
+          window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`);
+        }
+      } catch {
+        // Non-blocking fallback
+      }
+    }
 
     if (coopEngineRef.current) {
       coopEngineRef.current.disconnect();
     }
 
-    const coopEngine = new RealtimeRoomEngine(roomId, playerName);
+    const roomMeta = {
+      puzzleId: customPuzzleId,
+      puzzleSlug,
+      title,
+      image: imageSrc,
+      difficulty,
+    };
+
+    const coopEngine = new RealtimeRoomEngine(roomId, playerName, roomMeta);
     coopEngine.connect(
       (updatedPlayers) => {
         setCoopPlayers([...updatedPlayers]);
@@ -274,15 +352,50 @@ export default function PuzzleGameBoard({
             0,
             true
           );
+          setCoopToast("🎯 Bạn bè vừa ghép đúng một mảnh!");
+        }
+      },
+      undefined,
+      // onVictory: khi có người trong phòng về đích
+      (victoryEvent) => {
+        setRemoteVictory(victoryEvent);
+        soundFx.playVictory();
+        confetti({
+          particleCount: 180,
+          spread: 90,
+          origin: { y: 0.5 },
+        });
+        setCoopToast(`🏆 ${victoryEvent.winnerName} đã hoàn thành câu đố trong ${victoryEvent.timeFormatted}!`);
+      },
+      // onBoardSync: đồng bộ các mảnh ghép đã hoàn thành từ phòng
+      (placedList) => {
+        if (engineRef.current && Array.isArray(placedList) && placedList.length > 0) {
+          engineRef.current.applyBoardSync(placedList);
+          setCoopToast(`Đã đồng bộ ${placedList.length} mảnh ghép từ phòng!`);
+        }
+      },
+      // onRequestBoardSync: khi có người mới vào phòng xin trạng thái bàn cờ
+      () => {
+        if (engineRef.current && coopEngineRef.current) {
+          const placed = engineRef.current.getPlacedPieces();
+          if (placed.length > 0) {
+            coopEngineRef.current.broadcastBoardSync(placed);
+          }
         }
       }
     );
 
+    // Request initial board state from host/members after connect
+    setTimeout(() => {
+      coopEngine.requestBoardSync();
+    }, 600);
+
     coopEngineRef.current = coopEngine;
     setIsCoopConnected(true);
-  }, [playerName]);
+  }, [playerName, customPuzzleId, puzzleSlug, title, imageSrc, difficulty]);
 
   const handleLeaveCoopRoom = useCallback(() => {
+    userExplicitlyLeftRoomRef.current = true;
     if (coopEngineRef.current) {
       coopEngineRef.current.disconnect();
       coopEngineRef.current = null;
@@ -290,10 +403,27 @@ export default function PuzzleGameBoard({
     setIsCoopConnected(false);
     setCoopRoomId("");
     setCoopPlayers([]);
+
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has("room")) {
+          url.searchParams.delete("room");
+          window.history.replaceState(null, "", url.pathname + url.search);
+        }
+      } catch {
+        // Fallback
+      }
+    }
   }, []);
+
+  const handleConnectCoopRoomRef = useRef(handleConnectCoopRoom);
+  handleConnectCoopRoomRef.current = handleConnectCoopRoom;
 
   // Auto-connect to Co-Op room if URL param ?room=... or initialRoomId is provided
   useEffect(() => {
+    if (userExplicitlyLeftRoomRef.current) return;
+
     let targetRoom = initialRoomId;
     if (!targetRoom && typeof window !== "undefined") {
       const urlParam = new URLSearchParams(window.location.search).get("room");
@@ -301,12 +431,12 @@ export default function PuzzleGameBoard({
     }
 
     if (targetRoom && targetRoom !== coopRoomId) {
-      handleConnectCoopRoom(targetRoom);
+      handleConnectCoopRoomRef.current(targetRoom);
       setCoopToast(`Đã tham gia phòng Co-Op: ${targetRoom}`);
       const timer = setTimeout(() => setCoopToast(null), 4500);
       return () => clearTimeout(timer);
     }
-  }, [initialRoomId, handleConnectCoopRoom, coopRoomId]);
+  }, [initialRoomId, coopRoomId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -574,11 +704,13 @@ export default function PuzzleGameBoard({
           scoreSubmitted={scoreSubmitted}
           onPlayAgain={handleShuffle}
           voucherCode={voucherCode}
+          secondaryVoucherCode={secondaryVoucherCode}
           discountPercent={discountPercent}
           productUrl={productUrl}
           productPriceOriginal={productPriceOriginal}
           productPriceSale={productPriceSale}
           imageSrc={imageSrc}
+          ctaText={ctaText}
         />
 
         {/* Floating Zoom & Quick Rotate Controls */}
@@ -613,13 +745,55 @@ export default function PuzzleGameBoard({
         isOpen={showCoopModal}
         onClose={() => setShowCoopModal(false)}
         roomId={coopRoomId}
-        roomUrl={typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}?room=${coopRoomId}` : ""}
+        roomUrl={coopRoomId ? getShareableRoomUrl(coopRoomId) : ""}
         players={coopPlayers}
         localPlayerName={playerName || "You"}
         isConnected={isCoopConnected}
         onConnectRoom={handleConnectCoopRoom}
         onLeaveRoom={handleLeaveCoopRoom}
       />
+
+      {/* 6. Remote Player Victory Notification Modal */}
+      {remoteVictory && !isVictory && (
+        <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-stone-900 border border-amber-500/40 rounded-3xl p-6 max-w-md w-full space-y-5 text-center shadow-2xl">
+            <div className="w-16 h-16 rounded-3xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-3xl animate-bounce">
+              🏆
+            </div>
+            <div className="space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-500/20 text-amber-300">
+                Phòng Co-Op Có Người Về Đích!
+              </span>
+              <h3 className="text-2xl font-black text-white">
+                {remoteVictory.winnerName} Đã Thắng!
+              </h3>
+              <p className="text-sm text-stone-300">
+                Đã hoàn thành câu đố trong <strong>{remoteVictory.timeFormatted}</strong> với <strong>{remoteVictory.moves} lượt đi</strong>!
+              </p>
+            </div>
+            <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs text-amber-200 text-left">
+              💡 Bạn có thể tiếp tục tự ghép cho xong bức tranh của mình, hoặc bấm &quot;Chơi Ván Mới&quot; cùng phòng!
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRemoteVictory(null)}
+                className="flex-1 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white text-xs font-bold transition cursor-pointer"
+              >
+                Tiếp tục ghép
+              </button>
+              <button
+                onClick={() => {
+                  setRemoteVictory(null);
+                  handleShuffle();
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition cursor-pointer"
+              >
+                Chơi Ván Mới
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

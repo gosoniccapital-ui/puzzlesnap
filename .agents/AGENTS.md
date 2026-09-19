@@ -1,4 +1,4 @@
-﻿# Project Agents & Skills Hub: PuzzleSnap Full Stack
+# Project Agents & Skills Hub: PuzzleSnap Full Stack
 
 Chào mừng các AI Agents đến với dự án **PuzzleSnap Full Stack** (`g:\AWE\puzzle-tung`).
 Tất cả các agent làm việc trong repository này BẮT BUỘC phải đọc và tuân thủ tài liệu này.
@@ -22,6 +22,11 @@ Tất cả các agent làm việc trong repository này BẮT BUỘC phải đ�
    - Luôn kiểm tra `git status --short` và `git diff --cached` trước khi commit.
 3. **CodeGraph First:**
    - Khi cần hiểu code hoặc tìm hàm/class, ưu tiên dùng `codegraph_explore` hoặc `codegraph explore` trước khi dùng `grep`.
+4. **Identity & Credential Invariants (Anti-Assumption Gate):**
+   - Tuyệt đối không suy đoán tài khoản người dùng từ output lỗi của công cụ bên thứ ba (như OS credential manager).
+   - Khi gặp lỗi 401/403/Permission Denied, LUÔN LUÔN kiểm tra `.env.local` trước để lấy token chính xác (`GITHUB_TOKEN` cho GitHub, `VERCEL_TOKEN` cho Vercel).
+   - Luôn dùng lệnh probe API nhà cung cấp để xác thực danh tính thực tế trước khi kết luận.
+
 
 ---
 

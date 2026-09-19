@@ -12,6 +12,16 @@ const LOCKOUT_WINDOW_MS = 60_000; // 1 minute
 
 function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetInSec: number } {
   const now = Date.now();
+
+  // Auto-prune expired records to prevent unbounded memory growth under distributed scans
+  if (failedAttemptsMap.size > 500) {
+    for (const [key, val] of failedAttemptsMap.entries()) {
+      if (now > val.resetTime) {
+        failedAttemptsMap.delete(key);
+      }
+    }
+  }
+
   const entry = failedAttemptsMap.get(ip);
 
   if (!entry || now > entry.resetTime) {

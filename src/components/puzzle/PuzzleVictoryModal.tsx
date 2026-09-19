@@ -26,13 +26,16 @@ export interface PuzzleVictoryModalProps {
   isSubmittingScore: boolean;
   scoreSubmitted: boolean;
   onPlayAgain: () => void;
-  // E-Commerce Extensions (Sprint 6.2)
+  // E-Commerce Extensions (Sprint 6.2 & Sprint 7.5 Dual Rewards)
   voucherCode?: string;
+  secondaryVoucherCode?: string;
   discountPercent?: number;
+  secondaryDiscountPercent?: number;
   productUrl?: string;
   productPriceOriginal?: string;
   productPriceSale?: string;
   imageSrc?: string;
+  ctaText?: string;
 }
 
 export default function PuzzleVictoryModal({
@@ -48,26 +51,41 @@ export default function PuzzleVictoryModal({
   scoreSubmitted,
   onPlayAgain,
   voucherCode,
+  secondaryVoucherCode,
   discountPercent,
   productUrl,
   productPriceOriginal,
   productPriceSale,
+  ctaText,
 }: PuzzleVictoryModalProps) {
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const resolvedVoucher = voucherCode || "CUNFASHION2026";
+  // Dual Vouchers: 70Cute7LOOK (Lookbook Special) & CUNFASHION2026 (Storewide Reward)
+  const primaryVoucher = voucherCode || "70Cute7LOOK";
+  const secondaryVoucher = secondaryVoucherCode || "CUNFASHION2026";
   const resolvedDiscount = discountPercent || 10;
-  const resolvedProductUrl = productUrl || "https://cunfashion.com";
 
-  const handleCopyVoucher = async () => {
+  // Comprehensive tracking URL supporting both voucher codes in query and UTM parameters
+  const defaultProductUrl = `https://cute.cunfashion.com?coupon=${encodeURIComponent(
+    primaryVoucher
+  )}&secondary_coupon=${encodeURIComponent(
+    secondaryVoucher
+  )}&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_rewards&utm_term=${encodeURIComponent(
+    primaryVoucher
+  )}&utm_content=${encodeURIComponent(secondaryVoucher)}`;
+
+  const resolvedProductUrl = productUrl || defaultProductUrl;
+  const resolvedCtaText = ctaText || "Shop Cute Outfits";
+
+  const copyToClipboard = async (text: string) => {
     try {
       if (typeof window !== "undefined" && navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(resolvedVoucher);
+        await navigator.clipboard.writeText(text);
       } else {
         const textarea = document.createElement("textarea");
-        textarea.value = resolvedVoucher;
+        textarea.value = text;
         textarea.style.position = "fixed";
         textarea.style.opacity = "0";
         document.body.appendChild(textarea);
@@ -75,12 +93,17 @@ export default function PuzzleVictoryModal({
         document.execCommand("copy");
         document.body.removeChild(textarea);
       }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
+      setCopiedCode(text);
+      setTimeout(() => setCopiedCode(null), 2200);
     } catch {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
+      setCopiedCode(text);
+      setTimeout(() => setCopiedCode(null), 2200);
     }
+  };
+
+  const handleCtaClick = () => {
+    // Frictionless E-Commerce UX: Auto-copy primary voucher into clipboard on click
+    copyToClipboard(primaryVoucher);
   };
 
   return (
@@ -107,48 +130,96 @@ export default function PuzzleVictoryModal({
         <div className="flex items-center justify-between gap-2 border-b border-stone-800 pb-2.5">
           <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold uppercase tracking-wider">
             <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>CunFashion Exclusive Reward</span>
+            <span>CunFashion Exclusive Rewards</span>
           </div>
           <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
             <Tag className="w-3 h-3" />
-            {resolvedDiscount}% OFF
+            2 VOUCHERS UNLOCKED
           </span>
         </div>
 
-        {/* Voucher Display & Copy */}
-        <div className="bg-stone-950/80 border border-dashed border-amber-500/50 rounded-xl p-3 flex items-center justify-between gap-2">
-          <div>
-            <span className="text-[10px] uppercase font-semibold text-stone-400 block">
-              Voucher Code
-            </span>
-            <span className="font-mono font-black text-base sm:text-lg text-amber-300 tracking-wider">
-              {resolvedVoucher}
-            </span>
+        {/* Dual Voucher Cards List */}
+        <div className="space-y-2.5">
+          {/* Voucher 1: Lookbook Special Reward */}
+          <div className="bg-stone-950/80 border border-dashed border-amber-500/50 rounded-xl p-2.5 sm:p-3 flex items-center justify-between gap-2 transition hover:border-amber-400">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+                  👗 Lookbook Special
+                </span>
+                <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-amber-500/25 text-amber-300 border border-amber-500/40">
+                  VIP
+                </span>
+              </div>
+              <span className="font-mono font-black text-sm sm:text-base text-amber-300 tracking-wider block truncate">
+                {primaryVoucher}
+              </span>
+            </div>
+
+            <button
+              onClick={() => copyToClipboard(primaryVoucher)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 ${
+                copiedCode === primaryVoucher
+                  ? "bg-emerald-500 text-stone-950 font-black"
+                  : "bg-amber-400 hover:bg-amber-300 text-stone-950"
+              }`}
+              title={`Copy code ${primaryVoucher}`}
+            >
+              {copiedCode === primaryVoucher ? (
+                <>
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
           </div>
 
-          <button
-            onClick={handleCopyVoucher}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
-              copied
-                ? "bg-emerald-500 text-stone-950"
-                : "bg-amber-400 hover:bg-amber-300 text-stone-950"
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                <span>Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5" />
-                <span>Copy</span>
-              </>
-            )}
-          </button>
+          {/* Voucher 2: Storewide Reward */}
+          <div className="bg-stone-950/80 border border-dashed border-stone-700/80 rounded-xl p-2.5 sm:p-3 flex items-center justify-between gap-2 transition hover:border-amber-500/40">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">
+                  🏷️ Storewide Reward
+                </span>
+                <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-stone-800 text-amber-300 border border-stone-700">
+                  {resolvedDiscount}% OFF
+                </span>
+              </div>
+              <span className="font-mono font-black text-sm sm:text-base text-stone-200 tracking-wider block truncate">
+                {secondaryVoucher}
+              </span>
+            </div>
+
+            <button
+              onClick={() => copyToClipboard(secondaryVoucher)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0 ${
+                copiedCode === secondaryVoucher
+                  ? "bg-emerald-500 text-stone-950 font-black"
+                  : "bg-stone-800 hover:bg-stone-700 text-amber-300 border border-stone-700"
+              }`}
+              title={`Copy code ${secondaryVoucher}`}
+            >
+              {copiedCode === secondaryVoucher ? (
+                <>
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Pricing (Optional) & "Shop The Look" Action */}
+        {/* Pricing (Optional) & "Shop Cute Outfits" Action */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
           {productPriceSale ? (
             <div className="text-left w-full sm:w-auto">
@@ -170,10 +241,11 @@ export default function PuzzleVictoryModal({
             href={resolvedProductUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleCtaClick}
             className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition cursor-pointer"
           >
             <ShoppingBag className="w-4 h-4 text-stone-950" />
-            <span>Shop The Look</span>
+            <span>{resolvedCtaText}</span>
             <ExternalLink className="w-3 h-3 text-stone-950 opacity-75" />
           </a>
         </div>

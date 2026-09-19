@@ -17,45 +17,129 @@ import {
   Lightbulb,
   Smartphone,
   Monitor,
-  RotateCcw
+  RotateCcw,
+  Search,
+  Camera,
+  SlidersHorizontal,
+  Shuffle,
+  ChevronDown,
+  ChevronUp,
+  Heart
 } from "lucide-react";
+import { useWardrobe, WardrobeItem } from "@/lib/hooks/useWardrobe";
+import WardrobeDrawer from "@/components/wardrobe/WardrobeDrawer";
+import SharedWardrobeBanner from "@/components/wardrobe/SharedWardrobeBanner";
+import { parseSharedWardrobeParam } from "@/lib/wardrobe/sharing";
 import {
   generateStylistAdvice,
   AdviceResult,
   StyleProduct,
-  STYLE_CATALOG
+  STYLE_CATALOG,
+  AMAZON_STYLE_CATALOG,
+  getRandomSurpriseLook
 } from "@/lib/data/style-advisor-data";
+
+
 
 export default function StyleAdvisorPage() {
   const [viewMode, setViewMode] = useState<"wide" | "mobile">("wide");
-  const [selectedImage, setSelectedImage] = useState<string | null>(
-    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80"
-  );
-  const [imageName, setImageName] = useState<string>("ZXixb.jpg (Blazer đỏ công sở)");
-  const [occasion, setOccasion] = useState("work");
-  const [style, setStyle] = useState("elegant");
-  const [budget, setBudget] = useState("mid");
+  const [market, setMarket] = useState<"ALL" | "FOURTHWALL" | "RAKUTEN" | "US" | "VN">("ALL");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageName, setImageName] = useState<string>("");
+  const [occasion, setOccasion] = useState("all");
+  const [style, setStyle] = useState("all");
+  const [keyword, setKeyword] = useState("");
+  const [budget, setBudget] = useState("all");
   const [color, setColor] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState<string>("");
   const [result, setResult] = useState<AdviceResult | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showExtensionModal, setShowExtensionModal] = useState(false);
+  const [isExtensionBannerDismissed, setIsExtensionBannerDismissed] = useState(false);
+  const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
+  const [sharedWardrobeItems, setSharedWardrobeItems] = useState<WardrobeItem[]>([]);
+  const [isSharedBannerDismissed, setIsSharedBannerDismissed] = useState(false);
+  const { count: wardrobeCount, isSaved: isSavedInWardrobe, toggleItem: toggleWardrobeItem } = useWardrobe();
+
+  // Detect shared wardrobe link (?wardrobe=id1,id2,...)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const wardrobeParam = params.get("wardrobe");
+      if (wardrobeParam) {
+        const items = parseSharedWardrobeParam(wardrobeParam, AMAZON_STYLE_CATALOG);
+        if (items.length > 0) {
+
+          setSharedWardrobeItems(items);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse wardrobe query param:", e);
+    }
+  }, []);
+
+  const handleDismissSharedBanner = () => {
+    setIsSharedBannerDismissed(true);
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("wardrobe");
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+      } catch (e) {
+        console.error("Failed to update URL:", e);
+      }
+    }
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const QUICK_COLORS = ["Hồng pastel", "Đen", "Be sữa", "Trắng", "Xanh pastel", "Nâu tây"];
 
-  // Tự động phân tích look mẫu ban đầu để khách vào trang là thấy ngay kết quả trực quan
+  const QUICK_COLORS = ["Hồng pastel", "Đen", "Be sữa", "Trắng", "Xanh pastel", "Nâu tây"];
+  const QUICK_KEYWORDS = [
+    "Cardigan",
+    "Blazer",
+    "Trench Coat",
+    "Váy dạ hội",
+    "Vớ cute",
+    "Hoodie",
+    "Quần ống rộng",
+    "Sneaker"
+  ];
+
+  // Tự động phân tích look mẫu ban đầu trên tất cả các sàn để khách vào trang là thấy ngay kết quả trực quan
   useEffect(() => {
-    const initialAdvice = generateStylistAdvice({
-      occasion: "work",
-      style: "elegant",
-      budget: "mid",
-      color: "đen, be, trung tính",
-      hasCustomImage: true
-    });
-    setResult(initialAdvice);
+    fetch("/api/style-advisor/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        occasion: "casual",
+        style: "minimal",
+        budget: "mid",
+        color: "neutral",
+        market: "ALL",
+      }),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setResult(json.data);
+        }
+      })
+      .catch(() => {
+        const initialAdvice = generateStylistAdvice({
+          occasion: "casual",
+          style: "minimal",
+          budget: "mid",
+          color: "neutral",
+          hasCustomImage: false,
+          market: "ALL",
+        });
+        setResult(initialAdvice);
+      });
   }, []);
 
   const compressImage = (file: File, maxDimension = 1200, quality = 0.82): Promise<string> => {
@@ -76,12 +160,20 @@ export default function StyleAdvisorPage() {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("Canvas context failed"));
+        if (!ctx) {
+          URL.revokeObjectURL(objectUrl);
+          return reject(new Error("Canvas context failed"));
+        }
         ctx.drawImage(img, 0, 0, width, height);
+        URL.revokeObjectURL(objectUrl);
         resolve(canvas.toDataURL("image/jpeg", quality));
       };
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectUrl);
+        reject(err);
+      };
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
     });
   };
 
@@ -111,41 +203,265 @@ export default function StyleAdvisorPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleLoadDemoBlazer = () => {
-    setSelectedImage("https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80");
-    setImageName("ZXixb.jpg (Blazer đỏ công sở)");
-    setOccasion("work");
-    setStyle("elegant");
-    setBudget("mid");
-    setColor("đen, be, trung tính");
-    handleAnalyze();
+  const handleTrackAffiliateClick = (
+    productId: string,
+    productName: string,
+    platform: string,
+    affiliateUrl: string
+  ) => {
+    try {
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+      fetch("/api/style-advisor/track-click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId,
+          productName,
+          platform,
+          affiliateUrl,
+          keyword: keyword.trim() || undefined,
+          deviceType: isMobile ? "Mobile" : "Desktop"
+        })
+      }).catch((err) => console.warn("Track click failed:", err));
+    } catch {
+      // ignore
+    }
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     setIsAnalyzing(true);
     setResult(null);
+    setAnalysisStatus(
+      selectedImage
+        ? "Đang gửi sang Google Gemini 3.6 Flash Vision..."
+        : "Đang tìm kiếm & đối soát sản phẩm trên hệ thống..."
+    );
 
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/style-advisor/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: selectedImage,
+          keyword: keyword.trim(),
+          occasion,
+          style,
+          budget,
+          color,
+          market,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setResult(json.data);
+          setIsAnalyzing(false);
+          setAnalysisStatus("");
+          setTimeout(() => {
+            resultRef.current?.scrollIntoView({ behavior: "smooth" });
+          }, 100);
+          return;
+        }
+      }
+      throw new Error("API analysis returned non-OK status");
+    } catch (err) {
+      console.warn("Falling back to smart local heuristic:", err);
       const advice = generateStylistAdvice({
         occasion,
         style,
         budget,
         color,
-        hasCustomImage: Boolean(selectedImage)
+        hasCustomImage: Boolean(selectedImage),
+        market,
+        keyword: keyword.trim(),
       });
       setResult(advice);
       setIsAnalyzing(false);
-
+      setAnalysisStatus("");
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
-    }, 600);
+    }
+  };
+
+  const handleSurpriseMe = () => {
+    const look = getRandomSurpriseLook();
+    setKeyword(look.keyword);
+    setOccasion(look.occasion);
+    setStyle(look.style);
+    setBudget(look.budget);
+    setColor(look.color);
+    setIsAnalyzing(true);
+    setAnalysisStatus(`Đang phối ngẫu hứng: "${look.description}"...`);
+
+    fetch("/api/style-advisor/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image: null,
+        keyword: look.keyword,
+        occasion: look.occasion,
+        style: look.style,
+        budget: look.budget,
+        color: look.color,
+        market,
+      }),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setResult(json.data);
+        }
+      })
+      .catch(() => {
+        const advice = generateStylistAdvice({
+          occasion: look.occasion,
+          style: look.style,
+          budget: look.budget,
+          color: look.color,
+          hasCustomImage: false,
+          market,
+          keyword: look.keyword,
+        });
+        setResult(advice);
+      })
+      .finally(() => {
+        setIsAnalyzing(false);
+        setAnalysisStatus("");
+        setTimeout(() => {
+          resultRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      });
   };
 
   const handleCopyLink = (product: StyleProduct) => {
     navigator.clipboard.writeText(product.link);
     setCopiedId(product.id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const renderProductCard = (p: StyleProduct) => {
+    const saved = isSavedInWardrobe(p.id);
+    return (
+      <div
+        key={p.id}
+        className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md hover:border-pink-300 transition flex flex-col justify-between group"
+      >
+        <div>
+          {/* Product Image */}
+          <div className="relative aspect-[3/4] bg-stone-100 overflow-hidden">
+            <img
+              src={p.img}
+              alt={p.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+            />
+            <span
+              className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${
+                p.platform === "CunCute Store"
+                  ? "bg-pink-600 text-white"
+                  : p.platform === "Rakuten"
+                  ? "bg-red-600 text-white"
+                  : p.platform === "Amazon"
+                  ? "bg-amber-500 text-stone-950 font-black"
+                  : "bg-stone-900 text-white"
+              }`}
+            >
+              {p.platform}
+            </span>
+            {p.tag && (
+              <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-stone-900 text-white shadow-sm">
+                {p.tag}
+              </span>
+            )}
+
+            {/* Bookmark / Wardrobe Save Button */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWardrobeItem(p);
+              }}
+              className={`absolute bottom-2.5 right-2.5 p-2 rounded-xl backdrop-blur-md transition shadow-md flex items-center justify-center ${
+                saved
+                  ? "bg-pink-600 text-white shadow-pink-600/40 scale-105"
+                  : "bg-black/60 text-white hover:bg-pink-600 hover:scale-105"
+              }`}
+              title={saved ? "Bỏ lưu khỏi Tủ Đồ" : "Lưu vào Tủ Đồ yêu thích"}
+            >
+              <Heart className={`w-4 h-4 ${saved ? "fill-white text-white" : "text-white"}`} />
+            </button>
+          </div>
+
+          {/* Product Info */}
+          <div className="p-3.5">
+            <h4 className="text-xs sm:text-sm font-bold text-stone-800 line-clamp-2 leading-snug group-hover:text-pink-600 transition">
+              {p.name}
+            </h4>
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <span className="text-sm sm:text-base font-extrabold text-pink-600">
+                {p.price}
+              </span>
+              {p.originalPrice && (
+                <span className="text-xs text-stone-400 line-through">
+                  {p.originalPrice}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Action */}
+        <div className="p-3.5 pt-0 space-y-2">
+          <a
+            href={p.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => handleTrackAffiliateClick(p.id, p.name, p.platform, p.link)}
+            className={`w-full flex items-center justify-center gap-1.5 py-2.5 px-4 text-white text-xs font-bold rounded-xl transition shadow-sm ${
+              p.platform === "CunCute Store"
+                ? "bg-pink-600 hover:bg-pink-700"
+                : p.platform === "Rakuten"
+                ? "bg-red-600 hover:bg-red-700"
+                : p.platform === "Amazon"
+                ? "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black"
+                : "bg-stone-900 hover:bg-pink-600"
+            }`}
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span>
+              {p.platform === "CunCute Store"
+                ? "Mua tại CunCute Store"
+                : p.platform === "Rakuten"
+                ? "Mua trên Rakuten"
+                : p.platform === "Amazon"
+                ? "Xem trên Amazon US"
+                : "Xem trên Shopee / TikTok"}
+            </span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          <button
+            onClick={() => {
+              handleCopyLink(p);
+              handleTrackAffiliateClick(p.id, p.name, p.platform, p.link);
+            }}
+            className="w-full py-1 text-[11px] font-semibold text-stone-500 hover:text-stone-800 transition flex items-center justify-center gap-1"
+          >
+            {copiedId === p.id ? (
+              <>
+                <Check className="w-3 h-3 text-emerald-600" />
+                <span className="text-emerald-600">Đã sao chép link</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3" />
+                <span>Copy link affiliate</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -181,16 +497,23 @@ export default function StyleAdvisorPage() {
             </button>
           </div>
 
-          <button
-            onClick={handleLoadDemoBlazer}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-pink-950/60 text-pink-300 border border-pink-800/80 hover:bg-pink-900 transition"
-          >
-            <Sparkles className="w-3 h-3 text-pink-400" />
-            <span>Nạp ảnh mẫu Blazer Đỏ (như hình)</span>
-          </button>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsWardrobeOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 shadow transition relative"
+            title="Xem Tủ Đồ cá nhân hóa"
+          >
+            <ShoppingBag className="w-3.5 h-3.5 text-pink-400" />
+            <span>Tủ đồ</span>
+            {wardrobeCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-pink-600 text-white shadow">
+                {wardrobeCount}
+              </span>
+            )}
+          </button>
+
           <button
             onClick={() => setShowExtensionModal(true)}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white shadow transition"
@@ -201,7 +524,17 @@ export default function StyleAdvisorPage() {
         </div>
       </div>
 
+      {/* Shared Wardrobe Notification Banner */}
+      {!isSharedBannerDismissed && sharedWardrobeItems.length > 0 && (
+        <SharedWardrobeBanner
+          sharedItems={sharedWardrobeItems}
+          onOpenDrawer={() => setIsWardrobeOpen(true)}
+          onDismiss={handleDismissSharedBanner}
+        />
+      )}
+
       {/* Main Container Wrapper */}
+
       <div
         className={`mx-auto pt-6 px-4 transition-all duration-300 ${
           viewMode === "mobile"
@@ -210,16 +543,23 @@ export default function StyleAdvisorPage() {
         }`}
       >
         {/* Banner Link to Chrome Extension (ở chế độ Wide) */}
-        {viewMode === "wide" && (
-          <div className="mb-6 bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 border border-pink-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-pink-600 text-white flex items-center justify-center shadow-md shadow-pink-500/20 shrink-0">
-                <Chrome className="w-5 h-5" />
+        {viewMode === "wide" && !isExtensionBannerDismissed && (
+          <div className="mb-6 bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 border border-pink-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-xs relative">
+            <button
+              onClick={() => setIsExtensionBannerDismissed(true)}
+              className="absolute top-2 right-2 p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-black/5 transition"
+              title="Đóng thông báo này"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+            <div className="flex items-center gap-3 pr-6 sm:pr-0">
+              <div className="w-9 h-9 rounded-xl bg-pink-600 text-white flex items-center justify-center shadow-md shadow-pink-500/20 shrink-0">
+                <Chrome className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-pink-700 flex items-center gap-1.5">
                   <span>Google Chrome Extension</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-pink-100 text-pink-800 font-extrabold">
+                  <span className="px-1.5 py-0.2 rounded text-[9px] bg-pink-100 text-pink-800 font-extrabold">
                     NEW
                   </span>
                 </p>
@@ -230,7 +570,7 @@ export default function StyleAdvisorPage() {
             </div>
             <button
               onClick={() => setShowExtensionModal(true)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl shadow transition shrink-0"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl shadow transition shrink-0"
             >
               <span>Xem & Cài đặt Extension</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -244,145 +584,279 @@ export default function StyleAdvisorPage() {
             Cun Style Advisor
           </h1>
           <p className="text-stone-500 mt-1.5 text-xs sm:text-sm font-medium">
-            Upload ảnh → Điền form → Nhận gợi ý + link affiliate
+            Gõ từ khóa tìm đồ HOẶC Upload ảnh trang phục → Nhận tư vấn stylist + link mua hàng
           </p>
         </div>
 
-        {/* Card Form Chính: Upload & Điền Tiêu Chí */}
-        <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 mb-6">
-          {/* 1. Upload ảnh */}
-          <div className="mb-5">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs sm:text-sm font-bold text-stone-800">
-                1. Upload ảnh trang phục / người mặc
-              </label>
-              {selectedImage && (
-                <button
-                  onClick={handleClearImage}
-                  className="text-xs text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  Xóa ảnh
-                </button>
-              )}
-            </div>
+        {/* Card Form Chính: Unified Omni-Search Bar + Upload Image + ALL Market + Filters */}
+        <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-4 sm:p-6 mb-6">
+          {/* Main Search Bar with Inline Camera & Search Button */}
+          <div className="relative flex items-center">
+            <Search className="w-5 h-5 text-stone-400 absolute left-4 pointer-events-none" />
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAnalyze();
+                }
+              }}
+              placeholder="Gõ món đồ hoặc phong cách bạn muốn tìm (ví dụ: blazer, cardigan, hoodie, váy dự tiệc...)"
+              className="w-full border-2 border-stone-200 rounded-2xl pl-12 pr-32 py-3.5 text-xs sm:text-sm bg-stone-50/70 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/15 outline-none transition font-medium text-stone-900 placeholder:text-stone-400 shadow-inner"
+            />
 
-            <div className="flex flex-wrap items-center gap-2">
+            {/* Right Action Controls: Inline Camera + Submit */}
+            <div className="absolute right-2 flex items-center gap-1.5">
+              {/* Camera Icon Upload */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded-xl text-stone-500 hover:text-pink-600 hover:bg-pink-50 transition cursor-pointer"
+                title="Tải ảnh trang phục lên để AI Vision quét mẫu"
+              >
+                <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
               <input
                 type="file"
                 ref={fileInputRef}
-                id="imageInput"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="block text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100 transition cursor-pointer"
+                className="hidden"
               />
+
+              {/* Submit Search Button */}
               <button
                 type="button"
-                onClick={handleLoadDemoBlazer}
-                className="text-[11px] bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold py-1.5 px-3 rounded-xl border border-rose-200 transition"
+                onClick={handleAnalyze}
+                disabled={isAnalyzing}
+                className="bg-stone-900 hover:bg-pink-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1 shadow-sm cursor-pointer disabled:opacity-60"
               >
-                Ảnh Blazer đỏ mẫu
+                {isAnalyzing ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <span>Tìm</span>
+                    <Sparkles className="w-3 h-3 text-pink-300" />
+                  </>
+                )}
               </button>
             </div>
+          </div>
 
-            {/* Preview Image */}
-            {selectedImage && (
-              <div className="mt-3 relative bg-stone-50 rounded-2xl border border-stone-200 p-3 flex flex-col items-center justify-center">
-                <img
-                  src={selectedImage}
-                  alt="Preview"
-                  className="max-h-64 w-auto object-contain rounded-xl shadow-sm"
-                />
-                <span className="mt-2 text-[11px] text-stone-500 font-medium">
-                  {imageName || "Đã nạp ảnh thành công"}
+          {/* Active Image Chip Preview */}
+          {selectedImage && (
+            <div className="mt-3 inline-flex items-center gap-2.5 bg-pink-50 border border-pink-200/90 rounded-2xl px-3 py-1.5 shadow-xs animate-in fade-in duration-200">
+              <img
+                src={selectedImage}
+                alt="Selected"
+                className="w-8 h-8 rounded-lg object-cover border border-pink-200"
+              />
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-bold text-pink-900 line-clamp-1">
+                  {imageName || "Ảnh trang phục đã tải lên"}
+                </span>
+                <span className="text-[10px] text-pink-600 font-medium">
+                  AI Vision sẵn sàng phân tích
                 </span>
               </div>
-            )}
+              <button
+                type="button"
+                onClick={handleClearImage}
+                className="ml-1 p-1 rounded-full text-pink-700 hover:bg-pink-200/60 transition cursor-pointer"
+                title="Xóa ảnh"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Quick Keywords & Surprise Me Button */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-stone-100">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] text-stone-400 font-medium mr-1">Gợi ý nhanh:</span>
+              {QUICK_KEYWORDS.map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  onClick={() => setKeyword(kw)}
+                  className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-medium ${
+                    keyword.toLowerCase() === kw.toLowerCase()
+                      ? "bg-pink-100 text-pink-700 border-pink-300 font-bold"
+                      : "bg-stone-100/80 hover:bg-stone-200/70 text-stone-600 border-stone-200/80"
+                  }`}
+                >
+                  {kw}
+                </button>
+              ))}
+            </div>
+
+            {/* Surprise Me Button */}
+            <button
+              type="button"
+              onClick={handleSurpriseMe}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition shadow-2xs cursor-pointer"
+              title="Phối đồ ngẫu hứng không cần suy nghĩ"
+            >
+              <Shuffle className="w-3.5 h-3.5 text-amber-600" />
+              <span>🎲 Gợi ý ngẫu hứng</span>
+            </button>
           </div>
 
-          {/* 2. Form Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-3 border-t border-stone-100">
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                Dịp sử dụng
-              </label>
-              <select
-                value={occasion}
-                onChange={(e) => setOccasion(e.target.value)}
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800"
+          {/* Sàn liên kết (Affiliate Market Selector) with ALL as default */}
+          <div className="mt-4 pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
+              Sàn mua sắm (Affiliate Market):
+            </label>
+            <div className="inline-flex flex-wrap rounded-xl bg-stone-100 p-1 border border-stone-200 gap-1">
+              <button
+                type="button"
+                onClick={() => setMarket("ALL")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "ALL"
+                    ? "bg-stone-900 text-white shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+                title="Quét & tổng hợp sản phẩm trên tất cả các sàn (Khuyên dùng)"
               >
-                <option value="work">Đi làm</option>
-                <option value="casual">Casual / Hàng ngày</option>
-                <option value="date">Hẹn hò</option>
-                <option value="party">Party / Sự kiện</option>
-                <option value="travel">Du lịch</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                Phong cách
-              </label>
-              <select
-                value={style}
-                onChange={(e) => setStyle(e.target.value)}
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800"
+                <span>🌐 Tất cả sàn (All)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarket("RAKUTEN")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "RAKUTEN"
+                    ? "bg-red-600 text-white shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+                title="Thời trang chính hãng qua Rakuten Advertising (Nike, Macy's, ASOS...)"
               >
-                <option value="elegant">Elegant / Thanh lịch</option>
-                <option value="minimal">Minimal / Tối giản</option>
-                <option value="street">Streetwear</option>
-                <option value="romantic">Romantic / Nữ tính</option>
-                <option value="classic">Classic</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                Ngân sách
-              </label>
-              <select
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800"
+                <span>👗 Rakuten Brands</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarket("US")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "US"
+                    ? "bg-amber-500 text-stone-950 font-black shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+                title="Amazon US Affiliate (StoreID: cuncute-20)"
               >
-                <option value="mid">500k - 1.5tr</option>
-                <option value="low">Dưới 500k</option>
-                <option value="high">Trên 1.5tr</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                Màu ưa thích
-              </label>
-              <input
-                type="text"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                placeholder="Ví dụ: hồng pastel, đen, be..."
-                className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm bg-stone-50 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800 placeholder-stone-400"
-              />
+                <span>📦 Amazon US</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarket("FOURTHWALL")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "FOURTHWALL"
+                    ? "bg-pink-600 text-white shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+                title="Sản phẩm thời trang độc quyền từ CunCute Store (cute.cunfashion.com)"
+              >
+                <span>🌟 Cun Cute Store</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarket("VN")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "VN"
+                    ? "bg-white text-stone-900 shadow-xs border border-stone-200"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                <span>🇻🇳 Shopee/TikTok</span>
+              </button>
             </div>
           </div>
 
-          {/* Nút Phân Tích Màu Hồng Đặc Trưng */}
-          <button
-            onClick={handleAnalyze}
-            disabled={isAnalyzing}
-            className="mt-6 w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-pink-600/25 transition transform active:scale-[0.99] flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-75 cursor-pointer"
-          >
-            {isAnalyzing ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Đang phân tích phối đồ...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                <span>Phân tích & Gợi ý sản phẩm</span>
-              </>
-            )}
-          </button>
+          {/* Toggle Bộ Lọc Nâng Cao (Collapsible Filters) */}
+          <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-pink-600 transition cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-pink-600" />
+              <span>Bộ lọc nâng cao (Dịp, Phong cách, Ngân sách, Màu sắc)</span>
+              {showFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+            <span className="text-[11px] text-stone-400 font-medium">
+              {showFilters ? "Bấm để thu gọn" : "Tùy chọn thêm"}
+            </span>
+          </div>
+
+          {/* Panel Bộ Lọc Nâng Cao */}
+          {showFilters && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-4 rounded-2xl bg-stone-50 border border-stone-200 animate-in fade-in duration-200">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                  Dịp sử dụng
+                </label>
+                <select
+                  value={occasion}
+                  onChange={(e) => setOccasion(e.target.value)}
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                >
+                  <option value="all">Tất cả / Mọi dịp</option>
+                  <option value="work">Đi làm / Công sở</option>
+                  <option value="casual">Casual / Hàng ngày</option>
+                  <option value="date">Hẹn hò lãng mạn</option>
+                  <option value="party">Party / Tiệc tùng</option>
+                  <option value="travel">Du lịch & Dạo phố</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                  Phong cách
+                </label>
+                <select
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value)}
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                >
+                  <option value="all">Tất cả / Đa dạng phong cách</option>
+                  <option value="elegant">Elegant / Thanh lịch</option>
+                  <option value="minimal">Minimal / Tối giản</option>
+                  <option value="street">Streetwear / Cá tính</option>
+                  <option value="romantic">Romantic / Nữ tính</option>
+                  <option value="classic">Classic / Cổ điển</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                  Ngân sách
+                </label>
+                <select
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                >
+                  <option value="all">Mọi mức giá</option>
+                  <option value="low">Tiết kiệm</option>
+                  <option value="mid">Tiêu chuẩn</option>
+                  <option value="high">Cao cấp</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                  Tông màu yêu thích
+                </label>
+                <input
+                  type="text"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  placeholder="Để trống hoặc gõ màu..."
+                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800 placeholder:text-stone-400"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Kết Quả Phân Tích */}
@@ -390,13 +864,49 @@ export default function StyleAdvisorPage() {
           <div ref={resultRef} className="space-y-6 animate-in fade-in duration-300">
             {/* 1. Card Gợi ý phong cách */}
             <div className="bg-white rounded-3xl shadow-sm border border-stone-200 p-5 sm:p-6">
-              <h2 className="text-base sm:text-lg font-bold text-stone-900 mb-2.5 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold">💡</span>
-                <span>Gợi ý phong cách</span>
-              </h2>
+              <div className="flex items-center justify-between mb-2.5">
+                <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold">💡</span>
+                  <span>Gợi ý phong cách</span>
+                </h2>
+                {result.source === "gemini-vision" ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                    ✨ Google Gemini 3.6 Flash
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                    ⚡ Smart Heuristic
+                  </span>
+                )}
+              </div>
               <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-medium bg-pink-50/40 p-4 rounded-2xl border border-pink-100">
                 {result.adviceText}
               </p>
+
+              {/* Món đồ nhận diện từ AI hoặc Từ khóa tìm kiếm */}
+              {result.detectedItems && result.detectedItems.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-stone-100">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                      {result.keyword ? "Món đồ tìm kiếm & bóc tách phối hợp:" : "Món đồ AI nhận diện được từ ảnh:"}
+                    </p>
+                    {result.keyword && (
+                      <span className="text-[11px] bg-pink-50 text-pink-700 px-2 py-0.5 rounded-md font-bold border border-pink-200">
+                        🔍 &quot;{result.keyword}&quot;
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {result.detectedItems.map((item, idx) => (
+                      <span key={idx} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-800 border border-stone-200 flex items-center gap-1">
+                        <span>👗</span>
+                        <span>{item.name}</span>
+                        {item.color && <span className="text-stone-500 font-normal">({item.color})</span>}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Bảng phối màu đề xuất */}
               {result.palette && result.palette.length > 0 && (
@@ -419,101 +929,178 @@ export default function StyleAdvisorPage() {
               )}
             </div>
 
-            {/* 2. Card Sản phẩm gợi ý (Affiliate) */}
-            <div>
-              <div className="flex items-center justify-between mb-3.5">
-                <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-pink-600" />
-                  <span>Sản phẩm gợi ý (Affiliate)</span>
-                </h2>
-                <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
-                  {result.suggestedProducts.length} items
-                </span>
-              </div>
+            {/* 1.5 Direct Affiliate Search Hub (khi từ khóa tìm kiếm không có sẵn trong catalog) */}
+            {result.hasDirectMatch === false && result.keyword && (
+              <div className="bg-white rounded-3xl shadow-sm border-2 border-amber-300/80 p-5 sm:p-6 bg-gradient-to-br from-amber-50/60 via-white to-pink-50/40">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500 text-stone-950 flex items-center justify-center shrink-0 shadow-sm font-black">
+                    <Search className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-extrabold text-stone-900">
+                      Tìm kiếm trực tiếp &quot;{result.keyword}&quot; trên các sàn mua sắm
+                    </h3>
+                    <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
+                      Từ khóa <strong>&quot;{result.keyword}&quot;</strong> không có trong kho mẫu thời trang có sẵn. Bấm vào các liên kết trực tiếp bên dưới để tìm sản phẩm chính xác và nhận ưu đãi affiliate tốt nhất:
+                    </p>
+                  </div>
+                </div>
 
-              <div
-                className={`grid gap-4 ${
-                  viewMode === "mobile"
-                    ? "grid-cols-1"
-                    : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-                }`}
-              >
-                {result.suggestedProducts.map((p) => (
-                  <div
-                    key={p.id}
-                    className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm hover:shadow-md hover:border-pink-300 transition flex flex-col justify-between group"
-                  >
-                    <div>
-                      {/* Product Image */}
-                      <div className="relative aspect-[3/4] bg-stone-100 overflow-hidden">
-                        <img
-                          src={p.img}
-                          alt={p.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        />
-                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold bg-white/90 text-stone-800 backdrop-blur-sm shadow-sm">
-                          {p.platform}
-                        </span>
-                        {p.tag && (
-                          <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-pink-600 text-white shadow-sm">
-                            {p.tag}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="p-3.5">
-                        <h4 className="text-xs sm:text-sm font-bold text-stone-800 line-clamp-2 leading-snug group-hover:text-pink-600 transition">
-                          {p.name}
-                        </h4>
-                        <div className="flex items-baseline gap-2 mt-1.5">
-                          <span className="text-sm sm:text-base font-extrabold text-pink-600">
-                            {p.price}
-                          </span>
-                          {p.originalPrice && (
-                            <span className="text-xs text-stone-400 line-through">
-                              {p.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action */}
-                    <div className="p-3.5 pt-0 space-y-2">
+                {result.searchLinks && result.searchLinks.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                    {result.searchLinks.map((link, idx) => (
                       <a
-                        href={p.link}
+                        key={idx}
+                        href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-stone-900 hover:bg-pink-600 text-white text-xs font-bold rounded-xl transition shadow-sm"
+                        className={`flex items-center justify-between p-3.5 rounded-2xl font-bold text-xs shadow-xs transition hover:scale-[1.02] active:scale-95 ${link.colorClass}`}
                       >
-                        <span>Xem & Mua ngay</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="text-base">
+                            {link.platform === "Amazon" ? "📦" : link.platform === "Shopee" ? "🇻🇳" : link.platform === "Rakuten" ? "👗" : link.platform === "CunCute Store" ? "🌟" : "🎵"}
+                          </span>
+                          <div className="text-left truncate">
+                            <div className="truncate font-bold">{link.label}</div>
+                            <span className="text-[10px] opacity-80 font-normal">{link.badge}</span>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 shrink-0 opacity-80" />
                       </a>
-                      <button
-                        onClick={() => handleCopyLink(p)}
-                        className="w-full py-1 text-[11px] font-semibold text-stone-500 hover:text-stone-800 transition flex items-center justify-center gap-1"
-                      >
-                        {copiedId === p.id ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-600" />
-                            <span className="text-emerald-600">Đã sao chép link</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span>Copy link affiliate</span>
-                          </>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 2. Card Sản phẩm gợi ý (Affiliate) */}
+            <div>
+              {result.keyMatchedProducts &&
+              result.keyMatchedProducts.length > 0 &&
+              result.coordinatedProducts &&
+              result.coordinatedProducts.length > 0 ? (
+                <div className="space-y-8">
+                  {/* Phân nhóm 1: Món đồ tìm kiếm trọng tâm */}
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                      <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
+                        <span className="w-6 h-6 rounded-lg bg-pink-600 text-white flex items-center justify-center text-xs font-black">
+                          🎯
+                        </span>
+                        <span>Món đồ tìm kiếm trọng tâm</span>
+                        {result.keyword && (
+                          <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
+                            Khớp từ khóa: &quot;{result.keyword}&quot;
+                          </span>
                         )}
-                      </button>
+                      </h2>
+                      <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                        {result.keyMatchedProducts.length} items
+                      </span>
+                    </div>
+
+                    <div
+                      className={`grid gap-4 ${
+                        viewMode === "mobile"
+                          ? "grid-cols-1"
+                          : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                      }`}
+                    >
+                      {result.keyMatchedProducts.map(renderProductCard)}
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  {/* Phân nhóm 2: Gợi ý phối đồ hoàn hảo (Complete The Look) */}
+                  <div className="pt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                      <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
+                        <span className="w-6 h-6 rounded-lg bg-amber-500 text-stone-950 flex items-center justify-center text-xs font-black">
+                          ✨
+                        </span>
+                        <span>Gợi ý phối đồ hoàn hảo (Complete The Look)</span>
+                        {result.keyword && (
+                          <span className="text-xs font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200">
+                            Phối cùng &quot;{result.keyword}&quot;
+                          </span>
+                        )}
+                      </h2>
+                      <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                        {result.coordinatedProducts.length} items
+                      </span>
+                    </div>
+
+                    <div
+                      className={`grid gap-4 ${
+                        viewMode === "mobile"
+                          ? "grid-cols-1"
+                          : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                      }`}
+                    >
+                      {result.coordinatedProducts.map(renderProductCard)}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                    <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
+                      <ShoppingBag className="w-5 h-5 text-pink-600 shrink-0" />
+                      <span>
+                        {result.hasDirectMatch === false
+                          ? "🔥 Gợi ý thời trang thịnh hành dành cho bạn (Trending Picks)"
+                          : "Sản phẩm gợi ý (Affiliate)"}
+                      </span>
+                      {result.keyword && (
+                        result.hasDirectMatch === false ? (
+                          <span className="text-xs font-semibold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-lg border border-stone-200">
+                            Gợi ý tham khảo (Kho mẫu không có &quot;{result.keyword}&quot;)
+                          </span>
+                        ) : (
+                          <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
+                            Khớp từ khóa: &quot;{result.keyword}&quot;
+                          </span>
+                        )
+                      )}
+                    </h2>
+                    <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                      {result.suggestedProducts.length} items
+                    </span>
+                  </div>
+
+                  <div
+                    className={`grid gap-4 ${
+                      viewMode === "mobile"
+                        ? "grid-cols-1"
+                        : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                    }`}
+                  >
+                    {result.suggestedProducts.map(renderProductCard)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Floating Wardrobe Button */}
+      {wardrobeCount > 0 && (
+        <button
+          onClick={() => setIsWardrobeOpen(true)}
+          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-2xl shadow-pink-600/40 border-2 border-white flex items-center gap-2.5 transition hover:scale-105 active:scale-95 animate-bounce-short"
+          title="Xem Tủ Đồ yêu thích của bạn"
+        >
+          <ShoppingBag className="w-4 h-4 text-white animate-pulse" />
+          <span>Tủ Đồ ({wardrobeCount})</span>
+        </button>
+      )}
+
+      {/* Wardrobe Drawer */}
+      <WardrobeDrawer
+        isOpen={isWardrobeOpen}
+        onClose={() => setIsWardrobeOpen(false)}
+        onTrackClick={handleTrackAffiliateClick}
+      />
 
       {/* Extension Modal */}
       {showExtensionModal && (

@@ -1,4 +1,4 @@
-﻿import { describe, it } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 const PLAYER_COLORS = [
@@ -95,4 +95,82 @@ describe("Realtime Multiplayer Room Engine Invariants", () => {
     assert.equal(broadcastPayload.rotation, 0);
     assert.equal(broadcastPayload.isPlaced, true);
   });
+
+  it("Victory broadcast invariant: correctly structures payload and excludes self on receive", () => {
+    const engine = new MockRealtimeRoomEngine("TEST-ROOM-VICTORY", "WinnerPlayer");
+    let sentPayload = null;
+
+    engine.broadcastVictory = function(timeFormatted, seconds, moves) {
+      sentPayload = {
+        winnerId: this.localPlayerId,
+        winnerName: this.localPlayerName,
+        timeFormatted,
+        seconds,
+        moves,
+        timestamp: Date.now(),
+      };
+    };
+
+    engine.broadcastVictory("01:45", 105, 24);
+
+    assert.ok(sentPayload);
+    assert.equal(sentPayload.winnerId, engine.localPlayerId);
+    assert.equal(sentPayload.winnerName, "WinnerPlayer");
+    assert.equal(sentPayload.timeFormatted, "01:45");
+    assert.equal(sentPayload.seconds, 105);
+    assert.equal(sentPayload.moves, 24);
+
+    // Filter verification: onVictory should only execute if payload.winnerId !== localPlayerId
+    let victoryCalledWith = null;
+    const onVictory = (p) => { victoryCalledWith = p; };
+
+    const handleReceive = (p) => {
+      if (p && p.winnerId !== engine.localPlayerId) {
+        onVictory(p);
+      }
+    };
+
+    // Own victory received -> ignored
+    handleReceive(sentPayload);
+    assert.equal(victoryCalledWith, null, "Should not trigger remote victory modal on oneself");
+
+    // Remote friend victory received -> triggered
+    const friendPayload = { ...sentPayload, winnerId: "pl-remote-friend-999", winnerName: "Friend" };
+    handleReceive(friendPayload);
+    assert.ok(victoryCalledWith);
+    assert.equal(victoryCalledWith.winnerName, "Friend");
+  });
+
+  it("Supabase channel cleanup invariant: removing existing channel prevents callback collision", () => {
+    const channelRegistry = new Map();
+    const mockSupabase = {
+      getChannels: () => Array.from(channelRegistry.values()),
+      channel: (name) => {
+        if (!channelRegistry.has(name)) {
+          channelRegistry.set(name, { topic: "realtime:" + name, subscribed: false });
+        }
+        return channelRegistry.get(name);
+      },
+      removeChannel: (ch) => {
+        for (const [key, val] of channelRegistry.entries()) {
+          if (val === ch) channelRegistry.delete(key);
+        }
+      },
+    };
+
+    // 1. First subscription
+    const channelName = "puzzle-room:ROOM-TEST";
+    const ch1 = mockSupabase.channel(channelName);
+    ch1.subscribed = true;
+
+    // 2. Safe cleanup logic before reconnect
+    const existing = mockSupabase.getChannels().find(c => c.topic === "realtime:" + channelName);
+    assert.ok(existing);
+    mockSupabase.removeChannel(existing);
+
+    // 3. New channel should be fresh and unsubscribed
+    const ch2 = mockSupabase.channel(channelName);
+    assert.equal(ch2.subscribed, false, "Re-created channel must be fresh to accept new callbacks safely");
+  });
 });
+

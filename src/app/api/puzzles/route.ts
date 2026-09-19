@@ -139,6 +139,26 @@ export async function POST(request: NextRequest) {
       ...(productPriceSale && { productPriceSale: sanitizeText(productPriceSale) }),
     });
 
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from("puzzles").insert({
+          title: cleanTitle,
+          slug,
+          category_slug: categorySlug || category.toLowerCase().replace(/\s+/g, "-"),
+          image_url: sanitizeUrl(image),
+          difficulty: difficulty || "medium",
+          description: sanitizeText(description) || `A lovely jigsaw puzzle: ${cleanTitle}`,
+          voucher_code: cleanVoucher || null,
+          discount_percent: parsedDiscount ?? null,
+          product_url: cleanProductUrl || null,
+          product_price_original: productPriceOriginal ? sanitizeText(productPriceOriginal) : null,
+          product_price_sale: productPriceSale ? sanitizeText(productPriceSale) : null,
+        });
+      } catch (dbErr) {
+        console.warn("[puzzles] Supabase insert warning:", dbErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: "Puzzle created successfully",
@@ -170,6 +190,15 @@ export async function DELETE(request: NextRequest) {
   }
 
   const deleted = deletePuzzleItem(id);
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from("puzzles").delete().or(`id.eq.${id},slug.eq.${id}`);
+    } catch (dbErr) {
+      console.warn("[puzzles] Supabase delete warning:", dbErr);
+    }
+  }
+
   if (deleted) {
     return NextResponse.json({ success: true, message: "Puzzle removed successfully" });
   }
@@ -231,6 +260,28 @@ export async function PUT(request: NextRequest) {
       productPriceOriginal: productPriceOriginal ? sanitizeText(productPriceOriginal) : undefined,
       productPriceSale: productPriceSale ? sanitizeText(productPriceSale) : undefined,
     });
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase
+          .from("puzzles")
+          .update({
+            title: cleanTitle,
+            category_slug: categorySlug || category.toLowerCase().replace(/\s+/g, "-"),
+            image_url: sanitizeUrl(image),
+            difficulty: difficulty || "medium",
+            description: sanitizeText(description) || `A lovely jigsaw puzzle: ${cleanTitle}`,
+            voucher_code: cleanVoucher || null,
+            discount_percent: parsedDiscount ?? null,
+            product_url: cleanProductUrl || null,
+            product_price_original: productPriceOriginal ? sanitizeText(productPriceOriginal) : null,
+            product_price_sale: productPriceSale ? sanitizeText(productPriceSale) : null,
+          })
+          .or(`id.eq.${id},slug.eq.${id}`);
+      } catch (dbErr) {
+        console.warn("[puzzles] Supabase update warning:", dbErr);
+      }
+    }
 
     if (!updated) {
       return NextResponse.json(

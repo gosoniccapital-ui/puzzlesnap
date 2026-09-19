@@ -28,13 +28,15 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https: https://images.unsplash.com https://*.supabase.co https://*.supabase.in https://m.media-amazon.com https://images-na.ssl-images-amazon.com",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com https://*.googleadservices.com https://*.doubleclick.net https://connect.facebook.net https://*.facebook.net https://analytics.tiktok.com https://*.tiktok.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live",
+      "font-src 'self' https://fonts.gstatic.com data: https://vercel.live https://assets.vercel.com",
+      "img-src 'self' data: blob: https: https://images.unsplash.com https://*.supabase.co https://*.supabase.in https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://vercel.live https://vercel.com https://www.facebook.com https://analytics.tiktok.com",
       "media-src 'self' data: blob:",
-      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://generativelanguage.googleapis.com",
+      "connect-src 'self' https: wss: https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://generativelanguage.googleapis.com https://vercel.live wss://ws-us3.pusher.com",
+      "worker-src 'self' blob:",
       "frame-ancestors 'self'",
+      "frame-src 'self' https://vercel.live",
     ].join("; "),
   },
 ];
@@ -62,6 +64,22 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "images-na.ssl-images-amazon.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.fourthwall.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.fourthwall.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.fourthwall.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "*.linksynergy.com",
       },
     ],
   },

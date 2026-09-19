@@ -183,13 +183,12 @@ export function verifyAdminPasscode(inputPasscode: string): boolean {
   const a = encoder.encode(inputPasscode);
   const b = encoder.encode(masterPassword);
 
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a[i] ^ b[i];
+  const maxLen = Math.max(a.length, b.length);
+  let result = a.length ^ b.length;
+  for (let i = 0; i < maxLen; i++) {
+    const charA = i < a.length ? a[i] : 0;
+    const charB = i < b.length ? b[i] : 0;
+    result |= charA ^ charB;
   }
   return result === 0;
 }

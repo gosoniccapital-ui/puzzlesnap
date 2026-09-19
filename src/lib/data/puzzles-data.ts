@@ -10,12 +10,15 @@ export interface PuzzleItem {
   isDaily?: boolean;
   difficulty: "easy" | "medium" | "hard" | "very-hard" | "supreme";
   description: string;
-  // E-Commerce Extensions (Sprint 6.2)
+  // E-Commerce Extensions (Sprint 6.2 & Sprint 7.5 Dual Rewards)
   voucherCode?: string;
+  secondaryVoucherCode?: string;
   discountPercent?: number;
+  secondaryDiscountPercent?: number;
   productUrl?: string;
   productPriceOriginal?: string;
   productPriceSale?: string;
+  ctaText?: string;
 }
 
 export const CATEGORIES_LIST = [
@@ -50,9 +53,10 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     description: "Luxurious haute couture designer collection showcasing modern elegance and warmth.",
     voucherCode: "CUNAUTUMN15",
     discountPercent: 15,
-    productUrl: "https://cunfashion.com",
+    productUrl: "https://cute.cunfashion.com?coupon=CUNAUTUMN15&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
     productPriceOriginal: "1.450.000₫",
     productPriceSale: "1.232.500₫",
+    ctaText: "Shop Cute Outfits",
   },
   {
     id: "f2",
@@ -67,9 +71,10 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     description: "Bold contemporary streetwear outfit with neon metropolitan accents.",
     voucherCode: "CYBERPUNK20",
     discountPercent: 20,
-    productUrl: "https://cunfashion.com",
+    productUrl: "https://cute.cunfashion.com?coupon=CYBERPUNK20&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
     productPriceOriginal: "950.000₫",
     productPriceSale: "760.000₫",
+    ctaText: "Shop Cute Outfits",
   },
   {
     id: "f3",
@@ -84,9 +89,10 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     description: "Timeless classic denim styling paired with confident editorial photography.",
     voucherCode: "RETRODENIM10",
     discountPercent: 10,
-    productUrl: "https://cunfashion.com",
+    productUrl: "https://cute.cunfashion.com?coupon=RETRODENIM10&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
     productPriceOriginal: "850.000₫",
     productPriceSale: "765.000₫",
+    ctaText: "Shop Cute Outfits",
   },
   {
     id: "f4",
@@ -101,9 +107,10 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     description: "Exquisite silk evening gown flowing gracefully down the high-fashion runway.",
     voucherCode: "RUNWAY25",
     discountPercent: 25,
-    productUrl: "https://cunfashion.com",
+    productUrl: "https://cute.cunfashion.com?coupon=RUNWAY25&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
     productPriceOriginal: "2.800.000₫",
     productPriceSale: "2.100.000₫",
+    ctaText: "Shop Cute Outfits",
   },
   {
     id: "f5",
@@ -118,9 +125,10 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     description: "Clean monochromatic lines and premium textiles celebrating modern sartorial taste.",
     voucherCode: "MINIMALIST15",
     discountPercent: 15,
-    productUrl: "https://cunfashion.com",
+    productUrl: "https://cute.cunfashion.com?coupon=MINIMALIST15&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
     productPriceOriginal: "1.200.000₫",
     productPriceSale: "1.020.000₫",
+    ctaText: "Shop Cute Outfits",
   },
   {
     id: "p1",
@@ -222,7 +230,14 @@ export const PUZZLES_DATA: PuzzleItem[] = [
 ];
 
 export function getDailyPuzzle(): PuzzleItem {
-  return PUZZLES_DATA.find((p) => p.isDaily) || PUZZLES_DATA[0];
+  // Deterministic calendar rotation based on day number so every day serves a fresh puzzle
+  const dayNumber = Math.floor(Date.now() / 86400000);
+  const index = Math.abs(dayNumber) % PUZZLES_DATA.length;
+  const puzzle = PUZZLES_DATA[index] || PUZZLES_DATA[0];
+  return {
+    ...puzzle,
+    isDaily: true,
+  };
 }
 
 export function getPuzzleBySlug(slug: string): PuzzleItem | undefined {
@@ -277,5 +292,20 @@ export function updatePuzzleItem(
   };
   return PUZZLES_DATA[index];
 }
+
+export function incrementLikes(slug: string): number | null {
+  const puzzle = PUZZLES_DATA.find((p) => p.slug === slug);
+  if (!puzzle) return null;
+  puzzle.likes = (puzzle.likes || 0) + 1;
+  return puzzle.likes;
+}
+
+export function incrementPlays(slug: string): number | null {
+  const puzzle = PUZZLES_DATA.find((p) => p.slug === slug);
+  if (!puzzle) return null;
+  puzzle.plays = (puzzle.plays || 0) + 1;
+  return puzzle.plays;
+}
+
 
 
