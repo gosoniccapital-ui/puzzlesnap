@@ -384,6 +384,12 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
               styleTips: parsed.styleTips || [],
               detectedItems: base64Data ? detectedItems : (hasDirectMatch ? detectedItems : []),
               suggestedProducts: multiSourceProducts.slice(0, 6),
+              keyMatchedProducts: cleanKeyword && hasDirectMatch
+                ? multiSourceProducts.filter(p => p.name.toLowerCase().includes(cleanKeyword.toLowerCase()) || p.category.toLowerCase().includes(cleanKeyword.toLowerCase())).slice(0, 4)
+                : undefined,
+              coordinatedProducts: cleanKeyword && hasDirectMatch
+                ? multiSourceProducts.filter(p => !p.name.toLowerCase().includes(cleanKeyword.toLowerCase()) && !p.category.toLowerCase().includes(cleanKeyword.toLowerCase())).slice(0, 4)
+                : undefined,
               market: market as any,
               source: isFourthwall ? "fourthwall-api" : isRakuten ? "rakuten-api" : base64Data ? "gemini-vision" : "gemini-text",
               keyword: cleanKeyword || undefined,
@@ -443,6 +449,16 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
 
     if (fallbackProducts.length > 0) {
       fallbackAdvice.suggestedProducts = fallbackProducts.slice(0, 8);
+      if (cleanKeyword && fallbackAdvice.hasDirectMatch) {
+        const kwLower = cleanKeyword.toLowerCase();
+        const matches = fallbackProducts.filter(
+          p => p.name.toLowerCase().includes(kwLower) || p.category.toLowerCase().includes(kwLower)
+        );
+        if (matches.length > 0) {
+          fallbackAdvice.keyMatchedProducts = matches.slice(0, 4);
+          fallbackAdvice.coordinatedProducts = fallbackProducts.filter(p => !matches.some(m => m.id === p.id)).slice(0, 4);
+        }
+      }
       if (market === "FOURTHWALL") fallbackAdvice.source = "fourthwall-api";
       else if (market === "RAKUTEN") fallbackAdvice.source = "rakuten-api";
     }
