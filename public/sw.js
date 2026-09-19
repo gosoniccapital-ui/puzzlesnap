@@ -1,5 +1,5 @@
-// CunFashion PWA Service Worker v4.0.0 (Sprint 7.5 Dual Vouchers Cache-Bust)
-const CACHE_NAME = 'cunfashion-cache-v4';
+// CunFashion PWA Service Worker v5.0.0 (Tracking Pixels Integration)
+const CACHE_NAME = 'cunfashion-cache-v5';
 const STATIC_ASSETS = [
   '/',
   '/site.webmanifest',

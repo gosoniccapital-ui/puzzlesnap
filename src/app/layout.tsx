@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import PwaRegister from "@/components/pwa/PwaRegister";
+import TrackingPixels from "@/components/analytics/TrackingPixels";
 
 export const metadata: Metadata = {
   title: "CunFashion — Free Online Jigsaw Puzzles",
@@ -32,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col bg-[#fbfaf7] text-stone-900 antialiased selection:bg-[#ffb703] selection:text-stone-950">
+        <TrackingPixels />
         <PwaRegister />
         <Navbar />
         <main className="flex-1">{children}</main>
