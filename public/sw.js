@@ -1,10 +1,12 @@
-// CunFashion PWA Service Worker v5.0.0 (Tracking Pixels Integration)
-const CACHE_NAME = 'cunfashion-cache-v5';
+// CunFashion PWA Service Worker v6.0.0 (Favicon & Brand Sync)
+const CACHE_NAME = 'cunfashion-cache-v6';
 const STATIC_ASSETS = [
   '/',
+  '/favicon.ico',
   '/site.webmanifest',
   '/images/puzzle-icon-192.png',
   '/images/puzzle-icon-512.png',
+  '/images/brand/logo-mini.png',
   '/images/brand/logo-animated.webp',
   '/images/brand/cunfashion-transparent.webp',
   '/cun-style-advisor.html'
