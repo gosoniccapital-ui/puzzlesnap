@@ -105,3 +105,23 @@ test("API: POST /api/scores should sanitize XSS tags and enforce input validatio
   assert.equal(invalidRes.status, 400);
 });
 
+test("Security: SSRF guard blocks internal, metadata, and loopback IP hosts", () => {
+  const isForbiddenHost = (url) => {
+    return (
+      url.includes("localhost") ||
+      url.includes("127.0.0.1") ||
+      url.includes("169.254.") ||
+      url.includes("0.0.0.0") ||
+      url.includes("::1")
+    );
+  };
+
+  assert.equal(isForbiddenHost("http://169.254.169.254/latest/meta-data"), true);
+  assert.equal(isForbiddenHost("http://localhost:3000/api/admin"), true);
+  assert.equal(isForbiddenHost("http://127.0.0.1:8080/secret"), true);
+  assert.equal(isForbiddenHost("http://0.0.0.0:4000/"), true);
+  assert.equal(isForbiddenHost("http://[::1]:3000/"), true);
+  assert.equal(isForbiddenHost("https://images.unsplash.com/photo-1234"), false);
+  assert.equal(isForbiddenHost("https://m.media-amazon.com/images/I/abc.jpg"), false);
+});
+

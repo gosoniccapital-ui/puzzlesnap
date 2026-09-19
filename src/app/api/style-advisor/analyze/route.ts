@@ -87,15 +87,24 @@ export async function POST(request: NextRequest) {
             base64Data = matches[2];
           }
         } else if (image.startsWith("http://") || image.startsWith("https://")) {
-          try {
-            const imgRes = await fetch(image, { signal: AbortSignal.timeout(6000) });
-            if (imgRes.ok) {
-              const arrayBuffer = await imgRes.arrayBuffer();
-              base64Data = Buffer.from(arrayBuffer).toString("base64");
-              mimeType = imgRes.headers.get("content-type") || "image/jpeg";
+          const isForbiddenHost =
+            image.includes("localhost") ||
+            image.includes("127.0.0.1") ||
+            image.includes("169.254.") ||
+            image.includes("0.0.0.0") ||
+            image.includes("::1");
+
+          if (!isForbiddenHost) {
+            try {
+              const imgRes = await fetch(image, { signal: AbortSignal.timeout(6000) });
+              if (imgRes.ok) {
+                const arrayBuffer = await imgRes.arrayBuffer();
+                base64Data = Buffer.from(arrayBuffer).toString("base64");
+                mimeType = imgRes.headers.get("content-type") || "image/jpeg";
+              }
+            } catch (fetchErr) {
+              console.warn("Could not fetch remote image for vision analysis:", fetchErr);
             }
-          } catch (fetchErr) {
-            console.warn("Could not fetch remote image for vision analysis:", fetchErr);
           }
         }
 

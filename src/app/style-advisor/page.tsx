@@ -79,12 +79,20 @@ export default function StyleAdvisorPage() {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("Canvas context failed"));
+        if (!ctx) {
+          URL.revokeObjectURL(objectUrl);
+          return reject(new Error("Canvas context failed"));
+        }
         ctx.drawImage(img, 0, 0, width, height);
+        URL.revokeObjectURL(objectUrl);
         resolve(canvas.toDataURL("image/jpeg", quality));
       };
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectUrl);
+        reject(err);
+      };
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
     });
   };
 

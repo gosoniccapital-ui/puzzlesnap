@@ -93,6 +93,9 @@ export function addScoreRecord(record: Omit<ScoreRecord, "id" | "createdAt">): S
     id: "sc-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7),
     createdAt: new Date().toISOString(),
   };
+  if (globalScores.length >= 1000) {
+    globalScores.shift(); // Evict oldest record to preserve memory
+  }
   globalScores.push(newRecord);
   return newRecord;
 }

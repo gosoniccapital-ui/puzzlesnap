@@ -1,5 +1,5 @@
-// CunFashion PWA Service Worker v6.0.0 (Favicon & Brand Sync)
-const CACHE_NAME = 'cunfashion-cache-v6';
+// CunFashion PWA Service Worker v7.0.0 (Behavioral & Security Audit Refactor)
+const CACHE_NAME = 'cunfashion-cache-v7';
 const STATIC_ASSETS = [
   '/',
   '/favicon.ico',
