@@ -94,6 +94,27 @@ Là CEO và Lead PM của dự án, giải pháp toàn diện nhất được l�
    ```
 2. **Next.js 15 Production Build:**
    * Biên dịch thành công 19/19 routes tĩnh và serverless API sạch sẽ, không có lỗi kiểu TypeScript hay ESLint.
-4. **PWA Service Worker Cache-Busting (v3):**
+4. **PWA Service Worker Cache-Busting (v3 & v4):**
    * **Root Cause:** Trình duyệt phía Client đã cache các bundle JS cũ qua Service Worker `cunfashion-cache-v2` (chiến lược Stale-While-Revalidate). Do đó, dù Vercel đã deploy bản mới, trình duyệt vẫn ưu tiên dùng file cached cũ khiến nút CTA chưa cập nhật tức thì.
-   * **Fix:** Cập nhật `CACHE_NAME = 'cunfashion-cache-v3'` trong `public/sw.js`. Khi trình duyệt phát hiện worker mới, event `activate` sẽ tự động xóa toàn bộ cache cũ của v2 (`caches.delete(cacheName)`), giải phóng tức thì bundle mới nhất cho người dùng.
+   * **Fix:** Cập nhật `CACHE_NAME = 'cunfashion-cache-v4'` trong `public/sw.js`. Khi trình duyệt phát hiện worker mới, event `activate` sẽ tự động xóa toàn bộ cache cũ (`caches.delete(cacheName)`), giải phóng tức thì bundle mới nhất cho người dùng.
+
+---
+
+## 🎁 5. Nâng Cấp Dual Vouchers: `70Cute7LOOK` & `CUNFASHION2026`
+
+Theo chỉ đạo của Đại Ka, hệ thống chuyển đổi từ hiển thị 1 mã voucher sang hiển thị đồng thời **2 mã ưu đãi cao cấp** với bố cục tối ưu:
+
+1. **Thẻ 1 — `70Cute7LOOK` (Lookbook Special Reward):**
+   - Tag: `👗 LOOKBOOK SPECIAL` kèm badge `VIP` màu vàng hổ phách.
+   - Nút Copy riêng biệt với visual feedback `Copied!` màu xanh ngọc (Emerald).
+2. **Thẻ 2 — `CUNFASHION2026` (Storewide Reward):**
+   - Tag: `🏷️ STOREWIDE REWARD` kèm badge `10% OFF`.
+   - Nút Copy riêng biệt hoạt động độc lập (`copiedCode` state).
+3. **Multi-Param Tracking URL Cho Nút CTA `Shop Cute Outfits`:**
+   - Link đích:
+     `https://cute.cunfashion.com?coupon=70Cute7LOOK&secondary_coupon=CUNFASHION2026&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_rewards&utm_term=70Cute7LOOK&utm_content=CUNFASHION2026`
+   - Đảm bảo Google Analytics và Fourthwall Analytics ghi nhận đầy đủ cả 2 mã (`utm_term` và `utm_content`).
+4. **Nghiệm thu trực tiếp (Chrome DevTools MCP):**
+   - Đã xác minh trên live `https://cunfashion.com/puzzle/lone-house-alpine-valley`.
+   - Cả 2 mã và 2 nút Copy độc lập hiển thị sắc nét, click copy mượt mà.
+   - Nút CTA trỏ đúng URL tracking kép.
