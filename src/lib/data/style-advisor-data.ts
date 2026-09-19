@@ -479,6 +479,7 @@ export interface AdviceResult {
   detectedItems?: DetectedOutfitItem[];
   market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
   source?: "gemini-vision" | "openai-vision" | "ai-heuristic" | "rakuten-api" | "fourthwall-api";
+  keyword?: string;
 }
 
 export function generateStylistAdvice({
@@ -487,7 +488,8 @@ export function generateStylistAdvice({
   budget,
   color,
   hasCustomImage,
-  market = "US"
+  market = "US",
+  keyword = ""
 }: {
   occasion: string;
   style: string;
@@ -495,6 +497,7 @@ export function generateStylistAdvice({
   color: string;
   hasCustomImage: boolean;
   market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
+  keyword?: string;
 }): AdviceResult {
   const isUS = market === "US" || market === "RAKUTEN" || market === "FOURTHWALL";
   const catalogPool = isUS ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
@@ -557,9 +560,24 @@ export function generateStylistAdvice({
     ];
   }
 
+  const cleanKw = keyword?.trim() || "";
+
   let matched = catalogPool.filter(
     (p) => p.occasions.includes(occasion) || p.styles.includes(style)
   );
+
+  if (cleanKw) {
+    const kwLower = cleanKw.toLowerCase();
+    const kwMatches = catalogPool.filter(
+      (p) =>
+        p.name.toLowerCase().includes(kwLower) ||
+        p.category.toLowerCase().includes(kwLower) ||
+        (p.colorTags || []).some((t) => t.toLowerCase().includes(kwLower))
+    );
+    if (kwMatches.length > 0) {
+      matched = [...kwMatches, ...matched.filter((p) => !kwMatches.some((m) => m.id === p.id))];
+    }
+  }
 
   if (budget) {
     const budgetFiltered = matched.filter((p) => p.budgetTier === budget);
@@ -582,9 +600,16 @@ export function generateStylistAdvice({
     `Với phong cách ${stlName}, phụ kiện nhỏ như túi kẹp nách hoặc trang sức kim loại thanh mảnh sẽ tạo điểm sáng thị giác đắt giá.`
   ];
 
+  if (cleanKw) {
+    tips.unshift(isUS
+      ? `Search Focus: Styling around "${cleanKw}" — pair with balanced minimalist essentials and complementary undertones for a cohesive ensemble.`
+      : `Trọng tâm tìm kiếm: Set đồ phối cùng "${cleanKw}" — ưu tiên kết hợp cùng các món đồ tối giản và màu sắc bổ trợ để tạo tổng thể hài hòa.`
+    );
+  }
+
   if (hasCustomImage) {
     tips.unshift(isUS
-      ? "AI visual analysis successfully extracted silhouette lines and color balance to curate optimal Amazon styling recommendations."
+      ? "AI visual analysis successfully extracted silhouette lines and color balance to curate optimal styling recommendations."
       : "Hình ảnh bạn tải lên đã được phân tích tỉ lệ khung hình & tông màu tổng thể để tối ưu độ tương thích với outfit gợi ý bên dưới."
     );
   }
@@ -593,12 +618,12 @@ export function generateStylistAdvice({
   const detectedItems: DetectedOutfitItem[] = isUS ? [
     {
       id: "det-1",
-      name: "Cropped Trench Coat / Fall Jacket",
+      name: cleanKw ? cleanKw : "Cropped Trench Coat / Fall Jacket",
       category: "outerwear",
       color: "Khaki / Camel",
       style: "Double-breasted casual",
-      searchQuery: "cropped trench coat for women khaki",
-      amazonUrl: buildAmazonSearchUrl("cropped trench coat for women khaki")
+      searchQuery: cleanKw ? cleanKw : "cropped trench coat for women khaki",
+      amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "cropped trench coat for women khaki")
     },
     {
       id: "det-2",
@@ -630,12 +655,12 @@ export function generateStylistAdvice({
   ] : [
     {
       id: "det-vn-1",
-      name: "Áo Sơ Mi / Áo Kiểu Lụa",
+      name: cleanKw ? cleanKw : "Áo Sơ Mi / Áo Kiểu Lụa",
       category: "top",
       color: "Trắng / Kem",
       style: "Thanh lịch",
-      searchQuery: "ao so mi nu thanh lich",
-      amazonUrl: buildAmazonSearchUrl("womens silk button down shirt")
+      searchQuery: cleanKw ? cleanKw : "ao so mi nu thanh lich",
+      amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "womens silk button down shirt")
     },
     {
       id: "det-vn-2",
@@ -648,19 +673,22 @@ export function generateStylistAdvice({
     }
   ];
 
+  const headline = cleanKw
+    ? (isUS ? `Curated Styling for "${cleanKw}" • ${occName}` : `Gợi Ý Phối Đồ Với "${cleanKw}" • ${occName}`)
+    : (isUS ? `Curated Look: ${occName} • ${stlName}` : `Gợi Ý Phối Đồ Cho Dịp ${occName} • Phong Cách ${stlName}`);
+
   return {
-    headline: isUS
-      ? `Curated Look: ${occName} • ${stlName}`
-      : `Gợi Ý Phối Đồ Cho Dịp ${occName} • Phong Cách ${stlName}`,
+    headline,
     adviceText: isUS
-      ? `Based on visual parsing and your selected preference for "${selectedColor}", CunFashion AI Stylist has matched top-rated Amazon fashion essentials delivering flawless silhouette harmony and effortless all-day comfort.`
-      : `Dựa trên phân tích hình ảnh và mong muốn của bạn với tông màu "${selectedColor}", stylist CunFashion khuyến nghị một set đồ hài hòa vừa tôn nét riêng, vừa đảm bảo sự thoải mái và chuẩn gu.`,
+      ? `Based on your request for "${cleanKw || stlName}" and preference for "${selectedColor}", CunFashion AI Stylist has matched top-rated fashion essentials delivering flawless silhouette harmony and effortless all-day comfort.`
+      : `Dựa trên yêu cầu "${cleanKw || stlName}" và mong muốn với tông màu "${selectedColor}", stylist CunFashion khuyến nghị một set đồ hài hòa vừa tôn nét riêng, vừa đảm bảo sự thoải mái và chuẩn gu.`,
     overallStyle: stlName,
     palette,
     styleTips: tips,
     suggestedProducts: matched.slice(0, 6),
     detectedItems,
     market: market || (isUS ? "US" : "VN"),
-    source: "ai-heuristic"
+    source: "ai-heuristic",
+    keyword: cleanKw || undefined
   };
 }

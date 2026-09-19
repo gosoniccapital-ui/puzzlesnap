@@ -58,12 +58,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       image,
+      keyword = "",
       occasion = "casual",
       style = "minimal",
       budget = "low",
       color = "",
       market = "US"
     } = body;
+
+    const cleanKeyword = typeof keyword === "string" ? keyword.trim() : "";
 
     // Security guard: protect against giant base64 payloads (> 4MB)
     if (typeof image === "string" && image.length > 5_500_000) {
@@ -117,7 +120,8 @@ export async function POST(request: NextRequest) {
 Hãy phân tích bức ảnh trang phục này cùng tiêu chí của người dùng:
 - Dịp sử dụng: ${occasion}
 - Phong cách: ${style}
-- Gam màu ưa thích: ${color || "phối màu tự nhiên"}
+- Gam màu ưa thích: ${color || "phối màu tự nhiên"}${cleanKeyword ? `\n- Món đồ / Từ khóa người dùng muốn tìm kiếm hoặc ưu tiên phối cùng: "${cleanKeyword}"` : ""}
+${cleanKeyword ? `Lưu ý đặc biệt: Hãy ưu tiên xây dựng set đồ xoay quanh hoặc phối hợp hoàn hảo với "${cleanKeyword}".` : ""}
 
 Trả về DUY NHẤT một JSON object hợp lệ (không markdown, không backticks) theo cấu trúc chính xác:
 {
@@ -149,7 +153,8 @@ Trả về DUY NHẤT một JSON object hợp lệ (không markdown, không back
 Analyze this outfit image and the user's styling preferences:
 - Occasion: ${occasion}
 - Desired Style: ${style}
-- Preferred Color / Tone: ${color || "natural match"}
+- Preferred Color / Tone: ${color || "natural match"}${cleanKeyword ? `\n- User's specific target item / search focus: "${cleanKeyword}"` : ""}
+${cleanKeyword ? `Special Instruction: Prioritize recommendations, layering, and styling advice centered on "${cleanKeyword}".` : ""}
 
 Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown code fence) with the following exact structure:
 {
@@ -256,18 +261,18 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
             let multiSourceProducts: StyleProduct[] = [];
 
             if (isFourthwall) {
-              const fwItems = await fetchFourthwallProducts(6);
+              const fwItems = await fetchFourthwallProducts(6, cleanKeyword || detectedItems[0]?.searchQuery);
               if (fwItems.length > 0) {
                 multiSourceProducts = fwItems;
               }
             } else if (isRakuten) {
-              const rakutenKeyword = detectedItems[0]?.searchQuery || `${style} ${occasion} clothing`;
+              const rakutenKeyword = cleanKeyword || detectedItems[0]?.searchQuery || `${style} ${occasion} clothing`;
               const rakutenItems = await searchRakutenProducts(rakutenKeyword, 6);
               if (rakutenItems.length > 0) {
                 multiSourceProducts = rakutenItems;
               } else {
                 // Graceful fallback to Fourthwall store if Rakuten merchants are not yet accepted
-                const fwFallback = await fetchFourthwallProducts(4);
+                const fwFallback = await fetchFourthwallProducts(4, cleanKeyword);
                 multiSourceProducts = fwFallback.length > 0 ? fwFallback : AMAZON_STYLE_CATALOG.slice(0, 4);
               }
             }
@@ -342,11 +347,12 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
     // Fallback: Smart heuristic styling based on curated catalog & options
     let fallbackProducts: StyleProduct[] = [];
     if (market === "FOURTHWALL") {
-      fallbackProducts = await fetchFourthwallProducts(6);
+      fallbackProducts = await fetchFourthwallProducts(6, cleanKeyword);
     } else if (market === "RAKUTEN") {
-      fallbackProducts = await searchRakutenProducts(`${style} ${occasion}`, 6);
+      const rakutenSearchKey = cleanKeyword || `${style} ${occasion}`;
+      fallbackProducts = await searchRakutenProducts(rakutenSearchKey, 6);
       if (fallbackProducts.length === 0) {
-        const fw = await fetchFourthwallProducts(4);
+        const fw = await fetchFourthwallProducts(4, cleanKeyword);
         fallbackProducts = fw.length > 0 ? fw : AMAZON_STYLE_CATALOG.slice(0, 4);
       }
     }
@@ -357,7 +363,8 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
       budget,
       color,
       hasCustomImage: Boolean(image),
-      market: market as any
+      market: market as any,
+      keyword: cleanKeyword
     });
 
     if (fallbackProducts.length > 0) {

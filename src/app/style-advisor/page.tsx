@@ -17,7 +17,9 @@ import {
   Lightbulb,
   Smartphone,
   Monitor,
-  RotateCcw
+  RotateCcw,
+  Search,
+  Camera
 } from "lucide-react";
 import {
   generateStylistAdvice,
@@ -35,6 +37,7 @@ export default function StyleAdvisorPage() {
   const [imageName, setImageName] = useState<string>("ZXixb.jpg (Blazer đỏ công sở)");
   const [occasion, setOccasion] = useState("work");
   const [style, setStyle] = useState("elegant");
+  const [keyword, setKeyword] = useState("");
   const [budget, setBudget] = useState("mid");
   const [color, setColor] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -47,6 +50,16 @@ export default function StyleAdvisorPage() {
   const resultRef = useRef<HTMLDivElement>(null);
 
   const QUICK_COLORS = ["Hồng pastel", "Đen", "Be sữa", "Trắng", "Xanh pastel", "Nâu tây"];
+  const QUICK_KEYWORDS = [
+    "Cardigan",
+    "Blazer",
+    "Trench Coat",
+    "Váy dạ hội",
+    "Vớ cute",
+    "Hoodie",
+    "Quần ống rộng",
+    "Sneaker"
+  ];
 
   // Tự động phân tích look mẫu ban đầu để khách vào trang là thấy ngay kết quả trực quan
   useEffect(() => {
@@ -154,7 +167,11 @@ export default function StyleAdvisorPage() {
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     setResult(null);
-    setAnalysisStatus("Đang gửi sang Google Gemini 3.6 Flash Vision...");
+    setAnalysisStatus(
+      selectedImage
+        ? "Đang gửi sang Google Gemini 3.6 Flash Vision..."
+        : "Đang tìm kiếm & đối soát sản phẩm trên hệ thống..."
+    );
 
     try {
       const res = await fetch("/api/style-advisor/analyze", {
@@ -162,6 +179,7 @@ export default function StyleAdvisorPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: selectedImage,
+          keyword: keyword.trim(),
           occasion,
           style,
           budget,
@@ -192,6 +210,7 @@ export default function StyleAdvisorPage() {
         color,
         hasCustomImage: Boolean(selectedImage),
         market,
+        keyword: keyword.trim(),
       });
       setResult(advice);
       setIsAnalyzing(false);
@@ -304,17 +323,83 @@ export default function StyleAdvisorPage() {
             Cun Style Advisor
           </h1>
           <p className="text-stone-500 mt-1.5 text-xs sm:text-sm font-medium">
-            Upload ảnh → Điền form → Nhận gợi ý + link affiliate
+            Gõ từ khóa tìm đồ HOẶC Upload ảnh trang phục → Nhận tư vấn stylist + link mua hàng
           </p>
         </div>
 
-        {/* Card Form Chính: Upload & Điền Tiêu Chí */}
+        {/* Card Form Chính: Keyword, Upload & Điền Tiêu Chí */}
         <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-5 sm:p-7 mb-6">
-          {/* 1. Upload ảnh */}
+          {/* 1. Nhập từ khóa / Tên món đồ cần tìm */}
+          <div className="mb-5 pb-5 border-b border-stone-100">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs sm:text-sm font-bold text-stone-800 flex items-center gap-1.5">
+                <Search className="w-4 h-4 text-pink-600" />
+                <span>1. Tìm kiếm theo từ khóa / Tên trang phục (Hoặc kết hợp ảnh bên dưới)</span>
+              </label>
+              {keyword && (
+                <button
+                  type="button"
+                  onClick={() => setKeyword("")}
+                  className="text-xs text-stone-400 hover:text-stone-700 font-medium flex items-center gap-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Xóa từ khóa
+                </button>
+              )}
+            </div>
+
+            <div className="relative">
+              <input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAnalyze();
+                  }
+                }}
+                placeholder="Nhập tên món đồ cần tìm (ví dụ: áo cardigan, blazer dạ, trench coat, váy dự tiệc, vớ cute...)"
+                className="w-full border border-stone-200 rounded-2xl pl-10 pr-24 py-3 text-xs sm:text-sm bg-stone-50/70 focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition font-medium text-stone-800 placeholder:text-stone-400"
+              />
+              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <button
+                type="button"
+                onClick={handleAnalyze}
+                disabled={isAnalyzing}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1"
+              >
+                <span>Tìm</span>
+                <Sparkles className="w-3 h-3 text-pink-400" />
+              </button>
+            </div>
+
+            {/* Gợi ý từ khóa nhanh (Quick Tag Pills) */}
+            <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+              <span className="text-[11px] text-stone-400 font-medium mr-1">Gợi ý nhanh:</span>
+              {QUICK_KEYWORDS.map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  onClick={() => setKeyword(kw)}
+                  className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-medium ${
+                    keyword.toLowerCase() === kw.toLowerCase()
+                      ? "bg-pink-100 text-pink-700 border-pink-300 font-bold"
+                      : "bg-stone-100/80 hover:bg-stone-200/70 text-stone-600 border-stone-200/80"
+                  }`}
+                >
+                  {kw}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. Upload ảnh (Tùy chọn) */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs sm:text-sm font-bold text-stone-800">
-                1. Upload ảnh trang phục / người mặc
+              <label className="block text-xs sm:text-sm font-bold text-stone-800 flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-stone-600" />
+                <span>2. Upload ảnh trang phục (Tùy chọn: AI Vision quét mẫu người mặc)</span>
               </label>
               {selectedImage && (
                 <button
@@ -499,12 +584,18 @@ export default function StyleAdvisorPage() {
             {isAnalyzing ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>{analysisStatus || "Đang phân tích phối đồ..."}</span>
+                <span>{analysisStatus || "Đang tìm kiếm & phân tích..."}</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span>Phân tích & Gợi ý sản phẩm</span>
+                <span>
+                  {keyword.trim()
+                    ? `Tìm kiếm "${keyword.trim()}" & Gợi ý phối đồ`
+                    : selectedImage
+                    ? "Phân tích ảnh & Gợi ý sản phẩm"
+                    : "Khám phá phong cách & Gợi ý sản phẩm"}
+                </span>
               </>
             )}
           </button>
@@ -534,16 +625,25 @@ export default function StyleAdvisorPage() {
                 {result.adviceText}
               </p>
 
-              {/* Món đồ nhận diện từ AI nếu có */}
+              {/* Món đồ nhận diện từ AI hoặc Từ khóa tìm kiếm */}
               {result.detectedItems && result.detectedItems.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-stone-100">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">
-                    Món đồ AI nhận diện được từ ảnh:
-                  </p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                      {result.keyword ? "Món đồ tìm kiếm & bóc tách phối hợp:" : "Món đồ AI nhận diện được từ ảnh:"}
+                    </p>
+                    {result.keyword && (
+                      <span className="text-[11px] bg-pink-50 text-pink-700 px-2 py-0.5 rounded-md font-bold border border-pink-200">
+                        🔍 &quot;{result.keyword}&quot;
+                      </span>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     {result.detectedItems.map((item, idx) => (
-                      <span key={idx} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-800 border border-stone-200">
-                        👗 {item.name} ({item.color})
+                      <span key={idx} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-800 border border-stone-200 flex items-center gap-1">
+                        <span>👗</span>
+                        <span>{item.name}</span>
+                        {item.color && <span className="text-stone-500 font-normal">({item.color})</span>}
                       </span>
                     ))}
                   </div>
@@ -573,10 +673,15 @@ export default function StyleAdvisorPage() {
 
             {/* 2. Card Sản phẩm gợi ý (Affiliate) */}
             <div>
-              <div className="flex items-center justify-between mb-3.5">
-                <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-pink-600" />
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
+                  <ShoppingBag className="w-5 h-5 text-pink-600 shrink-0" />
                   <span>Sản phẩm gợi ý (Affiliate)</span>
+                  {result.keyword && (
+                    <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
+                      Khớp từ khóa: &quot;{result.keyword}&quot;
+                    </span>
+                  )}
                 </h2>
                 <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
                   {result.suggestedProducts.length} items

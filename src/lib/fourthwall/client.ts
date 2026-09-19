@@ -9,10 +9,20 @@ interface CachedProducts {
 let memoryCache: CachedProducts | null = null;
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-export async function fetchFourthwallProducts(limit = 12): Promise<StyleProduct[]> {
+function filterProductsByQuery(items: StyleProduct[], query?: string): StyleProduct[] {
+  if (!query || !query.trim()) return items;
+  const terms = query.toLowerCase().trim().split(/\s+/);
+  const matched = items.filter(item => {
+    const text = `${item.name} ${item.category} ${(item.colorTags || []).join(" ")}`.toLowerCase();
+    return terms.some(term => text.includes(term));
+  });
+  return matched.length > 0 ? matched : items;
+}
+
+export async function fetchFourthwallProducts(limit = 12, query?: string): Promise<StyleProduct[]> {
   const now = Date.now();
   if (memoryCache && now - memoryCache.timestamp < CACHE_TTL_MS) {
-    return memoryCache.data.slice(0, limit);
+    return filterProductsByQuery(memoryCache.data, query).slice(0, limit);
   }
 
   const uname = process.env.FOURTHWALL_UNAME;
@@ -88,7 +98,7 @@ export async function fetchFourthwallProducts(limit = 12): Promise<StyleProduct[
       timestamp: now
     };
 
-    return products.slice(0, limit);
+    return filterProductsByQuery(products, query).slice(0, limit);
   } catch (error) {
     console.error("[Fourthwall Client] Error fetching products:", error);
     return [];

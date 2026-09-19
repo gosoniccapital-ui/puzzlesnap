@@ -78,3 +78,31 @@ test('Style Advisor Data: generateStylistAdvice supports FOURTHWALL and RAKUTEN 
   assert.equal(rakutenAdvice.market, 'RAKUTEN');
   assert.ok(rakutenAdvice.suggestedProducts.length >= 3);
 });
+
+test('Fourthwall Client: fetchFourthwallProducts filters by query correctly', async () => {
+  if (process.env.FOURTHWALL_UNAME && process.env.FOURTHWALL_UPASS) {
+    const cardigans = await fetchFourthwallProducts(5, 'cardigan');
+    assert.ok(Array.isArray(cardigans));
+    assert.ok(cardigans.length > 0);
+    const hasCardigan = cardigans.some(p => p.name.toLowerCase().includes('cardigan'));
+    assert.ok(hasCardigan, 'Should prioritize items matching query keyword');
+  }
+});
+
+test('Style Advisor Data: generateStylistAdvice supports keyword-first input without image', () => {
+  const keywordAdvice = generateStylistAdvice({
+    occasion: 'casual',
+    style: 'street',
+    budget: 'mid',
+    color: 'đen',
+    hasCustomImage: false,
+    market: 'US',
+    keyword: 'Trench Coat'
+  });
+
+  assert.equal(keywordAdvice.keyword, 'Trench Coat');
+  assert.ok(keywordAdvice.headline.includes('Trench Coat'));
+  assert.ok(keywordAdvice.detectedItems?.[0]?.name === 'Trench Coat');
+  assert.ok(keywordAdvice.detectedItems?.[0]?.amazonUrl?.includes('Trench%20Coat'));
+  assert.ok(keywordAdvice.styleTips.some(t => t.includes('Trench Coat')));
+});
