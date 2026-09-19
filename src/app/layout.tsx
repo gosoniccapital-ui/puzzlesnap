@@ -32,6 +32,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+import ConditionalFooter from "@/components/layout/ConditionalFooter";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,17 +46,7 @@ export default function RootLayout({
         <PwaRegister />
         <Navbar />
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-stone-200 bg-white py-12 text-center text-xs text-stone-500">
-          <div className="max-w-7xl mx-auto px-4 space-y-2">
-            <p className="font-bold text-stone-700">CunFashion — Free Online Jigsaw Puzzles</p>
-            <p>© 2026 CunFashion. All rights reserved.</p>
-            <div className="pt-2">
-              <a href="/admin/login" className="text-stone-300 hover:text-stone-500 text-[11px] transition">
-                Admin Access
-              </a>
-            </div>
-          </div>
-        </footer>
+        <ConditionalFooter />
       </body>
     </html>
   );

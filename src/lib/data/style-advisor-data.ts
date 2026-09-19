@@ -30,14 +30,14 @@ export interface StyleProduct {
   reviewCount: number;
   img: string;
   link: string;
-  platform: "Amazon" | "Shopee" | "TikTok Shop" | "Lazada" | "CunFashion";
+  platform: "Amazon" | "Shopee" | "TikTok Shop" | "Lazada" | "CunFashion" | "Rakuten" | "CunCute Store";
   tag?: string;
   occasions: string[];
   styles: string[];
   budgetTier: "low" | "mid" | "high";
   colorTags: string[];
   asin?: string;
-  market?: "US" | "VN";
+  market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
 }
 
 export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
@@ -477,8 +477,8 @@ export interface AdviceResult {
   styleTips: string[];
   suggestedProducts: StyleProduct[];
   detectedItems?: DetectedOutfitItem[];
-  market?: "US" | "VN";
-  source?: "gemini-vision" | "openai-vision" | "ai-heuristic";
+  market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
+  source?: "gemini-vision" | "openai-vision" | "ai-heuristic" | "rakuten-api" | "fourthwall-api";
 }
 
 export function generateStylistAdvice({
@@ -494,9 +494,9 @@ export function generateStylistAdvice({
   budget: string;
   color: string;
   hasCustomImage: boolean;
-  market?: "US" | "VN";
+  market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
 }): AdviceResult {
-  const isUS = market === "US";
+  const isUS = market === "US" || market === "RAKUTEN" || market === "FOURTHWALL";
   const catalogPool = isUS ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
 
   const occasionLabels: Record<string, string> = {
@@ -660,7 +660,7 @@ export function generateStylistAdvice({
     styleTips: tips,
     suggestedProducts: matched.slice(0, 6),
     detectedItems,
-    market: isUS ? "US" : "VN",
+    market: market || (isUS ? "US" : "VN"),
     source: "ai-heuristic"
   };
 }

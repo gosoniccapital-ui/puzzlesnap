@@ -28,7 +28,7 @@ import {
 
 export default function StyleAdvisorPage() {
   const [viewMode, setViewMode] = useState<"wide" | "mobile">("wide");
-  const [market, setMarket] = useState<"US" | "VN">("US");
+  const [market, setMarket] = useState<"FOURTHWALL" | "RAKUTEN" | "US" | "VN">("FOURTHWALL");
   const [selectedImage, setSelectedImage] = useState<string | null>(
     "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80"
   );
@@ -50,15 +50,34 @@ export default function StyleAdvisorPage() {
 
   // Tự động phân tích look mẫu ban đầu để khách vào trang là thấy ngay kết quả trực quan
   useEffect(() => {
-    const initialAdvice = generateStylistAdvice({
-      occasion: "work",
-      style: "elegant",
-      budget: "mid",
-      color: "đen, be, trung tính",
-      hasCustomImage: true,
-      market: "US"
-    });
-    setResult(initialAdvice);
+    fetch("/api/style-advisor/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        occasion: "work",
+        style: "elegant",
+        budget: "mid",
+        color: "đen, be, trung tính",
+        market: "FOURTHWALL",
+      }),
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setResult(json.data);
+        }
+      })
+      .catch(() => {
+        const initialAdvice = generateStylistAdvice({
+          occasion: "work",
+          style: "elegant",
+          budget: "mid",
+          color: "đen, be, trung tính",
+          hasCustomImage: true,
+          market: "FOURTHWALL",
+        });
+        setResult(initialAdvice);
+      });
   }, []);
 
   const compressImage = (file: File, maxDimension = 1200, quality = 0.82): Promise<string> => {
@@ -341,12 +360,36 @@ export default function StyleAdvisorPage() {
             )}
           </div>
 
-          {/* Thị trường mục tiêu (US Amazon vs VN Shopee/TikTok) */}
+          {/* Thị trường mục tiêu (Fourthwall, Rakuten, US Amazon, VN) */}
           <div className="mb-4 pb-3 border-b border-stone-100 flex flex-wrap items-center justify-between gap-2">
             <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
               Thị trường mua sắm (Affiliate Market):
             </label>
-            <div className="inline-flex rounded-xl bg-stone-100 p-1 border border-stone-200">
+            <div className="inline-flex flex-wrap rounded-xl bg-stone-100 p-1 border border-stone-200 gap-1">
+              <button
+                type="button"
+                onClick={() => setMarket("FOURTHWALL")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "FOURTHWALL"
+                    ? "bg-pink-600 text-white shadow-xs"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+                title="Sản phẩm thời trang độc quyền từ CunCute Store (cute.cunfashion.com)"
+              >
+                <span>🌟 Cun Cute Store</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMarket("RAKUTEN")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "RAKUTEN"
+                    ? "bg-red-600 text-white shadow-xs"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+                title="Thời trang chính hãng qua Rakuten Advertising (Nike, Macy's, ASOS...)"
+              >
+                <span>👗 Rakuten Brands</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setMarket("US")}
@@ -356,7 +399,7 @@ export default function StyleAdvisorPage() {
                     : "text-stone-500 hover:text-stone-900"
                 }`}
               >
-                <span>🇺🇸 US / Global (Amazon)</span>
+                <span>📦 Amazon US</span>
               </button>
               <button
                 type="button"
@@ -367,7 +410,7 @@ export default function StyleAdvisorPage() {
                     : "text-stone-500 hover:text-stone-900"
                 }`}
               >
-                <span>🇻🇳 Việt Nam (Shopee/TikTok)</span>
+                <span>🇻🇳 Shopee/TikTok</span>
               </button>
             </div>
           </div>
@@ -560,11 +603,19 @@ export default function StyleAdvisorPage() {
                           alt={p.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                         />
-                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold bg-white/90 text-stone-800 backdrop-blur-sm shadow-sm">
+                        <span className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${
+                          p.platform === "CunCute Store"
+                            ? "bg-pink-600 text-white"
+                            : p.platform === "Rakuten"
+                            ? "bg-red-600 text-white"
+                            : p.platform === "Amazon"
+                            ? "bg-amber-500 text-stone-950"
+                            : "bg-white/90 text-stone-800 backdrop-blur-sm"
+                        }`}>
                           {p.platform}
                         </span>
                         {p.tag && (
-                          <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-pink-600 text-white shadow-sm">
+                          <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-stone-900 text-white shadow-sm">
                             {p.tag}
                           </span>
                         )}
@@ -594,9 +645,23 @@ export default function StyleAdvisorPage() {
                         href={p.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-stone-900 hover:bg-pink-600 text-white text-xs font-bold rounded-xl transition shadow-sm"
+                        className={`w-full flex items-center justify-center gap-1.5 py-2.5 px-4 text-white text-xs font-bold rounded-xl transition shadow-sm ${
+                          p.platform === "CunCute Store"
+                            ? "bg-pink-600 hover:bg-pink-700"
+                            : p.platform === "Rakuten"
+                            ? "bg-red-600 hover:bg-red-700"
+                            : "bg-stone-900 hover:bg-pink-600"
+                        }`}
                       >
-                        <span>Xem & Mua ngay</span>
+                        <span>
+                          {p.platform === "CunCute Store"
+                            ? "Mua tại CunCute Store"
+                            : p.platform === "Rakuten"
+                            ? "Xem & Mua tại Brand"
+                            : p.platform === "Amazon"
+                            ? "Xem trên Amazon"
+                            : "Xem & Mua ngay"}
+                        </span>
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                       <button

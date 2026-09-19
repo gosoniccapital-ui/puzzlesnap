@@ -1,0 +1,80 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { parseRakutenXml } from '../src/lib/affiliate/rakuten-client.ts';
+import { fetchFourthwallProducts } from '../src/lib/fourthwall/client.ts';
+import { generateStylistAdvice } from '../src/lib/data/style-advisor-data.ts';
+
+if (fs.existsSync('.env.local')) {
+  try {
+    process.loadEnvFile('.env.local');
+  } catch {
+    // ignore
+  }
+}
+
+test('Rakuten Client: parseRakutenXml handles XML with items correctly', () => {
+  const sampleXml = [
+    '<result>',
+    '  <TotalMatches>1</TotalMatches>',
+    '  <item>',
+    '    <mid>1234</mid>',
+    '    <merchantname>Macys Fashion</merchantname>',
+    '    <productname>Silk Floral Evening Dress</productname>',
+    '    <price>129.99</price>',
+    '    <linkurl>https://click.linksynergy.com/fs-bin/click?id=123</linkurl>',
+    '    <imageurl>https://media.macys.com/sample.jpg</imageurl>',
+  '  </item>',
+  '</result>'
+  ].join('\n');
+
+  const items = parseRakutenXml(sampleXml);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].name, 'Silk Floral Evening Dress');
+  assert.equal(items[0].price, '$129.99 USD');
+  assert.equal(items[0].platform, 'Rakuten');
+  assert.equal(items[0].tag, 'Macys Fashion');
+  assert.ok(items[0].link.includes('click.linksynergy.com'));
+});
+
+test('Rakuten Client: parseRakutenXml handles empty TotalMatches 0 gracefully', () => {
+  const emptyXml = '<result><TotalMatches>0</TotalMatches><TotalPages>0</TotalPages></result>';
+  const items = parseRakutenXml(emptyXml);
+  assert.deepEqual(items, []);
+});
+
+test('Fourthwall Client: fetchFourthwallProducts returns real products from cute.cunfashion.com', async () => {
+  const items = await fetchFourthwallProducts(5);
+  assert.ok(Array.isArray(items), 'Should return an array');
+  if (process.env.FOURTHWALL_UNAME && process.env.FOURTHWALL_UPASS) {
+    assert.ok(items.length > 0, 'Should fetch at least 1 real product from shop');
+    const first = items[0];
+    assert.equal(first.platform, 'CunCute Store');
+    assert.ok(first.link.startsWith('https://cute.cunfashion.com/products/'));
+    assert.ok(first.img.includes('fourthwall.com') || first.img.includes('fourthwall.dev'));
+  }
+});
+
+test('Style Advisor Data: generateStylistAdvice supports FOURTHWALL and RAKUTEN markets', () => {
+  const fwAdvice = generateStylistAdvice({
+    occasion: 'casual',
+    style: 'minimal',
+    budget: 'mid',
+    color: 'pink',
+    hasCustomImage: false,
+    market: 'FOURTHWALL'
+  });
+  assert.equal(fwAdvice.market, 'FOURTHWALL');
+  assert.ok(fwAdvice.suggestedProducts.length >= 3);
+
+  const rakutenAdvice = generateStylistAdvice({
+    occasion: 'work',
+    style: 'elegant',
+    budget: 'high',
+    color: 'black',
+    hasCustomImage: false,
+    market: 'RAKUTEN'
+  });
+  assert.equal(rakutenAdvice.market, 'RAKUTEN');
+  assert.ok(rakutenAdvice.suggestedProducts.length >= 3);
+});

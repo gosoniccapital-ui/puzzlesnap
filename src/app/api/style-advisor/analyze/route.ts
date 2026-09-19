@@ -8,6 +8,8 @@ import {
   DetectedOutfitItem,
   StyleProduct
 } from "@/lib/data/style-advisor-data";
+import { searchRakutenProducts } from "@/lib/affiliate/rakuten-client";
+import { fetchFourthwallProducts } from "@/lib/fourthwall/client";
 
 // In-memory sliding window rate limiter: max 20 requests / min per IP with auto-pruning
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -247,45 +249,70 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
               accessory: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
             };
 
-            // Build curated product cards directly from Gemini detected items
             const isUS = market === "US";
-            const detectedProductCards: StyleProduct[] = detectedItems.map((item, idx) => {
-              const cat = item.category || "top";
-              const searchLink = isUS
-                ? buildAmazonSearchUrl(item.searchQuery || `${item.name} for women`)
-                : `https://shopee.vn/search?keyword=${encodeURIComponent(item.searchQuery || item.name)}`;
+            const isRakuten = market === "RAKUTEN";
+            const isFourthwall = market === "FOURTHWALL";
 
-              const matchedCatalogItem = catalogPool.find((p) => p.category === cat);
-              const cardImg = (idx === 0 && image && !image.startsWith("data:"))
-                ? image
-                : matchedCatalogItem?.img || categoryImages[cat] || categoryImages.top;
+            let multiSourceProducts: StyleProduct[] = [];
 
-              return {
-                id: `gemini-curated-${idx + 1}`,
-                name: item.name,
-                category: cat,
-                price: isUS ? "Check on Amazon" : "Xem trên Shopee",
-                originalPrice: isUS ? "Best Price" : "Giá tốt nhất",
-                rating: 4.8,
-                reviewCount: 320 + idx * 85,
-                img: cardImg,
-                link: searchLink,
-                platform: isUS ? ("Amazon" as const) : ("Shopee" as const),
-                tag: idx === 0 ? "Featured Look Match" : "AI Recommended",
-                occasions: [occasion],
-                styles: [style],
-                budgetTier: (budget as any) || "mid",
-                colorTags: [item.color],
-                market: isUS ? "US" : "VN"
-              };
-            });
+            if (isFourthwall) {
+              const fwItems = await fetchFourthwallProducts(6);
+              if (fwItems.length > 0) {
+                multiSourceProducts = fwItems;
+              }
+            } else if (isRakuten) {
+              const rakutenKeyword = detectedItems[0]?.searchQuery || `${style} ${occasion} clothing`;
+              const rakutenItems = await searchRakutenProducts(rakutenKeyword, 6);
+              if (rakutenItems.length > 0) {
+                multiSourceProducts = rakutenItems;
+              } else {
+                // Graceful fallback to Fourthwall store if Rakuten merchants are not yet accepted
+                const fwFallback = await fetchFourthwallProducts(4);
+                multiSourceProducts = fwFallback.length > 0 ? fwFallback : AMAZON_STYLE_CATALOG.slice(0, 4);
+              }
+            }
 
-            // Combine with catalogPool to ensure we always present 4-6 rich products
-            const combinedProducts = [...detectedProductCards];
-            for (const catItem of catalogPool) {
-              if (combinedProducts.length >= 6) break;
-              if (!combinedProducts.some((p) => p.category === catItem.category)) {
-                combinedProducts.push(catItem);
+            // If not RAKUTEN or FOURTHWALL, build standard detected product cards
+            if (multiSourceProducts.length === 0) {
+              const catalogPool = (isUS || isRakuten || isFourthwall) ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
+
+              const detectedProductCards: StyleProduct[] = detectedItems.map((item, idx) => {
+                const cat = item.category || "top";
+                const searchLink = isUS
+                  ? buildAmazonSearchUrl(item.searchQuery || `${item.name} for women`)
+                  : `https://shopee.vn/search?keyword=${encodeURIComponent(item.searchQuery || item.name)}`;
+
+                const matchedCatalogItem = catalogPool.find((p) => p.category === cat);
+                const cardImg = (idx === 0 && image && !image.startsWith("data:"))
+                  ? image
+                  : matchedCatalogItem?.img || categoryImages[cat] || categoryImages.top;
+
+                return {
+                  id: `gemini-curated-${idx + 1}`,
+                  name: item.name,
+                  category: cat,
+                  price: isUS ? "Check on Amazon" : "Xem trên Shopee",
+                  originalPrice: isUS ? "Best Price" : "Giá tốt nhất",
+                  rating: 4.8,
+                  reviewCount: 320 + idx * 85,
+                  img: cardImg,
+                  link: searchLink,
+                  platform: isUS ? ("Amazon" as const) : ("Shopee" as const),
+                  tag: idx === 0 ? "Featured Look Match" : "AI Recommended",
+                  occasions: [occasion],
+                  styles: [style],
+                  budgetTier: (budget as any) || "mid",
+                  colorTags: [item.color],
+                  market: isUS ? "US" : "VN"
+                };
+              });
+
+              multiSourceProducts = [...detectedProductCards];
+              for (const catItem of catalogPool) {
+                if (multiSourceProducts.length >= 6) break;
+                if (!multiSourceProducts.some((p) => p.category === catItem.category)) {
+                  multiSourceProducts.push(catItem);
+                }
               }
             }
 
@@ -299,9 +326,9 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
               ],
               styleTips: parsed.styleTips || [],
               detectedItems,
-              suggestedProducts: combinedProducts.slice(0, 6),
-              market: isUS ? "US" : "VN",
-              source: "gemini-vision"
+              suggestedProducts: multiSourceProducts.slice(0, 6),
+              market: market as any,
+              source: isFourthwall ? "fourthwall-api" : isRakuten ? "rakuten-api" : "gemini-vision"
             };
 
             return NextResponse.json({ success: true, data: result });
@@ -313,14 +340,30 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
     }
 
     // Fallback: Smart heuristic styling based on curated catalog & options
+    let fallbackProducts: StyleProduct[] = [];
+    if (market === "FOURTHWALL") {
+      fallbackProducts = await fetchFourthwallProducts(6);
+    } else if (market === "RAKUTEN") {
+      fallbackProducts = await searchRakutenProducts(`${style} ${occasion}`, 6);
+      if (fallbackProducts.length === 0) {
+        const fw = await fetchFourthwallProducts(4);
+        fallbackProducts = fw.length > 0 ? fw : AMAZON_STYLE_CATALOG.slice(0, 4);
+      }
+    }
+
     const fallbackAdvice = generateStylistAdvice({
       occasion,
       style,
       budget,
       color,
       hasCustomImage: Boolean(image),
-      market: market === "US" ? "US" : "VN"
+      market: market as any
     });
+
+    if (fallbackProducts.length > 0) {
+      fallbackAdvice.suggestedProducts = fallbackProducts.slice(0, 6);
+      fallbackAdvice.source = market === "FOURTHWALL" ? "fourthwall-api" : "rakuten-api";
+    }
 
     return NextResponse.json({
       success: true,
