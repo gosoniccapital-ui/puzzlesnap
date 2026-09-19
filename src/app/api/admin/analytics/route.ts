@@ -4,7 +4,11 @@ import {
   ADMIN_COOKIE_NAME,
   getAdminMasterPassword
 } from "@/lib/auth/admin-session";
-import { getAnalyticsSummary } from "@/lib/analytics/click-tracker";
+import {
+  getAnalyticsSummary,
+  getAllClickRecords,
+  generateClickCsvString
+} from "@/lib/analytics/click-tracker";
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,12 +41,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const format = request.nextUrl.searchParams.get("format") || request.nextUrl.searchParams.get("export");
+    if (format === "csv") {
+      const records = getAllClickRecords();
+      const csv = generateClickCsvString(records);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="cunfashion-affiliate-analytics-${dateStr}.csv"`
+        }
+      });
+    }
+
     const summary = getAnalyticsSummary();
 
     return NextResponse.json({
       success: true,
       data: summary
     });
+
   } catch (err) {
     console.error("Failed to fetch admin analytics:", err);
     return NextResponse.json(

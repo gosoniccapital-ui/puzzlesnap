@@ -23,6 +23,8 @@ import {
   Pencil,
   Tag,
   ShoppingBag,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
 import Logo from "@/components/brand/Logo";
 import { CATEGORIES_LIST } from "@/lib/data/puzzles-data";
@@ -109,6 +111,7 @@ export default function AdminDashboardPage() {
   const [loadingPuzzles, setLoadingPuzzles] = useState(true);
   const [loadingScores, setLoadingScores] = useState(true);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [isExportingCsv, setIsExportingCsv] = useState(false);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -258,7 +261,32 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleExportCsv = async () => {
+    try {
+      setIsExportingCsv(true);
+      const res = await fetch("/api/admin/analytics?format=csv");
+      if (!res.ok) {
+        throw new Error("Failed to export CSV from server");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cunfashion-affiliate-analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error("Export CSV failed:", err);
+      alert("Đã xảy ra lỗi khi xuất file CSV.");
+    } finally {
+      setIsExportingCsv(false);
+    }
+  };
+
   useEffect(() => {
+
     loadPuzzles();
     loadScores();
     loadAnalytics();
@@ -799,14 +827,26 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
 
-              <button
-                onClick={loadAnalytics}
-                disabled={loadingAnalytics}
-                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-2 cursor-pointer"
-              >
-                <Clock className={`w-3.5 h-3.5 ${loadingAnalytics ? "animate-spin" : ""}`} />
-                <span>Làm mới số liệu</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExportCsv}
+                  disabled={isExportingCsv}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-60"
+                  title="Tải toàn bộ nhật ký click affiliate định dạng CSV"
+                >
+                  <FileSpreadsheet className={`w-3.5 h-3.5 ${isExportingCsv ? "animate-bounce" : ""}`} />
+                  <span>{isExportingCsv ? "Đang xuất CSV..." : "Xuất dữ liệu CSV"}</span>
+                </button>
+
+                <button
+                  onClick={loadAnalytics}
+                  disabled={loadingAnalytics}
+                  className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-2 cursor-pointer"
+                >
+                  <Clock className={`w-3.5 h-3.5 ${loadingAnalytics ? "animate-spin" : ""}`} />
+                  <span>Làm mới số liệu</span>
+                </button>
+              </div>
             </div>
 
             {/* Metric KPI Cards */}

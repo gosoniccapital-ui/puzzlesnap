@@ -154,3 +154,42 @@ export function getAnalyticsSummary(): AnalyticsSummary {
     recentClicks: inMemoryClicks.slice(0, 30)
   };
 }
+
+export function getAllClickRecords(): ClickRecord[] {
+  return [...inMemoryClicks];
+}
+
+export function generateClickCsvString(records: ClickRecord[]): string {
+  const headers = [
+    "Mã Click (ID)",
+    "Thời Gian",
+    "Sàn Mua Sắm",
+    "Mã Sản Phẩm",
+    "Tên Sản Phẩm",
+    "Từ Khóa Tìm Kiếm",
+    "Thiết Bị",
+    "Link Affiliate Đích"
+  ];
+
+  const escapeCell = (str?: string) => {
+    if (!str) return '""';
+    return `"${String(str).replace(/"/g, '""')}"`;
+  };
+
+  const rows = records.map((r) =>
+    [
+      escapeCell(r.id),
+      escapeCell(r.created_at),
+      escapeCell(r.platform),
+      escapeCell(r.product_id),
+      escapeCell(r.product_name),
+      escapeCell(r.keyword || ""),
+      escapeCell(r.device_type || "Desktop"),
+      escapeCell(r.affiliate_url)
+    ].join(",")
+  );
+
+  // Prepend UTF-8 Byte Order Mark (\uFEFF) for seamless Microsoft Excel rendering
+  return "\uFEFF" + [headers.map((h) => `"${h}"`).join(","), ...rows].join("\r\n");
+}
+

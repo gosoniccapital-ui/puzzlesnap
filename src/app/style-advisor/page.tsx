@@ -26,15 +26,20 @@ import {
   ChevronUp,
   Heart
 } from "lucide-react";
-import { useWardrobe } from "@/lib/hooks/useWardrobe";
+import { useWardrobe, WardrobeItem } from "@/lib/hooks/useWardrobe";
 import WardrobeDrawer from "@/components/wardrobe/WardrobeDrawer";
+import SharedWardrobeBanner from "@/components/wardrobe/SharedWardrobeBanner";
+import { parseSharedWardrobeParam } from "@/lib/wardrobe/sharing";
 import {
   generateStylistAdvice,
   AdviceResult,
   StyleProduct,
   STYLE_CATALOG,
+  AMAZON_STYLE_CATALOG,
   getRandomSurpriseLook
 } from "@/lib/data/style-advisor-data";
+
+
 
 export default function StyleAdvisorPage() {
   const [viewMode, setViewMode] = useState<"wide" | "mobile">("wide");
@@ -54,10 +59,44 @@ export default function StyleAdvisorPage() {
   const [showExtensionModal, setShowExtensionModal] = useState(false);
   const [isExtensionBannerDismissed, setIsExtensionBannerDismissed] = useState(false);
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
+  const [sharedWardrobeItems, setSharedWardrobeItems] = useState<WardrobeItem[]>([]);
+  const [isSharedBannerDismissed, setIsSharedBannerDismissed] = useState(false);
   const { count: wardrobeCount, isSaved: isSavedInWardrobe, toggleItem: toggleWardrobeItem } = useWardrobe();
+
+  // Detect shared wardrobe link (?wardrobe=id1,id2,...)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const wardrobeParam = params.get("wardrobe");
+      if (wardrobeParam) {
+        const items = parseSharedWardrobeParam(wardrobeParam, AMAZON_STYLE_CATALOG);
+        if (items.length > 0) {
+
+          setSharedWardrobeItems(items);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse wardrobe query param:", e);
+    }
+  }, []);
+
+  const handleDismissSharedBanner = () => {
+    setIsSharedBannerDismissed(true);
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("wardrobe");
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+      } catch (e) {
+        console.error("Failed to update URL:", e);
+      }
+    }
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+
 
   const QUICK_COLORS = ["Hồng pastel", "Đen", "Be sữa", "Trắng", "Xanh pastel", "Nâu tây"];
   const QUICK_KEYWORDS = [
@@ -485,7 +524,17 @@ export default function StyleAdvisorPage() {
         </div>
       </div>
 
+      {/* Shared Wardrobe Notification Banner */}
+      {!isSharedBannerDismissed && sharedWardrobeItems.length > 0 && (
+        <SharedWardrobeBanner
+          sharedItems={sharedWardrobeItems}
+          onOpenDrawer={() => setIsWardrobeOpen(true)}
+          onDismiss={handleDismissSharedBanner}
+        />
+      )}
+
       {/* Main Container Wrapper */}
+
       <div
         className={`mx-auto pt-6 px-4 transition-all duration-300 ${
           viewMode === "mobile"

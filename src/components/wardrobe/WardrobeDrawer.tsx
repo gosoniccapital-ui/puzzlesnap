@@ -10,9 +10,14 @@ import {
   Share2,
   Check,
   Sparkles,
-  HeartCrack
+  HeartCrack,
+  Link2,
+  Camera,
+  Copy
 } from "lucide-react";
 import { useWardrobe, WardrobeItem } from "@/lib/hooks/useWardrobe";
+import { generateWardrobeShareUrl } from "@/lib/wardrobe/sharing";
+import LookbookModal from "@/components/wardrobe/LookbookModal";
 
 interface WardrobeDrawerProps {
   isOpen: boolean;
@@ -27,10 +32,23 @@ export default function WardrobeDrawer({
 }: WardrobeDrawerProps) {
   const { items, count, removeItem, clearWardrobe } = useWardrobe();
   const [copied, setCopied] = useState(false);
+  const [isShareCopied, setIsShareCopied] = useState(false);
+  const [isLookbookOpen, setIsLookbookOpen] = useState(false);
 
   if (!isOpen) return null;
 
+  const handleShareLink = () => {
+    if (items.length === 0) return;
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://cunfashion.com";
+    const shareUrl = generateWardrobeShareUrl(items, origin);
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setIsShareCopied(true);
+      setTimeout(() => setIsShareCopied(false), 2500);
+    });
+  };
+
   const handleCopyList = () => {
+
     if (items.length === 0) return;
     const text = items
       .map(
@@ -254,21 +272,49 @@ export default function WardrobeDrawer({
                 <span className="font-bold text-white">{count} món đồ</span>
               </div>
 
+              {/* Action 1: Export Haute Couture Lookbook Image Card */}
               <button
-                onClick={handleCopyList}
-                className="w-full py-2.5 px-4 rounded-xl bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 text-xs font-bold flex items-center justify-center gap-2 transition"
+                onClick={() => setIsLookbookOpen(true)}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-pink-500 to-rose-500 hover:opacity-95 text-stone-950 text-xs font-black flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
               >
-                {copied ? (
+                <Camera className="w-4 h-4 text-stone-950" />
+                <span>Xuất ảnh Lookbook Story (Instagram/TikTok)</span>
+              </button>
+
+              {/* Action 2: Copy Wardrobe URL Share Link */}
+              <button
+                onClick={handleShareLink}
+                className="w-full py-2.5 px-4 rounded-xl bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                {isShareCopied ? (
                   <>
                     <Check className="w-4 h-4 text-emerald-400" />
                     <span className="text-emerald-400">
-                      Đã sao chép danh sách đồ!
+                      Đã sao chép liên kết chia sẻ tủ đồ!
                     </span>
                   </>
                 ) : (
                   <>
-                    <Share2 className="w-4 h-4 text-pink-400" />
-                    <span>Sao chép danh sách để phối đồ</span>
+                    <Link2 className="w-4 h-4 text-amber-400" />
+                    <span>Sao chép link chia sẻ cho bạn bè (?wardrobe=...)</span>
+                  </>
+                )}
+              </button>
+
+              {/* Action 3: Copy Text Outfit List */}
+              <button
+                onClick={handleCopyList}
+                className="w-full py-2 px-3 rounded-lg bg-stone-850 hover:bg-stone-800 text-stone-400 hover:text-stone-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400">Đã sao chép văn bản!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Sao chép danh sách văn bản</span>
                   </>
                 )}
               </button>
@@ -280,6 +326,14 @@ export default function WardrobeDrawer({
           )}
         </div>
       </div>
+
+      {/* Lookbook Export Modal */}
+      <LookbookModal
+        isOpen={isLookbookOpen}
+        onClose={() => setIsLookbookOpen(false)}
+        items={items}
+      />
     </div>
   );
 }
+

@@ -134,6 +134,19 @@ export function useWardrobe() {
     setItems([]);
   }, []);
 
+  const importItems = useCallback((newItems: WardrobeItem[]): number => {
+    if (!newItems || newItems.length === 0) return 0;
+    const current = loadWardrobeFromStorage();
+    const existingIds = new Set(current.map((i) => i.id));
+    const toAdd = newItems.filter((i) => !existingIds.has(i.id));
+    if (toAdd.length === 0) return 0;
+
+    const merged = [...toAdd, ...current];
+    saveWardrobeToStorage(merged);
+    setItems(merged);
+    return toAdd.length;
+  }, []);
+
   return {
     items,
     isLoaded,
@@ -142,6 +155,8 @@ export function useWardrobe() {
     saveItem,
     removeItem,
     toggleItem,
-    clearWardrobe
+    clearWardrobe,
+    importItems
   };
 }
+
