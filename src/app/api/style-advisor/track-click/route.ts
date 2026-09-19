@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { recordClick } from "@/lib/analytics/click-tracker";
 
 // In-memory sliding window rate limiter: max 60 click logs / min per IP
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -48,6 +49,8 @@ export async function POST(request: NextRequest) {
     const productName = sanitizeString(body.productName);
     const platform = sanitizeString(body.platform || "Amazon");
     const affiliateUrl = sanitizeString(body.affiliateUrl);
+    const keyword = sanitizeString(body.keyword || "");
+    const deviceType = sanitizeString(body.deviceType || "Desktop");
 
     if (!productId && !affiliateUrl) {
       return NextResponse.json(
@@ -61,8 +64,13 @@ export async function POST(request: NextRequest) {
       product_name: productName,
       platform,
       affiliate_url: affiliateUrl,
+      keyword: keyword || undefined,
+      device_type: deviceType || undefined,
       created_at: new Date().toISOString()
     };
+
+    // Store in memory ring buffer for instant analytics
+    recordClick(clickPayload);
 
     // If Supabase table exists, try persisting
     if (isSupabaseConfigured && supabase) {

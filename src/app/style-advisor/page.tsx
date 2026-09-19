@@ -23,8 +23,11 @@ import {
   SlidersHorizontal,
   Shuffle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Heart
 } from "lucide-react";
+import { useWardrobe } from "@/lib/hooks/useWardrobe";
+import WardrobeDrawer from "@/components/wardrobe/WardrobeDrawer";
 import {
   generateStylistAdvice,
   AdviceResult,
@@ -49,6 +52,9 @@ export default function StyleAdvisorPage() {
   const [result, setResult] = useState<AdviceResult | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showExtensionModal, setShowExtensionModal] = useState(false);
+  const [isExtensionBannerDismissed, setIsExtensionBannerDismissed] = useState(false);
+  const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
+  const { count: wardrobeCount, isSaved: isSavedInWardrobe, toggleItem: toggleWardrobeItem } = useWardrobe();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -158,15 +164,29 @@ export default function StyleAdvisorPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleLoadDemoBlazer = () => {
-    setSelectedImage("https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80");
-    setImageName("ZXixb.jpg (Blazer đỏ công sở)");
-    setKeyword("");
-    setOccasion("work");
-    setStyle("elegant");
-    setBudget("mid");
-    setColor("đen, be, trung tính");
-    setMarket("ALL");
+  const handleTrackAffiliateClick = (
+    productId: string,
+    productName: string,
+    platform: string,
+    affiliateUrl: string
+  ) => {
+    try {
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+      fetch("/api/style-advisor/track-click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId,
+          productName,
+          platform,
+          affiliateUrl,
+          keyword: keyword.trim() || undefined,
+          deviceType: isMobile ? "Mobile" : "Desktop"
+        })
+      }).catch((err) => console.warn("Track click failed:", err));
+    } catch {
+      // ignore
+    }
   };
 
   const handleAnalyze = async () => {
@@ -282,6 +302,129 @@ export default function StyleAdvisorPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const renderProductCard = (p: StyleProduct) => {
+    const saved = isSavedInWardrobe(p.id);
+    return (
+      <div
+        key={p.id}
+        className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md hover:border-pink-300 transition flex flex-col justify-between group"
+      >
+        <div>
+          {/* Product Image */}
+          <div className="relative aspect-[3/4] bg-stone-100 overflow-hidden">
+            <img
+              src={p.img}
+              alt={p.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+            />
+            <span
+              className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${
+                p.platform === "CunCute Store"
+                  ? "bg-pink-600 text-white"
+                  : p.platform === "Rakuten"
+                  ? "bg-red-600 text-white"
+                  : p.platform === "Amazon"
+                  ? "bg-amber-500 text-stone-950 font-black"
+                  : "bg-stone-900 text-white"
+              }`}
+            >
+              {p.platform}
+            </span>
+            {p.tag && (
+              <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-stone-900 text-white shadow-sm">
+                {p.tag}
+              </span>
+            )}
+
+            {/* Bookmark / Wardrobe Save Button */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWardrobeItem(p);
+              }}
+              className={`absolute bottom-2.5 right-2.5 p-2 rounded-xl backdrop-blur-md transition shadow-md flex items-center justify-center ${
+                saved
+                  ? "bg-pink-600 text-white shadow-pink-600/40 scale-105"
+                  : "bg-black/60 text-white hover:bg-pink-600 hover:scale-105"
+              }`}
+              title={saved ? "Bỏ lưu khỏi Tủ Đồ" : "Lưu vào Tủ Đồ yêu thích"}
+            >
+              <Heart className={`w-4 h-4 ${saved ? "fill-white text-white" : "text-white"}`} />
+            </button>
+          </div>
+
+          {/* Product Info */}
+          <div className="p-3.5">
+            <h4 className="text-xs sm:text-sm font-bold text-stone-800 line-clamp-2 leading-snug group-hover:text-pink-600 transition">
+              {p.name}
+            </h4>
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <span className="text-sm sm:text-base font-extrabold text-pink-600">
+                {p.price}
+              </span>
+              {p.originalPrice && (
+                <span className="text-xs text-stone-400 line-through">
+                  {p.originalPrice}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Action */}
+        <div className="p-3.5 pt-0 space-y-2">
+          <a
+            href={p.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => handleTrackAffiliateClick(p.id, p.name, p.platform, p.link)}
+            className={`w-full flex items-center justify-center gap-1.5 py-2.5 px-4 text-white text-xs font-bold rounded-xl transition shadow-sm ${
+              p.platform === "CunCute Store"
+                ? "bg-pink-600 hover:bg-pink-700"
+                : p.platform === "Rakuten"
+                ? "bg-red-600 hover:bg-red-700"
+                : p.platform === "Amazon"
+                ? "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black"
+                : "bg-stone-900 hover:bg-pink-600"
+            }`}
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span>
+              {p.platform === "CunCute Store"
+                ? "Mua tại CunCute Store"
+                : p.platform === "Rakuten"
+                ? "Mua trên Rakuten"
+                : p.platform === "Amazon"
+                ? "Xem trên Amazon US"
+                : "Xem trên Shopee / TikTok"}
+            </span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          <button
+            onClick={() => {
+              handleCopyLink(p);
+              handleTrackAffiliateClick(p.id, p.name, p.platform, p.link);
+            }}
+            className="w-full py-1 text-[11px] font-semibold text-stone-500 hover:text-stone-800 transition flex items-center justify-center gap-1"
+          >
+            {copiedId === p.id ? (
+              <>
+                <Check className="w-3 h-3 text-emerald-600" />
+                <span className="text-emerald-600">Đã sao chép link</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3" />
+                <span>Copy link affiliate</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-stone-100/60 pb-20 font-sans">
       {/* Top Toolbar Switcher (Wide | Mobile | Extension) */}
@@ -315,16 +458,23 @@ export default function StyleAdvisorPage() {
             </button>
           </div>
 
-          <button
-            onClick={handleLoadDemoBlazer}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-pink-950/60 text-pink-300 border border-pink-800/80 hover:bg-pink-900 transition"
-          >
-            <Sparkles className="w-3 h-3 text-pink-400" />
-            <span>Nạp ảnh mẫu Blazer Đỏ (như hình)</span>
-          </button>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsWardrobeOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 shadow transition relative"
+            title="Xem Tủ Đồ cá nhân hóa"
+          >
+            <ShoppingBag className="w-3.5 h-3.5 text-pink-400" />
+            <span>Tủ đồ</span>
+            {wardrobeCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-pink-600 text-white shadow">
+                {wardrobeCount}
+              </span>
+            )}
+          </button>
+
           <button
             onClick={() => setShowExtensionModal(true)}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white shadow transition"
@@ -344,16 +494,23 @@ export default function StyleAdvisorPage() {
         }`}
       >
         {/* Banner Link to Chrome Extension (ở chế độ Wide) */}
-        {viewMode === "wide" && (
-          <div className="mb-6 bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 border border-pink-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-pink-600 text-white flex items-center justify-center shadow-md shadow-pink-500/20 shrink-0">
-                <Chrome className="w-5 h-5" />
+        {viewMode === "wide" && !isExtensionBannerDismissed && (
+          <div className="mb-6 bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 border border-pink-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-xs relative">
+            <button
+              onClick={() => setIsExtensionBannerDismissed(true)}
+              className="absolute top-2 right-2 p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-black/5 transition"
+              title="Đóng thông báo này"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+            <div className="flex items-center gap-3 pr-6 sm:pr-0">
+              <div className="w-9 h-9 rounded-xl bg-pink-600 text-white flex items-center justify-center shadow-md shadow-pink-500/20 shrink-0">
+                <Chrome className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-pink-700 flex items-center gap-1.5">
                   <span>Google Chrome Extension</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-pink-100 text-pink-800 font-extrabold">
+                  <span className="px-1.5 py-0.2 rounded text-[9px] bg-pink-100 text-pink-800 font-extrabold">
                     NEW
                   </span>
                 </p>
@@ -364,7 +521,7 @@ export default function StyleAdvisorPage() {
             </div>
             <button
               onClick={() => setShowExtensionModal(true)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl shadow transition shrink-0"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl shadow transition shrink-0"
             >
               <span>Xem & Cài đặt Extension</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -769,139 +926,132 @@ export default function StyleAdvisorPage() {
 
             {/* 2. Card Sản phẩm gợi ý (Affiliate) */}
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
-                <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
-                  <ShoppingBag className="w-5 h-5 text-pink-600 shrink-0" />
-                  <span>
-                    {result.hasDirectMatch === false
-                      ? "🔥 Gợi ý thời trang thịnh hành dành cho bạn (Trending Picks)"
-                      : "Sản phẩm gợi ý (Affiliate)"}
-                  </span>
-                  {result.keyword && (
-                    result.hasDirectMatch === false ? (
-                      <span className="text-xs font-semibold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-lg border border-stone-200">
-                        Gợi ý tham khảo (Kho mẫu không có &quot;{result.keyword}&quot;)
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
-                        Khớp từ khóa: &quot;{result.keyword}&quot;
-                      </span>
-                    )
-                  )}
-                </h2>
-                <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
-                  {result.suggestedProducts.length} items
-                </span>
-              </div>
-
-              <div
-                className={`grid gap-4 ${
-                  viewMode === "mobile"
-                    ? "grid-cols-1"
-                    : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-                }`}
-              >
-                {result.suggestedProducts.map((p) => (
-                  <div
-                    key={p.id}
-                    className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm hover:shadow-md hover:border-pink-300 transition flex flex-col justify-between group"
-                  >
-                    <div>
-                      {/* Product Image */}
-                      <div className="relative aspect-[3/4] bg-stone-100 overflow-hidden">
-                        <img
-                          src={p.img}
-                          alt={p.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        />
-                        <span className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${
-                          p.platform === "CunCute Store"
-                            ? "bg-pink-600 text-white"
-                            : p.platform === "Rakuten"
-                            ? "bg-red-600 text-white"
-                            : p.platform === "Amazon"
-                            ? "bg-amber-500 text-stone-950 font-black"
-                            : "bg-stone-900 text-white"
-                        }`}>
-                          {p.platform}
+              {result.keyMatchedProducts &&
+              result.keyMatchedProducts.length > 0 &&
+              result.coordinatedProducts &&
+              result.coordinatedProducts.length > 0 ? (
+                <div className="space-y-8">
+                  {/* Phân nhóm 1: Món đồ tìm kiếm trọng tâm */}
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                      <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
+                        <span className="w-6 h-6 rounded-lg bg-pink-600 text-white flex items-center justify-center text-xs font-black">
+                          🎯
                         </span>
-                        {p.tag && (
-                          <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-stone-900 text-white shadow-sm">
-                            {p.tag}
+                        <span>Món đồ tìm kiếm trọng tâm</span>
+                        {result.keyword && (
+                          <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
+                            Khớp từ khóa: &quot;{result.keyword}&quot;
                           </span>
                         )}
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="p-3.5">
-                        <h4 className="text-xs sm:text-sm font-bold text-stone-800 line-clamp-2 leading-snug group-hover:text-pink-600 transition">
-                          {p.name}
-                        </h4>
-                        <div className="flex items-baseline gap-2 mt-1.5">
-                          <span className="text-sm sm:text-base font-extrabold text-pink-600">
-                            {p.price}
-                          </span>
-                          {p.originalPrice && (
-                            <span className="text-xs text-stone-400 line-through">
-                              {p.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      </h2>
+                      <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                        {result.keyMatchedProducts.length} items
+                      </span>
                     </div>
 
-                    {/* Action */}
-                    <div className="p-3.5 pt-0 space-y-2">
-                      <a
-                        href={p.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`w-full flex items-center justify-center gap-1.5 py-2.5 px-4 text-white text-xs font-bold rounded-xl transition shadow-sm ${
-                          p.platform === "CunCute Store"
-                            ? "bg-pink-600 hover:bg-pink-700"
-                            : p.platform === "Rakuten"
-                            ? "bg-red-600 hover:bg-red-700"
-                            : p.platform === "Amazon"
-                            ? "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black"
-                            : "bg-stone-900 hover:bg-pink-600"
-                        }`}
-                      >
-                        <ShoppingBag className="w-3.5 h-3.5" />
-                        <span>
-                          {p.platform === "CunCute Store"
-                            ? "Mua tại CunCute Store"
-                            : p.platform === "Rakuten"
-                            ? "Mua trên Rakuten"
-                            : p.platform === "Amazon"
-                            ? "Xem trên Amazon US"
-                            : "Xem trên Shopee / TikTok"}
-                        </span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                      <button
-                        onClick={() => handleCopyLink(p)}
-                        className="w-full py-1 text-[11px] font-semibold text-stone-500 hover:text-stone-800 transition flex items-center justify-center gap-1"
-                      >
-                        {copiedId === p.id ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-600" />
-                            <span className="text-emerald-600">Đã sao chép link</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span>Copy link affiliate</span>
-                          </>
-                        )}
-                      </button>
+                    <div
+                      className={`grid gap-4 ${
+                        viewMode === "mobile"
+                          ? "grid-cols-1"
+                          : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                      }`}
+                    >
+                      {result.keyMatchedProducts.map(renderProductCard)}
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  {/* Phân nhóm 2: Gợi ý phối đồ hoàn hảo (Complete The Look) */}
+                  <div className="pt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                      <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
+                        <span className="w-6 h-6 rounded-lg bg-amber-500 text-stone-950 flex items-center justify-center text-xs font-black">
+                          ✨
+                        </span>
+                        <span>Gợi ý phối đồ hoàn hảo (Complete The Look)</span>
+                        {result.keyword && (
+                          <span className="text-xs font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200">
+                            Phối cùng &quot;{result.keyword}&quot;
+                          </span>
+                        )}
+                      </h2>
+                      <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                        {result.coordinatedProducts.length} items
+                      </span>
+                    </div>
+
+                    <div
+                      className={`grid gap-4 ${
+                        viewMode === "mobile"
+                          ? "grid-cols-1"
+                          : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                      }`}
+                    >
+                      {result.coordinatedProducts.map(renderProductCard)}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                    <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
+                      <ShoppingBag className="w-5 h-5 text-pink-600 shrink-0" />
+                      <span>
+                        {result.hasDirectMatch === false
+                          ? "🔥 Gợi ý thời trang thịnh hành dành cho bạn (Trending Picks)"
+                          : "Sản phẩm gợi ý (Affiliate)"}
+                      </span>
+                      {result.keyword && (
+                        result.hasDirectMatch === false ? (
+                          <span className="text-xs font-semibold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-lg border border-stone-200">
+                            Gợi ý tham khảo (Kho mẫu không có &quot;{result.keyword}&quot;)
+                          </span>
+                        ) : (
+                          <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
+                            Khớp từ khóa: &quot;{result.keyword}&quot;
+                          </span>
+                        )
+                      )}
+                    </h2>
+                    <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                      {result.suggestedProducts.length} items
+                    </span>
+                  </div>
+
+                  <div
+                    className={`grid gap-4 ${
+                      viewMode === "mobile"
+                        ? "grid-cols-1"
+                        : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                    }`}
+                  >
+                    {result.suggestedProducts.map(renderProductCard)}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Floating Wardrobe Button */}
+      {wardrobeCount > 0 && (
+        <button
+          onClick={() => setIsWardrobeOpen(true)}
+          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-2xl shadow-pink-600/40 border-2 border-white flex items-center gap-2.5 transition hover:scale-105 active:scale-95 animate-bounce-short"
+          title="Xem Tủ Đồ yêu thích của bạn"
+        >
+          <ShoppingBag className="w-4 h-4 text-white animate-pulse" />
+          <span>Tủ Đồ ({wardrobeCount})</span>
+        </button>
+      )}
+
+      {/* Wardrobe Drawer */}
+      <WardrobeDrawer
+        isOpen={isWardrobeOpen}
+        onClose={() => setIsWardrobeOpen(false)}
+        onTrackClick={handleTrackAffiliateClick}
+      />
 
       {/* Extension Modal */}
       {showExtensionModal && (

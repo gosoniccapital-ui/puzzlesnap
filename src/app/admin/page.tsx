@@ -56,9 +56,36 @@ interface AdminScore {
   createdAt: string;
 }
 
+interface AdminClickRecord {
+  id: string;
+  product_id: string;
+  product_name: string;
+  platform: string;
+  affiliate_url: string;
+  keyword?: string;
+  device_type?: string;
+  created_at: string;
+}
+
+interface AdminAnalyticsData {
+  totalClicks: number;
+  platforms: Record<string, number>;
+  topProducts: {
+    productId: string;
+    productName: string;
+    platform: string;
+    count: number;
+  }[];
+  topKeywords: {
+    keyword: string;
+    count: number;
+  }[];
+  recentClicks: AdminClickRecord[];
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"puzzles" | "scores" | "health">("puzzles");
+  const [activeTab, setActiveTab] = useState<"puzzles" | "scores" | "health" | "analytics">("puzzles");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -78,8 +105,10 @@ export default function AdminDashboardPage() {
   // Data states
   const [puzzles, setPuzzles] = useState<AdminPuzzle[]>([]);
   const [scores, setScores] = useState<AdminScore[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<AdminAnalyticsData | null>(null);
   const [loadingPuzzles, setLoadingPuzzles] = useState(true);
   const [loadingScores, setLoadingScores] = useState(true);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -213,9 +242,26 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Load Analytics
+  const loadAnalytics = async () => {
+    try {
+      setLoadingAnalytics(true);
+      const res = await fetch("/api/admin/analytics");
+      const json = await res.json();
+      if (json.success && json.data) {
+        setAnalyticsData(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to load analytics", err);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
   useEffect(() => {
     loadPuzzles();
     loadScores();
+    loadAnalytics();
   }, []);
 
   // Handle Add Puzzle
@@ -445,6 +491,20 @@ export default function AdminDashboardPage() {
           >
             <Database className="w-4 h-4" />
             System & Database Health
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("analytics");
+              loadAnalytics();
+            }}
+            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-2 cursor-pointer ${
+              activeTab === "analytics"
+                ? "bg-stone-900 text-white shadow-xs"
+                : "text-stone-600 hover:bg-stone-100"
+            }`}
+          >
+            <TrendingUp className="w-4 h-4 text-pink-500" />
+            Affiliate Analytics ({analyticsData?.totalClicks ?? 0})
           </button>
         </div>
 
@@ -718,6 +778,297 @@ export default function AdminDashboardPage() {
                   </span>
                 </li>
               </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Affiliate Analytics & Conversion */}
+        {activeTab === "analytics" && (
+          <div className="space-y-6">
+            {/* Header / Actions */}
+            <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-extrabold text-stone-900 flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-black">
+                    📈
+                  </span>
+                  <span>Bảng Điều Khiển Chuyển Đổi Affiliate (Conversion Dashboard)</span>
+                </h2>
+                <p className="text-xs text-stone-500 mt-1">
+                  Thống kê thời gian thực số lượt click vào các sàn liên kết (Amazon US StoreID cuncute-20, Rakuten, CunCute Merch, Shopee, TikTok Shop).
+                </p>
+              </div>
+
+              <button
+                onClick={loadAnalytics}
+                disabled={loadingAnalytics}
+                className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-2 cursor-pointer"
+              >
+                <Clock className={`w-3.5 h-3.5 ${loadingAnalytics ? "animate-spin" : ""}`} />
+                <span>Làm mới số liệu</span>
+              </button>
+            </div>
+
+            {/* Metric KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                <p className="text-xs font-bold uppercase tracking-wider text-stone-400">
+                  Tổng lượt Click
+                </p>
+                <p className="text-3xl font-black text-stone-900 mt-1">
+                  {analyticsData?.totalClicks ?? 0}
+                </p>
+                <p className="text-[11px] text-pink-600 font-semibold mt-0.5">
+                  Tất cả sàn mua sắm
+                </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-400">
+                    Amazon US (cuncute-20)
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900">
+                    {analyticsData?.totalClicks
+                      ? Math.round(((analyticsData.platforms["Amazon"] || 0) / analyticsData.totalClicks) * 100)
+                      : 0}
+                    %
+                  </span>
+                </div>
+                <p className="text-3xl font-black text-amber-600 mt-1">
+                  {analyticsData?.platforms["Amazon"] ?? 0}
+                </p>
+                <p className="text-[11px] text-stone-500 font-semibold mt-0.5">
+                  Hoa hồng USD Associates
+                </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-400">
+                    Rakuten Brands
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-900">
+                    {analyticsData?.totalClicks
+                      ? Math.round(((analyticsData.platforms["Rakuten"] || 0) / analyticsData.totalClicks) * 100)
+                      : 0}
+                    %
+                  </span>
+                </div>
+                <p className="text-3xl font-black text-red-600 mt-1">
+                  {analyticsData?.platforms["Rakuten"] ?? 0}
+                </p>
+                <p className="text-[11px] text-stone-500 font-semibold mt-0.5">
+                  LinkShare Deeplink
+                </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-400">
+                    CunCute Merch & VN
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-900">
+                    {analyticsData?.totalClicks
+                      ? Math.round(
+                          (((analyticsData.platforms["CunCute Store"] || 0) +
+                            (analyticsData.platforms["Shopee"] || 0) +
+                            (analyticsData.platforms["TikTok Shop"] || 0)) /
+                            analyticsData.totalClicks) *
+                            100
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+                <p className="text-3xl font-black text-emerald-600 mt-1">
+                  {(analyticsData?.platforms["CunCute Store"] || 0) +
+                    (analyticsData?.platforms["Shopee"] || 0) +
+                    (analyticsData?.platforms["TikTok Shop"] || 0)}
+                </p>
+                <p className="text-[11px] text-stone-500 font-semibold mt-0.5">
+                  Shop trực tiếp & Shopee/TikTok
+                </p>
+              </div>
+            </div>
+
+            {/* Top Products & Top Keywords */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Top Products */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-extrabold text-stone-900 flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4 text-pink-600" />
+                    <span>Top Sản Phẩm Chuyển Đổi Cao Nhất</span>
+                  </h3>
+                  <span className="text-[11px] font-semibold text-stone-400">Lượt click</span>
+                </div>
+
+                {analyticsData?.topProducts && analyticsData.topProducts.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {analyticsData.topProducts.map((prod, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-100 gap-3"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="w-6 h-6 rounded-full bg-stone-200 text-stone-700 text-xs font-black flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-stone-800 truncate" title={prod.productName}>
+                              {prod.productName}
+                            </p>
+                            <span className="text-[10px] font-semibold text-stone-500">
+                              Sàn: {prod.platform}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-lg bg-pink-100 text-pink-800 font-extrabold text-xs shrink-0">
+                          {prod.count} clicks
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-stone-400 italic py-4 text-center">
+                    Chưa có đủ dữ liệu lượt click sản phẩm.
+                  </p>
+                )}
+              </div>
+
+              {/* Top Keywords */}
+              <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-extrabold text-stone-900 flex items-center gap-2">
+                    <Search className="w-4 h-4 text-amber-500" />
+                    <span>Top Từ Khóa Sinh Chuyển Đổi</span>
+                  </h3>
+                  <span className="text-[11px] font-semibold text-stone-400">Tần suất</span>
+                </div>
+
+                {analyticsData?.topKeywords && analyticsData.topKeywords.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {analyticsData.topKeywords.map((kw, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-100"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-900 text-xs font-black flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <span className="text-xs font-bold text-stone-800">
+                            &quot;{kw.keyword}&quot;
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 font-extrabold text-xs">
+                          {kw.count} lượt
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-stone-400 italic py-4 text-center">
+                    Chưa có đủ dữ liệu từ khóa tìm kiếm.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Live Click Stream */}
+            <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-extrabold text-stone-900 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-stone-500" />
+                    <span>Nhật Ký Click Trực Tiếp (Live Click Stream)</span>
+                  </h3>
+                  <p className="text-xs text-stone-400 mt-0.5">
+                    Hiển thị 20 lượt click affiliate mới nhất từ người dùng.
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-stone-500 bg-stone-100 px-2.5 py-1 rounded-full">
+                  {analyticsData?.recentClicks.length ?? 0} sự kiện gần nhất
+                </span>
+              </div>
+
+              {analyticsData?.recentClicks && analyticsData.recentClicks.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-stone-700">
+                    <thead className="bg-stone-50 border-y border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="py-2.5 px-3">Thời gian</th>
+                        <th className="py-2.5 px-3">Sàn mua sắm</th>
+                        <th className="py-2.5 px-3">Tên sản phẩm</th>
+                        <th className="py-2.5 px-3">Từ khóa</th>
+                        <th className="py-2.5 px-3">Thiết bị</th>
+                        <th className="py-2.5 px-3 text-right">Link đích</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {analyticsData.recentClicks.map((c) => (
+                        <tr key={c.id} className="hover:bg-stone-50/80 transition">
+                          <td className="py-2.5 px-3 whitespace-nowrap text-stone-500 text-[11px] font-mono">
+                            {new Date(c.created_at).toLocaleTimeString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                              day: "2-digit",
+                              month: "2-digit"
+                            })}
+                          </td>
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                c.platform === "Amazon"
+                                  ? "bg-amber-100 text-amber-900 border border-amber-300"
+                                  : c.platform === "Rakuten"
+                                  ? "bg-red-100 text-red-900 border border-red-300"
+                                  : c.platform === "CunCute Store"
+                                  ? "bg-pink-100 text-pink-900 border border-pink-300"
+                                  : "bg-stone-100 text-stone-800 border border-stone-200"
+                              }`}
+                            >
+                              {c.platform}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 font-semibold text-stone-900 max-w-xs truncate" title={c.product_name}>
+                            {c.product_name}
+                          </td>
+                          <td className="py-2.5 px-3 text-stone-600">
+                            {c.keyword ? (
+                              <span className="px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 text-[11px] font-medium">
+                                {c.keyword}
+                              </span>
+                            ) : (
+                              <span className="text-stone-400 text-[11px]">—</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-stone-500 text-[11px]">
+                            {c.device_type || "Desktop"}
+                          </td>
+                          <td className="py-2.5 px-3 text-right">
+                            <a
+                              href={c.affiliate_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-pink-600 hover:text-pink-800 font-bold inline-flex items-center gap-1 text-[11px]"
+                            >
+                              <span>Mở link</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-xs text-stone-400 italic py-6 text-center">
+                  Chưa có nhật ký lượt click nào được ghi nhận.
+                </p>
+              )}
             </div>
           </div>
         )}

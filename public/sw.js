@@ -1,5 +1,5 @@
-// CunFashion PWA Service Worker v8.0.0 (Milestone 7.13 Honest Affiliate Search & Zero Fake Cards)
-const CACHE_NAME = 'cunfashion-cache-v8';
+// CunFashion PWA Service Worker v9.0.0 (Sprint 8.1 User Wardrobe Collection & Conversion Analytics)
+const CACHE_NAME = 'cunfashion-cache-v9';
 const STATIC_ASSETS = [
   '/',
   '/favicon.ico',

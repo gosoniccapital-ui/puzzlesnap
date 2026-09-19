@@ -56,7 +56,7 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     discount: "-22%",
     rating: 4.3,
     reviewCount: 157,
-    img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80",
+    img: "https://images.unsplash.com/photo-1544441893-675973e31985?w=600&auto=format&fit=crop&q=80",
     link: buildAmazonSearchUrl("women cropped trench coat"),
     platform: "Amazon",
     tag: "Amazon's Choice",
@@ -76,7 +76,7 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     discount: "-24%",
     rating: 4.9,
     reviewCount: 240,
-    img: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=600&auto=format&fit=crop&q=80",
+    img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop&q=80",
     link: buildAmazonSearchUrl("women suede ankle boots"),
     platform: "Amazon",
     tag: "Trending Fall",
@@ -96,7 +96,7 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     discount: "-25%",
     rating: 4.3,
     reviewCount: 492,
-    img: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600&auto=format&fit=crop&q=80",
+    img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",
     link: buildAmazonSearchUrl("women 2 piece lounge set"),
     platform: "Amazon",
     tag: "Best Seller",
@@ -156,7 +156,7 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     discount: "-20%",
     rating: 4.7,
     reviewCount: 1850,
-    img: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
+    img: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=600&auto=format&fit=crop&q=80",
     link: buildAmazonSearchUrl("women ruched vegan leather handbag"),
     platform: "Amazon",
     tag: "Celebrity Favorite",
@@ -552,6 +552,8 @@ export interface AdviceResult {
   palette: { name: string; hex: string }[];
   styleTips: string[];
   suggestedProducts: StyleProduct[];
+  keyMatchedProducts?: StyleProduct[];
+  coordinatedProducts?: StyleProduct[];
   detectedItems?: DetectedOutfitItem[];
   market?: "ALL" | "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
   source?: "gemini-vision" | "gemini-text" | "openai-vision" | "ai-heuristic" | "rakuten-api" | "fourthwall-api";
@@ -734,6 +736,9 @@ export function generateStylistAdvice({
     matched = [...catalogPool];
   }
 
+  let keyMatchedProducts: StyleProduct[] | undefined = undefined;
+  let coordinatedProducts: StyleProduct[] | undefined = undefined;
+
   if (cleanKw) {
     const kwLower = cleanKw.toLowerCase();
     const kwMatches = catalogPool.filter(
@@ -743,7 +748,10 @@ export function generateStylistAdvice({
         (p.colorTags || []).some((t) => t.toLowerCase().includes(kwLower))
     );
     if (kwMatches.length > 0) {
-      matched = [...kwMatches, ...matched.filter((p) => !kwMatches.some((m) => m.id === p.id))];
+      const remaining = matched.filter((p) => !kwMatches.some((m) => m.id === p.id));
+      matched = [...kwMatches, ...remaining];
+      keyMatchedProducts = kwMatches.slice(0, 4);
+      coordinatedProducts = remaining.slice(0, 4);
       hasDirectMatch = true;
     } else {
       hasDirectMatch = false;
@@ -878,6 +886,8 @@ export function generateStylistAdvice({
     palette,
     styleTips: tips,
     suggestedProducts: matched.slice(0, 6),
+    keyMatchedProducts,
+    coordinatedProducts,
     detectedItems,
     market: market || (isUS ? "US" : "VN"),
     source: "ai-heuristic",
