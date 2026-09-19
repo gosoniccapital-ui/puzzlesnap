@@ -65,6 +65,22 @@ const nextConfig = {
         protocol: "https",
         hostname: "images-na.ssl-images-amazon.com",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.fourthwall.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.fourthwall.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.fourthwall.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "*.linksynergy.com",
+      },
     ],
   },
   async headers() {

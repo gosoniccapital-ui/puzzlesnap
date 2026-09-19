@@ -79,49 +79,51 @@ export async function POST(request: NextRequest) {
     const rawKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const apiKey = rawKey ? rawKey.replace(/^["']|["']$/g, "").trim() : "";
 
-    // Check if Gemini Vision can be invoked
-    if (apiKey && typeof image === "string") {
+    // Check if Gemini Vision or Text AI can be invoked
+    if (apiKey && (typeof image === "string" || cleanKeyword)) {
       try {
         let mimeType = "image/jpeg";
         let base64Data = "";
 
-        if (image.startsWith("data:image/")) {
-          const matches = image.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
-          if (matches) {
-            mimeType = matches[1];
-            base64Data = matches[2];
-          }
-        } else if (image.startsWith("http://") || image.startsWith("https://")) {
-          const isForbiddenHost =
-            image.includes("localhost") ||
-            image.includes("127.0.0.1") ||
-            image.includes("169.254.") ||
-            image.includes("0.0.0.0") ||
-            image.includes("::1");
+        if (typeof image === "string") {
+          if (image.startsWith("data:image/")) {
+            const matches = image.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+            if (matches) {
+              mimeType = matches[1];
+              base64Data = matches[2];
+            }
+          } else if (image.startsWith("http://") || image.startsWith("https://")) {
+            const isForbiddenHost =
+              image.includes("localhost") ||
+              image.includes("127.0.0.1") ||
+              image.includes("169.254.") ||
+              image.includes("0.0.0.0") ||
+              image.includes("::1");
 
-          if (!isForbiddenHost) {
-            try {
-              const imgRes = await fetch(image, { signal: AbortSignal.timeout(6000) });
-              if (imgRes.ok) {
-                const arrayBuffer = await imgRes.arrayBuffer();
-                base64Data = Buffer.from(arrayBuffer).toString("base64");
-                mimeType = imgRes.headers.get("content-type") || "image/jpeg";
+            if (!isForbiddenHost) {
+              try {
+                const imgRes = await fetch(image, { signal: AbortSignal.timeout(6000) });
+                if (imgRes.ok) {
+                  const arrayBuffer = await imgRes.arrayBuffer();
+                  base64Data = Buffer.from(arrayBuffer).toString("base64");
+                  mimeType = imgRes.headers.get("content-type") || "image/jpeg";
+                }
+              } catch (fetchErr) {
+                console.warn("Could not fetch remote image for vision analysis:", fetchErr);
               }
-            } catch (fetchErr) {
-              console.warn("Could not fetch remote image for vision analysis:", fetchErr);
             }
           }
         }
 
-        if (base64Data) {
+        if (base64Data || cleanKeyword) {
           const isVN = market === "VN";
           const prompt = isVN
             ? `Bạn là chuyên gia tư vấn thời trang cao cấp của CunFashion, am hiểu phong cách giới trẻ & công sở Việt Nam.
-Hãy phân tích bức ảnh trang phục này cùng tiêu chí của người dùng:
+${base64Data ? "Hãy phân tích bức ảnh trang phục này cùng tiêu chí của người dùng:" : `Người dùng đang tìm kiếm và muốn phối set đồ chuẩn đẹp với món đồ/từ khóa: "${cleanKeyword}".\nTiêu chí phối đồ:`}
 - Dịp sử dụng: ${occasion}
 - Phong cách: ${style}
 - Gam màu ưa thích: ${color || "phối màu tự nhiên"}${cleanKeyword ? `\n- Món đồ / Từ khóa người dùng muốn tìm kiếm hoặc ưu tiên phối cùng: "${cleanKeyword}"` : ""}
-${cleanKeyword ? `Lưu ý đặc biệt: Hãy ưu tiên xây dựng set đồ xoay quanh hoặc phối hợp hoàn hảo với "${cleanKeyword}".` : ""}
+${cleanKeyword ? `\nLưu ý đặc biệt: Hãy ưu tiên xây dựng set đồ xoay quanh hoặc phối hợp hoàn hảo với "${cleanKeyword}".` : ""}
 
 Trả về DUY NHẤT một JSON object hợp lệ (không markdown, không backticks) theo cấu trúc chính xác:
 {
@@ -150,7 +152,7 @@ Trả về DUY NHẤT một JSON object hợp lệ (không markdown, không back
   ]
 }`
             : `You are an elite personal fashion stylist and personal shopper for CunFashion, specializing in US/Global chic styles.
-Analyze this outfit image and the user's styling preferences:
+${base64Data ? "Analyze this outfit image and the user's styling preferences:" : `The user is looking for a curated outfit matching the query: "${cleanKeyword}".\nStyling preferences:`}
 - Occasion: ${occasion}
 - Desired Style: ${style}
 - Preferred Color / Tone: ${color || "natural match"}${cleanKeyword ? `\n- User's specific target item / search focus: "${cleanKeyword}"` : ""}
@@ -186,6 +188,18 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
           const candidateModels = ["gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-flash-latest"];
           let parsed: any = null;
 
+          const geminiParts = base64Data
+            ? [
+                { text: prompt },
+                {
+                  inlineData: {
+                    mimeType: mimeType,
+                    data: base64Data
+                  }
+                }
+              ]
+            : [{ text: prompt }];
+
           for (const modelName of candidateModels) {
             try {
               const geminiRes = await fetch(
@@ -196,15 +210,7 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
                   body: JSON.stringify({
                     contents: [
                       {
-                        parts: [
-                          { text: prompt },
-                          {
-                            inlineData: {
-                              mimeType: mimeType,
-                              data: base64Data
-                            }
-                          }
-                        ]
+                        parts: geminiParts
                       }
                     ],
                     generationConfig: {
@@ -333,7 +339,7 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
               detectedItems,
               suggestedProducts: multiSourceProducts.slice(0, 6),
               market: market as any,
-              source: isFourthwall ? "fourthwall-api" : isRakuten ? "rakuten-api" : "gemini-vision"
+              source: isFourthwall ? "fourthwall-api" : isRakuten ? "rakuten-api" : base64Data ? "gemini-vision" : "gemini-text"
             };
 
             return NextResponse.json({ success: true, data: result });

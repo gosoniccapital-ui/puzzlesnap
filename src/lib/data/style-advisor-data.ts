@@ -478,7 +478,7 @@ export interface AdviceResult {
   suggestedProducts: StyleProduct[];
   detectedItems?: DetectedOutfitItem[];
   market?: "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
-  source?: "gemini-vision" | "openai-vision" | "ai-heuristic" | "rakuten-api" | "fourthwall-api";
+  source?: "gemini-vision" | "gemini-text" | "openai-vision" | "ai-heuristic" | "rakuten-api" | "fourthwall-api";
   keyword?: string;
 }
 
