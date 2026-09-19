@@ -10,9 +10,13 @@ test('Brand Assets: All required CunFashion brand files exist on disk', () => {
     'public/images/brand/cunfashion-transparent.png',
     'public/images/brand/cunfashion-transparent.webp',
     'public/images/brand/logo-animated.webp',
+    'public/images/brand/logo-mini.png',
     'public/images/puzzle-icon-192.png',
     'public/images/puzzle-icon-512.png',
     'public/favicon.ico',
+    'src/app/favicon.ico',
+    'src/app/icon.png',
+    'src/app/apple-icon.png',
   ];
 
   for (const relPath of assets) {

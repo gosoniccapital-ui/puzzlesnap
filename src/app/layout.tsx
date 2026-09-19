@@ -14,8 +14,15 @@ export const metadata: Metadata = {
     title: "CunFashion",
   },
   icons: {
-    icon: "/images/puzzle-icon-192.png",
-    apple: "/images/puzzle-icon-192.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/images/brand/logo-mini.png", sizes: "300x300", type: "image/png" },
+      { url: "/images/puzzle-icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/images/puzzle-icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
   },
 };
 
