@@ -1,5 +1,5 @@
-// CunFashion PWA Service Worker v3.0.0 (Sprint 7.5 Cache-Bust)
-const CACHE_NAME = 'cunfashion-cache-v3';
+// CunFashion PWA Service Worker v4.0.0 (Sprint 7.5 Dual Vouchers Cache-Bust)
+const CACHE_NAME = 'cunfashion-cache-v4';
 const STATIC_ASSETS = [
   '/',
   '/site.webmanifest',

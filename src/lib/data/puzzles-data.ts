@@ -10,9 +10,11 @@ export interface PuzzleItem {
   isDaily?: boolean;
   difficulty: "easy" | "medium" | "hard" | "very-hard" | "supreme";
   description: string;
-  // E-Commerce Extensions (Sprint 6.2)
+  // E-Commerce Extensions (Sprint 6.2 & Sprint 7.5 Dual Rewards)
   voucherCode?: string;
+  secondaryVoucherCode?: string;
   discountPercent?: number;
+  secondaryDiscountPercent?: number;
   productUrl?: string;
   productPriceOriginal?: string;
   productPriceSale?: string;

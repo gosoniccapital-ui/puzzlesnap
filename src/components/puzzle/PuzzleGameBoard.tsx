@@ -23,6 +23,7 @@ interface PuzzleGameBoardProps {
   puzzleSlug?: string;
   initialDifficulty?: "easy" | "medium" | "hard" | "very-hard" | "supreme";
   voucherCode?: string;
+  secondaryVoucherCode?: string;
   discountPercent?: number;
   productUrl?: string;
   productPriceOriginal?: string;
@@ -57,6 +58,7 @@ export default function PuzzleGameBoard({
   puzzleSlug = "colorful-fireworks-jigsaw-puzzle",
   initialDifficulty = "medium",
   voucherCode,
+  secondaryVoucherCode,
   discountPercent,
   productUrl,
   productPriceOriginal,
@@ -702,6 +704,7 @@ export default function PuzzleGameBoard({
           scoreSubmitted={scoreSubmitted}
           onPlayAgain={handleShuffle}
           voucherCode={voucherCode}
+          secondaryVoucherCode={secondaryVoucherCode}
           discountPercent={discountPercent}
           productUrl={productUrl}
           productPriceOriginal={productPriceOriginal}

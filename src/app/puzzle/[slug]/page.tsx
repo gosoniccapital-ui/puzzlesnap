@@ -67,6 +67,7 @@ export default async function PuzzleDetailPage({ params, searchParams }: PuzzleP
         title={title}
         initialDifficulty={puzzle?.difficulty || "medium"}
         voucherCode={puzzle?.voucherCode}
+        secondaryVoucherCode={puzzle?.secondaryVoucherCode}
         discountPercent={puzzle?.discountPercent}
         productUrl={puzzle?.productUrl}
         productPriceOriginal={puzzle?.productPriceOriginal}

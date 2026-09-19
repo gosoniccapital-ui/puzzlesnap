@@ -76,25 +76,40 @@ test("E-Commerce: updatePuzzleItem updates e-commerce metadata cleanly", () => {
   });
 });
 
-test("E-Commerce Invariant: Default fallback voucher when puzzle lacks custom coupon", () => {
+test("E-Commerce Invariant: Default fallback dual vouchers when puzzle lacks custom coupon", () => {
   const p2 = getPuzzleBySlug("lone-house-alpine-valley");
   assert.ok(p2);
   assert.equal(p2.voucherCode, undefined);
+  assert.equal(p2.secondaryVoucherCode, undefined);
 
   const resolveReward = (puzzle) => {
-    const voucher = puzzle.voucherCode || "CUNFASHION2026";
+    const primaryVoucher = puzzle.voucherCode || "70Cute7LOOK";
+    const secondaryVoucher = puzzle.secondaryVoucherCode || "CUNFASHION2026";
+    const resolvedDiscount = puzzle.discountPercent || 10;
+    const defaultProductUrl = `https://cute.cunfashion.com?coupon=${encodeURIComponent(
+      primaryVoucher
+    )}&secondary_coupon=${encodeURIComponent(
+      secondaryVoucher
+    )}&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_rewards&utm_term=${encodeURIComponent(
+      primaryVoucher
+    )}&utm_content=${encodeURIComponent(secondaryVoucher)}`;
+
     return {
-      voucherCode: voucher,
-      discountPercent: puzzle.discountPercent || 10,
-      productUrl: puzzle.productUrl || `https://cute.cunfashion.com?coupon=${encodeURIComponent(voucher)}&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward`,
+      primaryVoucher,
+      secondaryVoucher,
+      discountPercent: resolvedDiscount,
+      productUrl: puzzle.productUrl || defaultProductUrl,
       ctaText: puzzle.ctaText || "Shop Cute Outfits",
     };
   };
 
   const reward = resolveReward(p2);
-  assert.equal(reward.voucherCode, "CUNFASHION2026");
+  assert.equal(reward.primaryVoucher, "70Cute7LOOK");
+  assert.equal(reward.secondaryVoucher, "CUNFASHION2026");
   assert.equal(reward.discountPercent, 10);
-  assert.ok(reward.productUrl.startsWith("https://cute.cunfashion.com?coupon=CUNFASHION2026"));
-  assert.ok(reward.productUrl.includes("utm_source=puzzlesnap"));
+  assert.ok(reward.productUrl.includes("coupon=70Cute7LOOK"));
+  assert.ok(reward.productUrl.includes("secondary_coupon=CUNFASHION2026"));
+  assert.ok(reward.productUrl.includes("utm_term=70Cute7LOOK"));
+  assert.ok(reward.productUrl.includes("utm_content=CUNFASHION2026"));
   assert.equal(reward.ctaText, "Shop Cute Outfits");
 });
