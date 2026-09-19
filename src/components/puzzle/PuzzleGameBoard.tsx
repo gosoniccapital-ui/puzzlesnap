@@ -29,6 +29,7 @@ interface PuzzleGameBoardProps {
   productPriceSale?: string;
   initialRoomId?: string;
   customPuzzleId?: string;
+  ctaText?: string;
 }
 
 const DIFFICULTY_MAP = {
@@ -62,6 +63,7 @@ export default function PuzzleGameBoard({
   productPriceSale,
   initialRoomId,
   customPuzzleId,
+  ctaText,
 }: PuzzleGameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -705,6 +707,7 @@ export default function PuzzleGameBoard({
           productPriceOriginal={productPriceOriginal}
           productPriceSale={productPriceSale}
           imageSrc={imageSrc}
+          ctaText={ctaText}
         />
 
         {/* Floating Zoom & Quick Rotate Controls */}

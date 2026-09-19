@@ -72,6 +72,7 @@ export default async function PuzzleDetailPage({ params, searchParams }: PuzzleP
         productPriceOriginal={puzzle?.productPriceOriginal}
         productPriceSale={puzzle?.productPriceSale}
         initialRoomId={initialRoomId}
+        ctaText={puzzle?.ctaText}
       />
     </div>
   );

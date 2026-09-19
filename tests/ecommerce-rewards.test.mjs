@@ -1,4 +1,4 @@
-﻿import test from "node:test";
+import test from "node:test";
 import assert from "node:assert/strict";
 import {
   PUZZLES_DATA,
@@ -13,7 +13,9 @@ test("E-Commerce: Sample fashion puzzles must have valid voucher and product inf
   assert.ok(f1, "f1 must exist in PUZZLES_DATA");
   assert.equal(f1.voucherCode, "CUNAUTUMN15");
   assert.equal(f1.discountPercent, 15);
-  assert.equal(f1.productUrl, "https://cunfashion.com");
+  assert.ok(f1.productUrl.includes("cute.cunfashion.com"), "f1 productUrl must point to cute.cunfashion.com");
+  assert.ok(f1.productUrl.includes("coupon=CUNAUTUMN15"), "f1 productUrl must contain coupon query param");
+  assert.equal(f1.ctaText, "Shop Cute Outfits");
   assert.ok(f1.productPriceOriginal, "f1 should have original price");
   assert.ok(f1.productPriceSale, "f1 should have sale price");
 
@@ -21,6 +23,8 @@ test("E-Commerce: Sample fashion puzzles must have valid voucher and product inf
   assert.ok(f4, "f4 must exist in PUZZLES_DATA");
   assert.equal(f4.voucherCode, "RUNWAY25");
   assert.equal(f4.discountPercent, 25);
+  assert.ok(f4.productUrl.includes("coupon=RUNWAY25"));
+  assert.equal(f4.ctaText, "Shop Cute Outfits");
 });
 
 test("E-Commerce: addPuzzleItem supports creating a puzzle with e-commerce metadata", () => {
@@ -78,15 +82,19 @@ test("E-Commerce Invariant: Default fallback voucher when puzzle lacks custom co
   assert.equal(p2.voucherCode, undefined);
 
   const resolveReward = (puzzle) => {
+    const voucher = puzzle.voucherCode || "CUNFASHION2026";
     return {
-      voucherCode: puzzle.voucherCode || "CUNFASHION2026",
+      voucherCode: voucher,
       discountPercent: puzzle.discountPercent || 10,
-      productUrl: puzzle.productUrl || "https://cunfashion.com",
+      productUrl: puzzle.productUrl || `https://cute.cunfashion.com?coupon=${encodeURIComponent(voucher)}&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward`,
+      ctaText: puzzle.ctaText || "Shop Cute Outfits",
     };
   };
 
   const reward = resolveReward(p2);
   assert.equal(reward.voucherCode, "CUNFASHION2026");
   assert.equal(reward.discountPercent, 10);
-  assert.equal(reward.productUrl, "https://cunfashion.com");
+  assert.ok(reward.productUrl.startsWith("https://cute.cunfashion.com?coupon=CUNFASHION2026"));
+  assert.ok(reward.productUrl.includes("utm_source=puzzlesnap"));
+  assert.equal(reward.ctaText, "Shop Cute Outfits");
 });

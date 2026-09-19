@@ -33,6 +33,7 @@ export interface PuzzleVictoryModalProps {
   productPriceOriginal?: string;
   productPriceSale?: string;
   imageSrc?: string;
+  ctaText?: string;
 }
 
 export default function PuzzleVictoryModal({
@@ -52,6 +53,7 @@ export default function PuzzleVictoryModal({
   productUrl,
   productPriceOriginal,
   productPriceSale,
+  ctaText,
 }: PuzzleVictoryModalProps) {
   const [copied, setCopied] = useState(false);
 
@@ -59,15 +61,19 @@ export default function PuzzleVictoryModal({
 
   const resolvedVoucher = voucherCode || "CUNFASHION2026";
   const resolvedDiscount = discountPercent || 10;
-  const resolvedProductUrl = productUrl || "https://cunfashion.com";
+  const defaultProductUrl = `https://cute.cunfashion.com?coupon=${encodeURIComponent(
+    resolvedVoucher
+  )}&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward`;
+  const resolvedProductUrl = productUrl || defaultProductUrl;
+  const resolvedCtaText = ctaText || "Shop Cute Outfits";
 
-  const handleCopyVoucher = async () => {
+  const copyToClipboard = async (text: string) => {
     try {
       if (typeof window !== "undefined" && navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(resolvedVoucher);
+        await navigator.clipboard.writeText(text);
       } else {
         const textarea = document.createElement("textarea");
-        textarea.value = resolvedVoucher;
+        textarea.value = text;
         textarea.style.position = "fixed";
         textarea.style.opacity = "0";
         document.body.appendChild(textarea);
@@ -81,6 +87,15 @@ export default function PuzzleVictoryModal({
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
     }
+  };
+
+  const handleCopyVoucher = () => {
+    copyToClipboard(resolvedVoucher);
+  };
+
+  const handleCtaClick = () => {
+    // Frictionless E-Commerce UX: Auto-copy voucher into clipboard on click
+    copyToClipboard(resolvedVoucher);
   };
 
   return (
@@ -170,10 +185,11 @@ export default function PuzzleVictoryModal({
             href={resolvedProductUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleCtaClick}
             className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition cursor-pointer"
           >
             <ShoppingBag className="w-4 h-4 text-stone-950" />
-            <span>Shop The Look</span>
+            <span>{resolvedCtaText}</span>
             <ExternalLink className="w-3 h-3 text-stone-950 opacity-75" />
           </a>
         </div>

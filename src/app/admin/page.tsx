@@ -887,7 +887,7 @@ export default function AdminDashboardPage() {
                   </label>
                   <input
                     type="url"
-                    placeholder="https://cunfashion.com/..."
+                    placeholder="https://cute.cunfashion.com/..."
                     value={newProductUrl}
                     onChange={(e) => setNewProductUrl(e.target.value)}
                     className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
@@ -1102,7 +1102,7 @@ export default function AdminDashboardPage() {
                   </label>
                   <input
                     type="url"
-                    placeholder="https://cunfashion.com/..."
+                    placeholder="https://cute.cunfashion.com/..."
                     value={editProductUrl}
                     onChange={(e) => setEditProductUrl(e.target.value)}
                     className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
