@@ -1,7 +1,13 @@
 export const AMAZON_ASSOCIATE_TAG = "cuncute-20";
 
 export function buildAmazonSearchUrl(query: string): string {
-  const clean = encodeURIComponent(query.trim());
+  // Condense to 3-4 clean keywords to prevent Amazon 503 / "Sorry! Something went wrong!" error page
+  const words = query
+    .replace(/[^\w\s-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  const condensed = words.length > 4 ? words.slice(0, 4).join(" ") : words.join(" ");
+  const clean = encodeURIComponent(condensed.trim() || query.trim());
   return `https://www.amazon.com/s?k=${clean}&tag=${AMAZON_ASSOCIATE_TAG}`;
 }
 
@@ -49,9 +55,9 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     originalPrice: "$49.99",
     discount: "-22%",
     rating: 4.3,
-    reviewCount: 57,
-    img: "https://images.unsplash.com/photo-1544441893-675973e31985?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("PRETTYGARDEN Cropped Trench Coat For Women Double Breasted"),
+    reviewCount: 157,
+    img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women cropped trench coat"),
     platform: "Amazon",
     tag: "Amazon's Choice",
     occasions: ["casual", "work", "travel"],
@@ -69,9 +75,9 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     originalPrice: "$69.99",
     discount: "-24%",
     rating: 4.9,
-    reviewCount: 24,
-    img: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("Erocalli Women Fall Suede Mid Calf Slouchy Boots Chunky Heel"),
+    reviewCount: 240,
+    img: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women suede ankle boots"),
     platform: "Amazon",
     tag: "Trending Fall",
     occasions: ["casual", "date", "party"],
@@ -89,9 +95,9 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     originalPrice: "$39.99",
     discount: "-25%",
     rating: 4.3,
-    reviewCount: 92,
-    img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("Ekouaer 2 Piece Sets for Women Lounge Set Knit Top Wide Leg Pants"),
+    reviewCount: 492,
+    img: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women 2 piece lounge set"),
     platform: "Amazon",
     tag: "Best Seller",
     occasions: ["casual", "travel"],
@@ -109,9 +115,9 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     originalPrice: "$45.99",
     discount: "-20%",
     rating: 4.5,
-    reviewCount: 14,
+    reviewCount: 314,
     img: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("Womens Quarter Zip Pullover Cinchable Hem Crop Fleece"),
+    link: buildAmazonSearchUrl("women quarter zip crop fleece"),
     platform: "Amazon",
     tag: "Hot New Release",
     occasions: ["casual", "street", "travel"],
@@ -131,7 +137,7 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     rating: 4.6,
     reviewCount: 3420,
     img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("Levis Womens Ribcage Straight Ankle Jeans High Rise"),
+    link: buildAmazonSearchUrl("women high rise straight jeans"),
     platform: "Amazon",
     tag: "Editor's Choice",
     occasions: ["casual", "work", "street"],
@@ -151,7 +157,7 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     rating: 4.7,
     reviewCount: 1850,
     img: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("JW PEI Gabbi Ruched Hobo Handbag Vegan Leather"),
+    link: buildAmazonSearchUrl("women ruched vegan leather handbag"),
     platform: "Amazon",
     tag: "Celebrity Favorite",
     occasions: ["date", "party", "casual", "work"],
@@ -170,8 +176,8 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     discount: "-22%",
     rating: 4.4,
     reviewCount: 810,
-    img: "https://images.unsplash.com/photo-1598554747436-c9293d6a588f?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("The Drop Womens Blake Long Blazer Double Breasted"),
+    img: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women double breasted blazer"),
     platform: "Amazon",
     tag: "Office Must-Have",
     occasions: ["work", "date", "party"],
@@ -190,8 +196,8 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     discount: "-24%",
     rating: 4.6,
     reviewCount: 950,
-    img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("Steve Madden Womens Lawrence Lug Sole Loafer Chunky Leather"),
+    img: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women chunky lug sole loafers"),
     platform: "Amazon",
     tag: "Street Style",
     occasions: ["work", "casual", "street"],
@@ -789,8 +795,8 @@ export function generateStylistAdvice({
         category: "outerwear",
         color: "Khaki / Camel",
         style: "Double-breasted casual",
-        searchQuery: cleanKw ? cleanKw : "cropped trench coat for women khaki",
-        amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "cropped trench coat for women khaki")
+        searchQuery: cleanKw ? cleanKw : "women cropped trench coat",
+        amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "women cropped trench coat")
       },
       {
         id: "det-2",
@@ -798,8 +804,8 @@ export function generateStylistAdvice({
         category: "shoes",
         color: "Warm Brown / Tan",
         style: "Chunky heel fall boots",
-        searchQuery: "womens suede mid calf slouchy boots brown",
-        amazonUrl: buildAmazonSearchUrl("womens suede mid calf slouchy boots brown")
+        searchQuery: "women suede ankle boots",
+        amazonUrl: buildAmazonSearchUrl("women suede ankle boots")
       },
       {
         id: "det-3",
@@ -807,8 +813,8 @@ export function generateStylistAdvice({
         category: "top",
         color: "Beige / Cream",
         style: "Wide-leg cozy chic",
-        searchQuery: "womens 2 piece knit lounge set wide leg pants",
-        amazonUrl: buildAmazonSearchUrl("womens 2 piece knit lounge set wide leg pants")
+        searchQuery: "women 2 piece lounge set",
+        amazonUrl: buildAmazonSearchUrl("women 2 piece lounge set")
       },
       {
         id: "det-4",
@@ -816,8 +822,8 @@ export function generateStylistAdvice({
         category: "accessory",
         color: "Ivory / Cloud White",
         style: "Trendy minimalist purse",
-        searchQuery: "ruched vegan leather hobo shoulder bag",
-        amazonUrl: buildAmazonSearchUrl("ruched vegan leather hobo shoulder bag")
+        searchQuery: "women vegan leather handbag",
+        amazonUrl: buildAmazonSearchUrl("women vegan leather handbag")
       }
     ] : [
       {
