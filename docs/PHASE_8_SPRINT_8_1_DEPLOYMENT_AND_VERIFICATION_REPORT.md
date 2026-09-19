@@ -127,4 +127,19 @@ Route (app)                                 Size  First Load JS
 * **Commit 2 (`b2bfd70`):** `docs: record Milestone 8.1 and rollback anchor 424f851 in CONTEXT.md`
 * **Commit 3 (`a818e33`):** `fix(style-advisor): guarantee keyMatchedProducts and coordinatedProducts in analyze API`
 * **Commit 4 (`6d08587`):** `docs: update Sprint 8.1 Rollback Anchor to a818e33`
-* **Remote Push:** `2583828..6d08587` đẩy thành công lên `https://github.com/gosoniccapital-ui/puzzlesnap.git`.
+* **Remote Push:** `2583828..5f25b65` đẩy thành công lên `https://github.com/gosoniccapital-ui/puzzlesnap.git`.
+
+---
+
+## 6. Bằng Chứng Nghiệm Thu Production Sống (Live Production Verification)
+
+* **Vercel Deployment ID:** `dpl_6PiocwzuT3JqBNBicngUamjBwbbJ`
+* **Vercel Direct URL:** [https://puzzle-tung-a7mtombev-gosoniccapital-2747s-projects.vercel.app](https://puzzle-tung-a7mtombev-gosoniccapital-2747s-projects.vercel.app)
+* **Custom Production Domain:** [https://cunfashion.com/style-advisor](https://cunfashion.com/style-advisor)
+* **Kết quả Probe Thực Tế:**
+  - `GET https://cunfashion.com/style-advisor` -> **HTTP 200 OK** (X-Vercel-Cache: HIT, Server: Vercel)
+  - `GET https://cunfashion.com/admin` -> **HTTP 307 Temporary Redirect** -> `/admin/login?from=%2Fadmin` (Admin Auth Gate hoạt động chuẩn 100%)
+  - `GET https://cunfashion.com/sw.js` -> Trả về `cunfashion-cache-v9` (Client Cache Busting chuẩn xác)
+  - `POST https://cunfashion.com/api/style-advisor/track-click` -> **HTTP 200 OK** (`{"success":true,"logged":true,"data":{"productId":"amz-01","platform":"Amazon",...}}`)
+  - `GET https://cunfashion.com/api/admin/analytics` (Không token) -> **HTTP 401 Unauthorized** (Bảo mật thành công)
+  - `GET https://cunfashion.com/api/admin/analytics` (Kèm Passcode) -> **HTTP 200 OK** (Dữ liệu Live Click Analytics phản hồi tức thì trong 0.2ms)
