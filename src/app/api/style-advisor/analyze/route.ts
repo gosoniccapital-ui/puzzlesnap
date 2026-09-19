@@ -3,6 +3,7 @@ import {
   AMAZON_STYLE_CATALOG,
   VN_STYLE_CATALOG,
   buildAmazonSearchUrl,
+  buildAffiliateSearchLinks,
   generateStylistAdvice,
   AdviceResult,
   DetectedOutfitItem,
@@ -248,18 +249,6 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
               })
             );
 
-            const catalogPool = market === "US" ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
-
-            // Category fallback images
-            const categoryImages: Record<string, string> = {
-              outerwear: "https://images.unsplash.com/photo-1544441893-675973e31985?w=600&auto=format&fit=crop&q=80",
-              top: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&auto=format&fit=crop&q=80",
-              bottom: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80",
-              dress: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",
-              shoes: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=600&auto=format&fit=crop&q=80",
-              accessory: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
-            };
-
             const isAll = market === "ALL" || !market;
             const isUS = market === "US";
             const isVN = market === "VN";
@@ -267,117 +256,139 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
             const isFourthwall = market === "FOURTHWALL";
 
             let multiSourceProducts: StyleProduct[] = [];
+            let hasDirectMatch = true;
+
+            const amzCatalogMatches = cleanKeyword
+              ? AMAZON_STYLE_CATALOG.filter(p =>
+                  p.name.toLowerCase().includes(cleanKeyword.toLowerCase()) ||
+                  p.category.toLowerCase().includes(cleanKeyword.toLowerCase()) ||
+                  (p.colorTags || []).some(t => t.toLowerCase().includes(cleanKeyword.toLowerCase()))
+                )
+              : [];
+
+            const vnCatalogMatches = cleanKeyword
+              ? VN_STYLE_CATALOG.filter(p =>
+                  p.name.toLowerCase().includes(cleanKeyword.toLowerCase()) ||
+                  p.category.toLowerCase().includes(cleanKeyword.toLowerCase()) ||
+                  (p.colorTags || []).some(t => t.toLowerCase().includes(cleanKeyword.toLowerCase()))
+                )
+              : [];
 
             if (isAll) {
               const [fwItems, rkItems] = await Promise.all([
-                fetchFourthwallProducts(2, cleanKeyword || detectedItems[0]?.searchQuery),
-                searchRakutenProducts(cleanKeyword || detectedItems[0]?.searchQuery || `${style} ${occasion}`, 2)
+                fetchFourthwallProducts(3, cleanKeyword),
+                searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 3)
               ]);
 
-              const amzDetected: StyleProduct[] = detectedItems.slice(0, 3).map((item, idx) => {
-                const cat = item.category || "top";
-                return {
-                  id: `amz-agg-${idx + 1}`,
-                  name: item.name,
-                  category: cat,
-                  price: "Check on Amazon",
-                  originalPrice: "Best Deal",
-                  rating: 4.8,
-                  reviewCount: 280 + idx * 60,
-                  img: categoryImages[cat] || categoryImages.top,
-                  link: buildAmazonSearchUrl(item.searchQuery || item.name),
-                  platform: "Amazon" as const,
-                  tag: idx === 0 ? "Curated Look Match" : "Amazon's Choice",
-                  occasions: [occasion],
-                  styles: [style],
-                  budgetTier: (budget as any) || "mid",
-                  colorTags: [item.color || "neutral"],
-                  market: "US" as const
-                };
-              });
+              const directMatches = [
+                ...fwItems,
+                ...rkItems,
+                ...amzCatalogMatches,
+                ...vnCatalogMatches
+              ];
 
-              multiSourceProducts = [...fwItems, ...rkItems, ...amzDetected];
+              if (cleanKeyword) {
+                if (directMatches.length > 0) {
+                  hasDirectMatch = true;
+                  multiSourceProducts = directMatches;
+                } else {
+                  hasDirectMatch = false;
+                  // Zero direct match for query (e.g. "webroot").
+                  // Show real trending picks across platforms, NO synthetic cards!
+                  const [defaultFw, defaultRk] = await Promise.all([
+                    fetchFourthwallProducts(2),
+                    searchRakutenProducts("fashion clothing", 2)
+                  ]);
+                  multiSourceProducts = [
+                    ...defaultFw,
+                    ...defaultRk,
+                    ...AMAZON_STYLE_CATALOG.slice(0, 2),
+                    ...VN_STYLE_CATALOG.slice(0, 2)
+                  ];
+                }
+              } else {
+                // No keyword (e.g. image upload or default look)
+                hasDirectMatch = true;
+                multiSourceProducts = [
+                  ...fwItems,
+                  ...rkItems,
+                  ...AMAZON_STYLE_CATALOG.slice(0, 2),
+                  ...VN_STYLE_CATALOG.slice(0, 2)
+                ];
+              }
+
+              // Pad up to 6 from catalog if needed without duplicates
               if (multiSourceProducts.length < 6) {
-                for (const catItem of catalogPool) {
+                const padCatalog = [...AMAZON_STYLE_CATALOG, ...VN_STYLE_CATALOG];
+                for (const catItem of padCatalog) {
                   if (multiSourceProducts.length >= 6) break;
-                  if (!multiSourceProducts.some((p) => p.name === catItem.name)) {
+                  if (!multiSourceProducts.some((p) => p.id === catItem.id || p.name === catItem.name)) {
                     multiSourceProducts.push(catItem);
                   }
                 }
               }
             } else if (isFourthwall) {
-              const fwItems = await fetchFourthwallProducts(6, cleanKeyword || detectedItems[0]?.searchQuery);
+              const fwItems = await fetchFourthwallProducts(6, cleanKeyword);
               if (fwItems.length > 0) {
+                hasDirectMatch = true;
                 multiSourceProducts = fwItems;
+              } else {
+                if (cleanKeyword) hasDirectMatch = false;
+                multiSourceProducts = await fetchFourthwallProducts(6);
               }
             } else if (isRakuten) {
-              const rakutenKeyword = cleanKeyword || detectedItems[0]?.searchQuery || `${style} ${occasion} clothing`;
-              const rakutenItems = await searchRakutenProducts(rakutenKeyword, 6);
-              if (rakutenItems.length > 0) {
-                multiSourceProducts = rakutenItems;
+              const rkItems = await searchRakutenProducts(cleanKeyword || `${style} ${occasion} clothing`, 6);
+              if (rkItems.length > 0) {
+                hasDirectMatch = true;
+                multiSourceProducts = rkItems;
               } else {
-                // Fallback to Amazon style catalog if Rakuten merchants have no match for niche query
+                if (cleanKeyword) hasDirectMatch = false;
                 multiSourceProducts = AMAZON_STYLE_CATALOG.slice(0, 6);
               }
-            }
-
-            // If not RAKUTEN or FOURTHWALL, build standard detected product cards
-            if (multiSourceProducts.length === 0) {
-              const catalogPool = (isUS || isRakuten || isFourthwall) ? AMAZON_STYLE_CATALOG : VN_STYLE_CATALOG;
-
-              const detectedProductCards: StyleProduct[] = detectedItems.map((item, idx) => {
-                const cat = item.category || "top";
-                const searchLink = isUS
-                  ? buildAmazonSearchUrl(item.searchQuery || `${item.name} for women`)
-                  : `https://shopee.vn/search?keyword=${encodeURIComponent(item.searchQuery || item.name)}`;
-
-                const matchedCatalogItem = catalogPool.find((p) => p.category === cat);
-                const cardImg = (idx === 0 && image && !image.startsWith("data:"))
-                  ? image
-                  : matchedCatalogItem?.img || categoryImages[cat] || categoryImages.top;
-
-                return {
-                  id: `gemini-curated-${idx + 1}`,
-                  name: item.name,
-                  category: cat,
-                  price: isUS ? "Check on Amazon" : "Xem trên Shopee",
-                  originalPrice: isUS ? "Best Price" : "Giá tốt nhất",
-                  rating: 4.8,
-                  reviewCount: 320 + idx * 85,
-                  img: cardImg,
-                  link: searchLink,
-                  platform: isUS ? ("Amazon" as const) : ("Shopee" as const),
-                  tag: idx === 0 ? "Featured Look Match" : "AI Recommended",
-                  occasions: [occasion],
-                  styles: [style],
-                  budgetTier: (budget as any) || "mid",
-                  colorTags: [item.color],
-                  market: isUS ? "US" : "VN"
-                };
-              });
-
-              multiSourceProducts = [...detectedProductCards];
-              for (const catItem of catalogPool) {
-                if (multiSourceProducts.length >= 6) break;
-                if (!multiSourceProducts.some((p) => p.category === catItem.category)) {
-                  multiSourceProducts.push(catItem);
-                }
+            } else if (isUS) {
+              if (amzCatalogMatches.length > 0) {
+                hasDirectMatch = true;
+                multiSourceProducts = amzCatalogMatches;
+              } else {
+                if (cleanKeyword) hasDirectMatch = false;
+                multiSourceProducts = AMAZON_STYLE_CATALOG.slice(0, 6);
+              }
+            } else if (isVN) {
+              if (vnCatalogMatches.length > 0) {
+                hasDirectMatch = true;
+                multiSourceProducts = vnCatalogMatches;
+              } else {
+                if (cleanKeyword) hasDirectMatch = false;
+                multiSourceProducts = VN_STYLE_CATALOG.slice(0, 6);
               }
             }
 
+            const searchLinks = cleanKeyword ? buildAffiliateSearchLinks(cleanKeyword, market as any) : undefined;
+
+            const headline = hasDirectMatch
+              ? (parsed.headline || `Curated Look: ${occasion} • ${style}`)
+              : `Tìm Kiếm Trực Tiếp "${cleanKeyword}" & Gợi Ý Thịnh Hành`;
+
+            const adviceText = hasDirectMatch
+              ? (parsed.adviceText || "Tailored outfit recommendations curated by CunFashion AI.")
+              : `Không tìm thấy sản phẩm thời trang có sẵn khớp chính xác với từ khóa "${cleanKeyword}". Bạn có thể bấm vào các liên kết tìm kiếm trực tiếp bên dưới trên Amazon US, Shopee hoặc Rakuten để nhận ưu đãi. Dưới đây là các gợi ý thời trang thịnh hành bán chạy nhất:`;
+
             const result: AdviceResult = {
-              headline: parsed.headline || `Curated Look: ${occasion} • ${style}`,
-              adviceText: parsed.adviceText || "Tailored outfit recommendations curated by CunFashion AI.",
+              headline,
+              adviceText,
               overallStyle: parsed.overallStyle || style,
               palette: parsed.palette || [
                 { name: "Primary", hex: "#27272A" },
                 { name: "Accent", hex: "#D4D4D8" }
               ],
               styleTips: parsed.styleTips || [],
-              detectedItems,
+              detectedItems: base64Data ? detectedItems : (hasDirectMatch ? detectedItems : []),
               suggestedProducts: multiSourceProducts.slice(0, 6),
               market: market as any,
-              source: isFourthwall ? "fourthwall-api" : isRakuten ? "rakuten-api" : base64Data ? "gemini-vision" : "gemini-text"
+              source: isFourthwall ? "fourthwall-api" : isRakuten ? "rakuten-api" : base64Data ? "gemini-vision" : "gemini-text",
+              keyword: cleanKeyword || undefined,
+              hasDirectMatch,
+              searchLinks
             };
 
             return NextResponse.json({ success: true, data: result });
@@ -389,26 +400,6 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
     }
 
     // Fallback: Smart heuristic styling based on curated catalog & options
-    const isAll = market === "ALL" || !market;
-    let fallbackProducts: StyleProduct[] = [];
-    if (isAll) {
-      const [fw, rk] = await Promise.all([
-        fetchFourthwallProducts(2, cleanKeyword),
-        searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 2)
-      ]);
-      const amz = AMAZON_STYLE_CATALOG.slice(0, 3);
-      const vn = VN_STYLE_CATALOG.slice(0, 2);
-      fallbackProducts = [...fw, ...rk, ...amz, ...vn].slice(0, 8);
-    } else if (market === "FOURTHWALL") {
-      fallbackProducts = await fetchFourthwallProducts(6, cleanKeyword);
-    } else if (market === "RAKUTEN") {
-      const rakutenSearchKey = cleanKeyword || `${style} ${occasion}`;
-      fallbackProducts = await searchRakutenProducts(rakutenSearchKey, 6);
-      if (fallbackProducts.length === 0) {
-        fallbackProducts = AMAZON_STYLE_CATALOG.slice(0, 6);
-      }
-    }
-
     const fallbackAdvice = generateStylistAdvice({
       occasion,
       style,
@@ -418,6 +409,37 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
       market: market as any,
       keyword: cleanKeyword
     });
+
+    const isAll = market === "ALL" || !market;
+    let fallbackProducts: StyleProduct[] = [];
+
+    if (fallbackAdvice.hasDirectMatch !== false) {
+      if (isAll) {
+        const [fw, rk] = await Promise.all([
+          fetchFourthwallProducts(2, cleanKeyword),
+          searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 2)
+        ]);
+        const amz = AMAZON_STYLE_CATALOG.filter(p => !cleanKeyword || p.name.toLowerCase().includes(cleanKeyword.toLowerCase())).slice(0, 3);
+        const vn = VN_STYLE_CATALOG.filter(p => !cleanKeyword || p.name.toLowerCase().includes(cleanKeyword.toLowerCase())).slice(0, 2);
+        fallbackProducts = [...fw, ...rk, ...amz, ...vn].filter(Boolean);
+      } else if (market === "FOURTHWALL") {
+        fallbackProducts = await fetchFourthwallProducts(6, cleanKeyword);
+      } else if (market === "RAKUTEN") {
+        fallbackProducts = await searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 6);
+      }
+    } else {
+      // Zero matches for keyword: fetch honest trending items across platforms
+      const [defaultFw, defaultRk] = await Promise.all([
+        fetchFourthwallProducts(2),
+        searchRakutenProducts("fashion clothing", 2)
+      ]);
+      fallbackProducts = [
+        ...defaultFw,
+        ...defaultRk,
+        ...AMAZON_STYLE_CATALOG.slice(0, 2),
+        ...VN_STYLE_CATALOG.slice(0, 2)
+      ].filter(Boolean);
+    }
 
     if (fallbackProducts.length > 0) {
       fallbackAdvice.suggestedProducts = fallbackProducts.slice(0, 8);

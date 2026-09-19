@@ -132,3 +132,35 @@ test('Style Advisor Data: getRandomSurpriseLook returns valid presets', async ()
   assert.ok(look.style && typeof look.style === 'string');
   assert.ok(look.description && typeof look.description === 'string');
 });
+
+test('Style Advisor Data: Honest Affiliate Search handles uncatalogued terms like webroot without fake cards', () => {
+  const webrootAdvice = generateStylistAdvice({
+    occasion: 'all',
+    style: 'all',
+    budget: 'all',
+    color: '',
+    hasCustomImage: false,
+    market: 'ALL',
+    keyword: 'webroot'
+  });
+
+  assert.equal(webrootAdvice.hasDirectMatch, false, 'webroot should be marked as hasDirectMatch: false');
+  assert.ok(webrootAdvice.searchLinks && webrootAdvice.searchLinks.length >= 3, 'Should provide direct search links');
+
+  const amazonSearchLink = webrootAdvice.searchLinks.find(l => l.platform === 'Amazon');
+  assert.ok(amazonSearchLink, 'Must provide Amazon search link');
+  assert.ok(amazonSearchLink.url.includes('tag=cuncute-20'), 'Amazon search link must include tag=cuncute-20');
+  assert.ok(amazonSearchLink.url.includes('k=webroot'), 'Amazon search link must search for webroot');
+
+  const shopeeSearchLink = webrootAdvice.searchLinks.find(l => l.platform === 'Shopee');
+  assert.ok(shopeeSearchLink, 'Must provide Shopee search link');
+  assert.ok(shopeeSearchLink.url.includes('webroot'), 'Shopee search link must search for webroot');
+
+  // Verify all suggested products are real products from catalog (no "Check on Amazon" or "Best Deal" fake prices)
+  assert.ok(webrootAdvice.suggestedProducts.length > 0, 'Should suggest real trending products');
+  for (const product of webrootAdvice.suggestedProducts) {
+    assert.notEqual(product.price, 'Check on Amazon', `Product ${product.id} must not have fake price`);
+    assert.notEqual(product.originalPrice, 'Best Deal', `Product ${product.id} must not have fake originalPrice`);
+    assert.ok(product.img && product.img.startsWith('http'), `Product ${product.id} must have valid image URL`);
+  }
+});

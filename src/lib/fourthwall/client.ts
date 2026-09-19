@@ -16,7 +16,7 @@ function filterProductsByQuery(items: StyleProduct[], query?: string): StyleProd
     const text = `${item.name} ${item.category} ${(item.colorTags || []).join(" ")}`.toLowerCase();
     return terms.some(term => text.includes(term));
   });
-  return matched.length > 0 ? matched : items;
+  return matched;
 }
 
 export async function fetchFourthwallProducts(limit = 12, query?: string): Promise<StyleProduct[]> {

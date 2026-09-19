@@ -469,6 +469,76 @@ export const VN_STYLE_CATALOG: StyleProduct[] = [
 
 export const STYLE_CATALOG: StyleProduct[] = [...AMAZON_STYLE_CATALOG, ...VN_STYLE_CATALOG];
 
+export interface AffiliateSearchLink {
+  platform: "Amazon" | "Shopee" | "Rakuten" | "TikTok Shop" | "CunCute Store";
+  label: string;
+  url: string;
+  badge: string;
+  colorClass: string;
+}
+
+export function buildAffiliateSearchLinks(query: string, market: string = "ALL"): AffiliateSearchLink[] {
+  const clean = query.trim();
+  if (!clean) return [];
+
+  const links: AffiliateSearchLink[] = [
+    {
+      platform: "Amazon",
+      label: `Tìm "${clean}" trên Amazon US`,
+      url: buildAmazonSearchUrl(clean),
+      badge: "Tag: cuncute-20",
+      colorClass: "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black"
+    },
+    {
+      platform: "Shopee",
+      label: `Tìm "${clean}" trên Shopee VN`,
+      url: `https://shopee.vn/search?keyword=${encodeURIComponent(clean)}`,
+      badge: "Voucher Hot",
+      colorClass: "bg-orange-500 hover:bg-orange-600 text-white font-bold"
+    },
+    {
+      platform: "Rakuten",
+      label: `Tìm "${clean}" trên Rakuten Brands`,
+      url: `https://www.rakuten.com/search/${encodeURIComponent(clean)}`,
+      badge: "Global Brands",
+      colorClass: "bg-red-600 hover:bg-red-700 text-white font-bold"
+    },
+    {
+      platform: "TikTok Shop",
+      label: `Tìm "${clean}" trên TikTok Shop`,
+      url: `https://www.tiktok.com/search?q=${encodeURIComponent(clean)}`,
+      badge: "Trending Video",
+      colorClass: "bg-stone-900 hover:bg-stone-800 text-white font-bold"
+    }
+  ];
+
+  if (market === "US") {
+    return links.filter((l) => l.platform === "Amazon" || l.platform === "Rakuten");
+  }
+  if (market === "VN") {
+    return links.filter((l) => l.platform === "Shopee" || l.platform === "TikTok Shop");
+  }
+  if (market === "FOURTHWALL") {
+    return [
+      {
+        platform: "CunCute Store",
+        label: `Tìm "${clean}" trên CunCute Store`,
+        url: `https://cute.cunfashion.com/search?q=${encodeURIComponent(clean)}`,
+        badge: "Exclusive Merch",
+        colorClass: "bg-pink-600 hover:bg-pink-700 text-white font-bold"
+      },
+      ...links
+    ];
+  }
+  if (market === "RAKUTEN") {
+    const rk = links.find((l) => l.platform === "Rakuten");
+    const amz = links.find((l) => l.platform === "Amazon");
+    return [rk, amz].filter(Boolean) as AffiliateSearchLink[];
+  }
+
+  return links;
+}
+
 export interface AdviceResult {
   headline: string;
   adviceText: string;
@@ -480,6 +550,8 @@ export interface AdviceResult {
   market?: "ALL" | "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
   source?: "gemini-vision" | "gemini-text" | "openai-vision" | "ai-heuristic" | "rakuten-api" | "fourthwall-api";
   keyword?: string;
+  hasDirectMatch?: boolean;
+  searchLinks?: AffiliateSearchLink[];
 }
 
 export interface SurpriseLook {
@@ -647,10 +719,14 @@ export function generateStylistAdvice({
   }
 
   const cleanKw = keyword?.trim() || "";
+  let hasDirectMatch = true;
 
   let matched = catalogPool.filter(
-    (p) => p.occasions.includes(occasion) || p.styles.includes(style)
+    (p) => (occasion === "all" || p.occasions.includes(occasion)) && (style === "all" || p.styles.includes(style))
   );
+  if (matched.length === 0) {
+    matched = [...catalogPool];
+  }
 
   if (cleanKw) {
     const kwLower = cleanKw.toLowerCase();
@@ -662,10 +738,13 @@ export function generateStylistAdvice({
     );
     if (kwMatches.length > 0) {
       matched = [...kwMatches, ...matched.filter((p) => !kwMatches.some((m) => m.id === p.id))];
+      hasDirectMatch = true;
+    } else {
+      hasDirectMatch = false;
     }
   }
 
-  if (budget) {
+  if (budget && budget !== "all") {
     const budgetFiltered = matched.filter((p) => p.budgetTier === budget);
     if (budgetFiltered.length >= 2) {
       matched = budgetFiltered;
@@ -700,74 +779,95 @@ export function generateStylistAdvice({
     );
   }
 
-  // Generate detected outfit items for Amazon US
-  const detectedItems: DetectedOutfitItem[] = isUS ? [
-    {
-      id: "det-1",
-      name: cleanKw ? cleanKw : "Cropped Trench Coat / Fall Jacket",
-      category: "outerwear",
-      color: "Khaki / Camel",
-      style: "Double-breasted casual",
-      searchQuery: cleanKw ? cleanKw : "cropped trench coat for women khaki",
-      amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "cropped trench coat for women khaki")
-    },
-    {
-      id: "det-2",
-      name: "Suede Slouchy Mid Calf Boots",
-      category: "shoes",
-      color: "Warm Brown / Tan",
-      style: "Chunky heel fall boots",
-      searchQuery: "womens suede mid calf slouchy boots brown",
-      amazonUrl: buildAmazonSearchUrl("womens suede mid calf slouchy boots brown")
-    },
-    {
-      id: "det-3",
-      name: "Knit 2-Piece Lounge Set",
-      category: "top",
-      color: "Beige / Cream",
-      style: "Wide-leg cozy chic",
-      searchQuery: "womens 2 piece knit lounge set wide leg pants",
-      amazonUrl: buildAmazonSearchUrl("womens 2 piece knit lounge set wide leg pants")
-    },
-    {
-      id: "det-4",
-      name: "Ruched Vegan Leather Hobo Bag",
-      category: "accessory",
-      color: "Ivory / Cloud White",
-      style: "Trendy minimalist purse",
-      searchQuery: "ruched vegan leather hobo shoulder bag",
-      amazonUrl: buildAmazonSearchUrl("ruched vegan leather hobo shoulder bag")
-    }
-  ] : [
-    {
-      id: "det-vn-1",
-      name: cleanKw ? cleanKw : "Áo Sơ Mi / Áo Kiểu Lụa",
-      category: "top",
-      color: "Trắng / Kem",
-      style: "Thanh lịch",
-      searchQuery: cleanKw ? cleanKw : "ao so mi nu thanh lich",
-      amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "womens silk button down shirt")
-    },
-    {
-      id: "det-vn-2",
-      name: "Quần Ống Suông / Chân Váy",
-      category: "bottom",
-      color: "Đen / Be",
-      style: "Tôn dáng",
-      searchQuery: "quan tay ong suong cap cao",
-      amazonUrl: buildAmazonSearchUrl("womens high waisted wide leg trousers")
-    }
-  ];
+  // Generate detected outfit items for Amazon US or when keyword matches fashion piece
+  let detectedItems: DetectedOutfitItem[] = [];
+  if (hasDirectMatch || hasCustomImage || !cleanKw) {
+    detectedItems = isUS ? [
+      {
+        id: "det-1",
+        name: cleanKw ? cleanKw : "Cropped Trench Coat / Fall Jacket",
+        category: "outerwear",
+        color: "Khaki / Camel",
+        style: "Double-breasted casual",
+        searchQuery: cleanKw ? cleanKw : "cropped trench coat for women khaki",
+        amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "cropped trench coat for women khaki")
+      },
+      {
+        id: "det-2",
+        name: "Suede Slouchy Mid Calf Boots",
+        category: "shoes",
+        color: "Warm Brown / Tan",
+        style: "Chunky heel fall boots",
+        searchQuery: "womens suede mid calf slouchy boots brown",
+        amazonUrl: buildAmazonSearchUrl("womens suede mid calf slouchy boots brown")
+      },
+      {
+        id: "det-3",
+        name: "Knit 2-Piece Lounge Set",
+        category: "top",
+        color: "Beige / Cream",
+        style: "Wide-leg cozy chic",
+        searchQuery: "womens 2 piece knit lounge set wide leg pants",
+        amazonUrl: buildAmazonSearchUrl("womens 2 piece knit lounge set wide leg pants")
+      },
+      {
+        id: "det-4",
+        name: "Ruched Vegan Leather Hobo Bag",
+        category: "accessory",
+        color: "Ivory / Cloud White",
+        style: "Trendy minimalist purse",
+        searchQuery: "ruched vegan leather hobo shoulder bag",
+        amazonUrl: buildAmazonSearchUrl("ruched vegan leather hobo shoulder bag")
+      }
+    ] : [
+      {
+        id: "det-vn-1",
+        name: cleanKw ? cleanKw : "Áo Sơ Mi / Áo Kiểu Lụa",
+        category: "top",
+        color: "Trắng / Kem",
+        style: "Thanh lịch",
+        searchQuery: cleanKw ? cleanKw : "ao so mi nu thanh lich",
+        amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "womens silk button down shirt")
+      },
+      {
+        id: "det-vn-2",
+        name: "Quần Ống Suông / Chân Váy",
+        category: "bottom",
+        color: "Đen / Be",
+        style: "Tôn dáng",
+        searchQuery: "quan tay ong suong cap cao",
+        amazonUrl: buildAmazonSearchUrl("womens high waisted wide leg trousers")
+      }
+    ];
+  }
 
-  const headline = cleanKw
-    ? (isUS ? `Curated Styling for "${cleanKw}" • ${occName}` : `Gợi Ý Phối Đồ Với "${cleanKw}" • ${occName}`)
-    : (isUS ? `Curated Look: ${occName} • ${stlName}` : `Gợi Ý Phối Đồ Cho Dịp ${occName} • Phong Cách ${stlName}`);
+  let headline = "";
+  let adviceText = "";
+
+  if (cleanKw) {
+    if (hasDirectMatch) {
+      headline = isUS ? `Curated Styling for "${cleanKw}" • ${occName}` : `Gợi Ý Phối Đồ Với "${cleanKw}" • ${occName}`;
+      adviceText = isUS
+        ? `Based on your request for "${cleanKw}" and preference for "${selectedColor}", CunFashion AI Stylist has matched top-rated fashion essentials delivering flawless silhouette harmony and effortless all-day comfort.`
+        : `Dựa trên yêu cầu "${cleanKw}" và mong muốn với tông màu "${selectedColor}", stylist CunFashion khuyến nghị một set đồ hài hòa vừa tôn nét riêng, vừa đảm bảo sự thoải mái và chuẩn gu.`;
+    } else {
+      headline = isUS ? `Direct Affiliate Search for "${cleanKw}" • Trending Picks` : `Tìm Kiếm Trực Tiếp "${cleanKw}" & Gợi Ý Thịnh Hành`;
+      adviceText = isUS
+        ? `We couldn't find an exact fashion match for "${cleanKw}" in our curated boutique. You can search directly on Amazon US (StoreID: cuncute-20), Shopee, or Rakuten using the quick links below. Meanwhile, explore our trending fashion essentials:`
+        : `Không tìm thấy sản phẩm thời trang có sẵn khớp chính xác với từ khóa "${cleanKw}". Bạn có thể bấm vào các liên kết tìm kiếm trực tiếp bên dưới trên Amazon US, Shopee hoặc Rakuten để nhận ưu đãi. Đồng thời, CunFashion gợi ý cho bạn những set đồ thịnh hành bán chạy nhất:`;
+    }
+  } else {
+    headline = isUS ? `Curated Look: ${occName} • ${stlName}` : `Gợi Ý Phối Đồ Cho Dịp ${occName} • Phong Cách ${stlName}`;
+    adviceText = isUS
+      ? `Based on your selected occasion "${occName}" and style "${stlName}", CunFashion AI Stylist has matched top-rated fashion essentials delivering flawless silhouette harmony.`
+      : `Dựa trên dịp "${occName}" và phong cách "${stlName}" cùng tông màu "${selectedColor}", stylist CunFashion khuyến nghị một set đồ hài hòa chuẩn gu.`;
+  }
+
+  const searchLinks = cleanKw ? buildAffiliateSearchLinks(cleanKw, market) : undefined;
 
   return {
     headline,
-    adviceText: isUS
-      ? `Based on your request for "${cleanKw || stlName}" and preference for "${selectedColor}", CunFashion AI Stylist has matched top-rated fashion essentials delivering flawless silhouette harmony and effortless all-day comfort.`
-      : `Dựa trên yêu cầu "${cleanKw || stlName}" và mong muốn với tông màu "${selectedColor}", stylist CunFashion khuyến nghị một set đồ hài hòa vừa tôn nét riêng, vừa đảm bảo sự thoải mái và chuẩn gu.`,
+    adviceText,
     overallStyle: stlName,
     palette,
     styleTips: tips,
@@ -775,6 +875,8 @@ export function generateStylistAdvice({
     detectedItems,
     market: market || (isUS ? "US" : "VN"),
     source: "ai-heuristic",
-    keyword: cleanKw || undefined
+    keyword: cleanKw || undefined,
+    hasDirectMatch,
+    searchLinks
   };
 }

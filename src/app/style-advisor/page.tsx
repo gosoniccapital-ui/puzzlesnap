@@ -723,16 +723,70 @@ export default function StyleAdvisorPage() {
               )}
             </div>
 
+            {/* 1.5 Direct Affiliate Search Hub (khi từ khóa tìm kiếm không có sẵn trong catalog) */}
+            {result.hasDirectMatch === false && result.keyword && (
+              <div className="bg-white rounded-3xl shadow-sm border-2 border-amber-300/80 p-5 sm:p-6 bg-gradient-to-br from-amber-50/60 via-white to-pink-50/40">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500 text-stone-950 flex items-center justify-center shrink-0 shadow-sm font-black">
+                    <Search className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-extrabold text-stone-900">
+                      Tìm kiếm trực tiếp &quot;{result.keyword}&quot; trên các sàn mua sắm
+                    </h3>
+                    <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
+                      Từ khóa <strong>&quot;{result.keyword}&quot;</strong> không có trong kho mẫu thời trang có sẵn. Bấm vào các liên kết trực tiếp bên dưới để tìm sản phẩm chính xác và nhận ưu đãi affiliate tốt nhất:
+                    </p>
+                  </div>
+                </div>
+
+                {result.searchLinks && result.searchLinks.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                    {result.searchLinks.map((link, idx) => (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-between p-3.5 rounded-2xl font-bold text-xs shadow-xs transition hover:scale-[1.02] active:scale-95 ${link.colorClass}`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="text-base">
+                            {link.platform === "Amazon" ? "📦" : link.platform === "Shopee" ? "🇻🇳" : link.platform === "Rakuten" ? "👗" : link.platform === "CunCute Store" ? "🌟" : "🎵"}
+                          </span>
+                          <div className="text-left truncate">
+                            <div className="truncate font-bold">{link.label}</div>
+                            <span className="text-[10px] opacity-80 font-normal">{link.badge}</span>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 shrink-0 opacity-80" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* 2. Card Sản phẩm gợi ý (Affiliate) */}
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
                 <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
                   <ShoppingBag className="w-5 h-5 text-pink-600 shrink-0" />
-                  <span>Sản phẩm gợi ý (Affiliate)</span>
+                  <span>
+                    {result.hasDirectMatch === false
+                      ? "🔥 Gợi ý thời trang thịnh hành dành cho bạn (Trending Picks)"
+                      : "Sản phẩm gợi ý (Affiliate)"}
+                  </span>
                   {result.keyword && (
-                    <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
-                      Khớp từ khóa: &quot;{result.keyword}&quot;
-                    </span>
+                    result.hasDirectMatch === false ? (
+                      <span className="text-xs font-semibold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-lg border border-stone-200">
+                        Gợi ý tham khảo (Kho mẫu không có &quot;{result.keyword}&quot;)
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
+                        Khớp từ khóa: &quot;{result.keyword}&quot;
+                      </span>
+                    )
                   )}
                 </h2>
                 <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
