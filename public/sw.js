@@ -1,5 +1,5 @@
-// CunFashion PWA Service Worker v10.0.0 (Sprint 8.2 Wardrobe Outfit Sharing & Deep Lookbook Export)
-const CACHE_NAME = 'cunfashion-cache-v10';
+// CunFashion PWA Service Worker v11.0.0 (Sprint 8.3 Postback Webhook & Multi-Theme Lookbook Studio)
+const CACHE_NAME = 'cunfashion-cache-v11';
 
 const STATIC_ASSETS = [
   '/',

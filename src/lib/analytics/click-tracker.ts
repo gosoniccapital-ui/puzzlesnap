@@ -14,8 +14,26 @@ export interface ClickRecord {
   created_at: string;
 }
 
+export interface ConversionRecord {
+  id: string;
+  click_id?: string;
+  order_id: string;
+  product_id?: string;
+  product_name?: string;
+  platform: string;
+  amount: number;
+  commission: number;
+  currency: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+}
+
 export interface AnalyticsSummary {
   totalClicks: number;
+  totalConversions: number;
+  totalRevenue: number;
+  totalCommission: number;
+  conversionRate: number;
   platforms: Record<string, number>;
   topProducts: {
     productId: string;
@@ -28,6 +46,7 @@ export interface AnalyticsSummary {
     count: number;
   }[];
   recentClicks: ClickRecord[];
+  recentConversions: ConversionRecord[];
 }
 
 const MAX_BUFFER_SIZE = 500;
@@ -74,6 +93,35 @@ const inMemoryClicks: ClickRecord[] = [
   }
 ];
 
+const inMemoryConversions: ConversionRecord[] = [
+  {
+    id: "conv-init-1",
+    click_id: "init-clk-1",
+    order_id: "AMZ-ORD-88219",
+    product_id: "amz-01",
+    product_name: "PRETTYGARDEN Cropped Trench Coat For Women Double Breasted",
+    platform: "Amazon",
+    amount: 59.99,
+    commission: 4.2,
+    currency: "USD",
+    status: "approved",
+    created_at: new Date(Date.now() - 3600000 * 1.5).toISOString()
+  },
+  {
+    id: "conv-init-2",
+    click_id: "init-clk-4",
+    order_id: "FW-CUN-10492",
+    product_id: "fw-01",
+    product_name: "Cun Cute Signature Angel Wings Hoodie",
+    platform: "CunCute Store",
+    amount: 48.0,
+    commission: 7.2,
+    currency: "USD",
+    status: "approved",
+    created_at: new Date(Date.now() - 600000).toISOString()
+  }
+];
+
 export function recordClick(click: Omit<ClickRecord, "id">): ClickRecord {
   const newRecord: ClickRecord = {
     ...click,
@@ -83,6 +131,37 @@ export function recordClick(click: Omit<ClickRecord, "id">): ClickRecord {
   inMemoryClicks.unshift(newRecord);
   if (inMemoryClicks.length > MAX_BUFFER_SIZE) {
     inMemoryClicks.pop();
+  }
+
+  return newRecord;
+}
+
+export function recordConversion(
+  conv: Omit<ConversionRecord, "id" | "created_at"> & { created_at?: string }
+): ConversionRecord {
+  // If click_id is provided, try to match product name and id from inMemoryClicks
+  let prodId = conv.product_id;
+  let prodName = conv.product_name;
+
+  if (conv.click_id && (!prodId || !prodName)) {
+    const matchedClick = inMemoryClicks.find((c) => c.id === conv.click_id);
+    if (matchedClick) {
+      if (!prodId) prodId = matchedClick.product_id;
+      if (!prodName) prodName = matchedClick.product_name;
+    }
+  }
+
+  const newRecord: ConversionRecord = {
+    ...conv,
+    id: `conv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    product_id: prodId,
+    product_name: prodName,
+    created_at: conv.created_at || new Date().toISOString()
+  };
+
+  inMemoryConversions.unshift(newRecord);
+  if (inMemoryConversions.length > MAX_BUFFER_SIZE) {
+    inMemoryConversions.pop();
   }
 
   return newRecord;
@@ -146,17 +225,40 @@ export function getAnalyticsSummary(): AnalyticsSummary {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
+  let totalRevenue = 0;
+  let totalCommission = 0;
+  for (const conv of inMemoryConversions) {
+    if (conv.status !== "rejected") {
+      totalRevenue += conv.amount;
+      totalCommission += conv.commission;
+    }
+  }
+
+  const totalClicks = inMemoryClicks.length;
+  const totalConversions = inMemoryConversions.length;
+  const conversionRate =
+    totalClicks > 0 ? Number(((totalConversions / totalClicks) * 100).toFixed(2)) : 0;
+
   return {
-    totalClicks: inMemoryClicks.length,
+    totalClicks,
+    totalConversions,
+    totalRevenue: Number(totalRevenue.toFixed(2)),
+    totalCommission: Number(totalCommission.toFixed(2)),
+    conversionRate,
     platforms,
     topProducts,
     topKeywords,
-    recentClicks: inMemoryClicks.slice(0, 30)
+    recentClicks: inMemoryClicks.slice(0, 30),
+    recentConversions: inMemoryConversions.slice(0, 30)
   };
 }
 
 export function getAllClickRecords(): ClickRecord[] {
   return [...inMemoryClicks];
+}
+
+export function getAllConversionRecords(): ConversionRecord[] {
+  return [...inMemoryConversions];
 }
 
 export function generateClickCsvString(records: ClickRecord[]): string {
@@ -171,8 +273,8 @@ export function generateClickCsvString(records: ClickRecord[]): string {
     "Link Affiliate Đích"
   ];
 
-  const escapeCell = (str?: string) => {
-    if (!str) return '""';
+  const escapeCell = (str?: string | number) => {
+    if (str === undefined || str === null || str === "") return '""';
     return `"${String(str).replace(/"/g, '""')}"`;
   };
 
@@ -190,6 +292,45 @@ export function generateClickCsvString(records: ClickRecord[]): string {
   );
 
   // Prepend UTF-8 Byte Order Mark (\uFEFF) for seamless Microsoft Excel rendering
+  return "\uFEFF" + [headers.map((h) => `"${h}"`).join(","), ...rows].join("\r\n");
+}
+
+export function generateConversionCsvString(records: ConversionRecord[]): string {
+  const headers = [
+    "Mã Chuyển Đổi (ID)",
+    "Mã Click Gốc (Click ID)",
+    "Mã Đơn Hàng (Order ID)",
+    "Thời Gian",
+    "Sàn Mua Sắm",
+    "Mã Sản Phẩm",
+    "Tên Sản Phẩm",
+    "Giá Trị Đơn Hàng",
+    "Hoa Hồng Nhận Được",
+    "Tiền Tệ",
+    "Trạng Thái"
+  ];
+
+  const escapeCell = (str?: string | number) => {
+    if (str === undefined || str === null || str === "") return '""';
+    return `"${String(str).replace(/"/g, '""')}"`;
+  };
+
+  const rows = records.map((r) =>
+    [
+      escapeCell(r.id),
+      escapeCell(r.click_id || ""),
+      escapeCell(r.order_id),
+      escapeCell(r.created_at),
+      escapeCell(r.platform),
+      escapeCell(r.product_id || ""),
+      escapeCell(r.product_name || ""),
+      escapeCell(r.amount),
+      escapeCell(r.commission),
+      escapeCell(r.currency),
+      escapeCell(r.status)
+    ].join(",")
+  );
+
   return "\uFEFF" + [headers.map((h) => `"${h}"`).join(","), ...rows].join("\r\n");
 }
 

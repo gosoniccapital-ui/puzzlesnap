@@ -69,8 +69,26 @@ interface AdminClickRecord {
   created_at: string;
 }
 
+interface AdminConversionRecord {
+  id: string;
+  click_id?: string;
+  order_id: string;
+  product_id?: string;
+  product_name?: string;
+  platform: string;
+  amount: number;
+  commission: number;
+  currency: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+}
+
 interface AdminAnalyticsData {
   totalClicks: number;
+  totalConversions: number;
+  totalRevenue: number;
+  totalCommission: number;
+  conversionRate: number;
   platforms: Record<string, number>;
   topProducts: {
     productId: string;
@@ -83,6 +101,7 @@ interface AdminAnalyticsData {
     count: number;
   }[];
   recentClicks: AdminClickRecord[];
+  recentConversions: AdminConversionRecord[];
 }
 
 export default function AdminDashboardPage() {
@@ -112,6 +131,7 @@ export default function AdminDashboardPage() {
   const [loadingScores, setLoadingScores] = useState(true);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [isExportingCsv, setIsExportingCsv] = useState(false);
+  const [isExportingOrdersCsv, setIsExportingOrdersCsv] = useState(false);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -272,7 +292,7 @@ export default function AdminDashboardPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `cunfashion-affiliate-analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `cunfashion-affiliate-clicks-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -282,6 +302,30 @@ export default function AdminDashboardPage() {
       alert("Đã xảy ra lỗi khi xuất file CSV.");
     } finally {
       setIsExportingCsv(false);
+    }
+  };
+
+  const handleExportOrdersCsv = async () => {
+    try {
+      setIsExportingOrdersCsv(true);
+      const res = await fetch("/api/admin/analytics?format=conversions_csv");
+      if (!res.ok) {
+        throw new Error("Failed to export orders CSV from server");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cunfashion-affiliate-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error("Export orders CSV failed:", err);
+      alert("Đã xảy ra lỗi khi xuất file CSV đơn hàng.");
+    } finally {
+      setIsExportingOrdersCsv(false);
     }
   };
 
@@ -827,7 +871,7 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={handleExportCsv}
                   disabled={isExportingCsv}
@@ -835,7 +879,17 @@ export default function AdminDashboardPage() {
                   title="Tải toàn bộ nhật ký click affiliate định dạng CSV"
                 >
                   <FileSpreadsheet className={`w-3.5 h-3.5 ${isExportingCsv ? "animate-bounce" : ""}`} />
-                  <span>{isExportingCsv ? "Đang xuất CSV..." : "Xuất dữ liệu CSV"}</span>
+                  <span>{isExportingCsv ? "Đang xuất CSV..." : "Xuất dữ liệu CSV (Clicks)"}</span>
+                </button>
+
+                <button
+                  onClick={handleExportOrdersCsv}
+                  disabled={isExportingOrdersCsv}
+                  className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-60"
+                  title="Tải toàn bộ nhật ký đơn hàng đối soát chuyển đổi định dạng CSV"
+                >
+                  <FileSpreadsheet className={`w-3.5 h-3.5 ${isExportingOrdersCsv ? "animate-bounce" : ""}`} />
+                  <span>{isExportingOrdersCsv ? "Đang xuất..." : "Xuất Đơn Hàng CSV"}</span>
                 </button>
 
                 <button
@@ -849,7 +903,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Metric KPI Cards */}
+            {/* Metric KPI Cards Row 1: Clicks & Platform Breakdown */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
                 <p className="text-xs font-bold uppercase tracking-wider text-stone-400">
@@ -928,6 +982,57 @@ export default function AdminDashboardPage() {
                 </p>
                 <p className="text-[11px] text-stone-500 font-semibold mt-0.5">
                   Shop trực tiếp & Shopee/TikTok
+                </p>
+              </div>
+            </div>
+
+            {/* Metric KPI Cards Row 2: Postback Orders & Commission KPIs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-2xl border border-purple-200 shadow-xs bg-gradient-to-br from-purple-50/50 to-white">
+                <p className="text-xs font-bold uppercase tracking-wider text-purple-700">
+                  🎯 Đơn Hàng Thành Công
+                </p>
+                <p className="text-3xl font-black text-purple-900 mt-1">
+                  {analyticsData?.totalConversions ?? 0}
+                </p>
+                <p className="text-[11px] text-purple-600 font-semibold mt-0.5">
+                  Khớp qua Postback Webhook
+                </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-emerald-200 shadow-xs bg-gradient-to-br from-emerald-50/50 to-white">
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                  💰 Hoa Hồng Ước Tính
+                </p>
+                <p className="text-3xl font-black text-emerald-900 mt-1">
+                  ${analyticsData?.totalCommission?.toLocaleString() ?? 0}
+                </p>
+                <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">
+                  Từ các sàn đối tác
+                </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-blue-200 shadow-xs bg-gradient-to-br from-blue-50/50 to-white">
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-700">
+                  🛍️ Doanh Thu Đơn Hàng
+                </p>
+                <p className="text-3xl font-black text-blue-900 mt-1">
+                  ${analyticsData?.totalRevenue?.toLocaleString() ?? 0}
+                </p>
+                <p className="text-[11px] text-blue-600 font-semibold mt-0.5">
+                  Tổng GMV phát sinh
+                </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-pink-200 shadow-xs bg-gradient-to-br from-pink-50/50 to-white">
+                <p className="text-xs font-bold uppercase tracking-wider text-pink-700">
+                  📊 Tỉ Lệ Chuyển Đổi (CR)
+                </p>
+                <p className="text-3xl font-black text-pink-900 mt-1">
+                  {analyticsData?.conversionRate ?? 0}%
+                </p>
+                <p className="text-[11px] text-pink-600 font-semibold mt-0.5">
+                  {analyticsData?.totalConversions ?? 0} đơn / {analyticsData?.totalClicks ?? 0} clicks
                 </p>
               </div>
             </div>
@@ -1107,6 +1212,101 @@ export default function AdminDashboardPage() {
               ) : (
                 <p className="text-xs text-stone-400 italic py-6 text-center">
                   Chưa có nhật ký lượt click nào được ghi nhận.
+                </p>
+              )}
+            </div>
+
+            {/* Recent Live Conversions / Orders Stream */}
+            <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-extrabold text-stone-900 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span>Nhật Ký Đơn Hàng Tiếp Thị (Live Postback Conversion Stream)</span>
+                  </h3>
+                  <p className="text-xs text-stone-400 mt-0.5">
+                    Hiển thị 20 đơn hàng mới nhất nhận qua Postback Webhook tự động khớp mã đơn.
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200">
+                  {analyticsData?.recentConversions?.length ?? 0} đơn hàng gần nhất
+                </span>
+              </div>
+
+              {analyticsData?.recentConversions && analyticsData.recentConversions.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-stone-700">
+                    <thead className="bg-stone-50 border-y border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="py-2.5 px-3">Thời gian</th>
+                        <th className="py-2.5 px-3">Mã đơn (Order ID)</th>
+                        <th className="py-2.5 px-3">Sàn</th>
+                        <th className="py-2.5 px-3">Sản phẩm</th>
+                        <th className="py-2.5 px-3">Giá trị đơn</th>
+                        <th className="py-2.5 px-3">Hoa hồng</th>
+                        <th className="py-2.5 px-3 text-right">Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {analyticsData.recentConversions.map((conv) => (
+                        <tr key={conv.id} className="hover:bg-stone-50/80 transition">
+                          <td className="py-2.5 px-3 whitespace-nowrap text-stone-500 text-[11px] font-mono">
+                            {new Date(conv.created_at).toLocaleTimeString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                              day: "2-digit",
+                              month: "2-digit"
+                            })}
+                          </td>
+                          <td className="py-2.5 px-3 font-mono font-bold text-stone-800 text-[11px]">
+                            {conv.order_id}
+                          </td>
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                conv.platform === "Amazon"
+                                  ? "bg-amber-100 text-amber-900 border border-amber-300"
+                                  : conv.platform === "Rakuten"
+                                  ? "bg-red-100 text-red-900 border border-red-300"
+                                  : conv.platform === "CunCute Store"
+                                  ? "bg-pink-100 text-pink-900 border border-pink-300"
+                                  : "bg-stone-100 text-stone-800 border border-stone-200"
+                              }`}
+                            >
+                              {conv.platform}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 font-semibold text-stone-900 max-w-xs truncate" title={conv.product_name || "Sản phẩm affiliate"}>
+                            {conv.product_name || `Item #${conv.product_id || conv.id.slice(-4)}`}
+                          </td>
+                          <td className="py-2.5 px-3 font-bold text-stone-900">
+                            {conv.currency} {conv.amount.toLocaleString()}
+                          </td>
+                          <td className="py-2.5 px-3 font-black text-emerald-600">
+                            +{conv.currency} {conv.commission.toLocaleString()}
+                          </td>
+                          <td className="py-2.5 px-3 text-right">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${
+                                conv.status === "approved"
+                                  ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                  : conv.status === "pending"
+                                  ? "bg-amber-100 text-amber-800 border border-amber-300"
+                                  : "bg-rose-100 text-rose-800 border border-rose-300"
+                              }`}
+                            >
+                              {conv.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-xs text-stone-400 italic py-6 text-center">
+                  Chưa có đơn hàng nào được ghi nhận qua postback webhook.
                 </p>
               )}
             </div>

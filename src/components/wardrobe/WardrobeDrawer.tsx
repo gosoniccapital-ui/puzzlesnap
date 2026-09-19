@@ -1,21 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import {
   X,
   Trash2,
   ExternalLink,
   ShoppingBag,
-  Share2,
   Check,
-  Sparkles,
   HeartCrack,
   Link2,
   Camera,
-  Copy
+  Copy,
+  FolderHeart
 } from "lucide-react";
-import { useWardrobe, WardrobeItem } from "@/lib/hooks/useWardrobe";
+import { useWardrobe, WardrobeItem, ClosetCategory } from "@/lib/hooks/useWardrobe";
 import { generateWardrobeShareUrl } from "@/lib/wardrobe/sharing";
 import LookbookModal from "@/components/wardrobe/LookbookModal";
 
@@ -30,10 +29,29 @@ export default function WardrobeDrawer({
   onClose,
   onTrackClick
 }: WardrobeDrawerProps) {
-  const { items, count, removeItem, clearWardrobe } = useWardrobe();
+  const { items, count, removeItem, clearWardrobe, updateItemCategory } = useWardrobe();
+  const [selectedCategory, setSelectedCategory] = useState<ClosetCategory>("all");
   const [copied, setCopied] = useState(false);
   const [isShareCopied, setIsShareCopied] = useState(false);
   const [isLookbookOpen, setIsLookbookOpen] = useState(false);
+
+  // Category counts
+  const counts = useMemo(() => {
+    const c = { all: items.length, party: 0, office: 0, casual: 0 };
+    for (const item of items) {
+      const cat = item.closetCategory || "casual";
+      if (cat in c) {
+        c[cat] += 1;
+      }
+    }
+    return c;
+  }, [items]);
+
+  // Filtered items
+  const filteredItems = useMemo(() => {
+    if (selectedCategory === "all") return items;
+    return items.filter((item) => (item.closetCategory || "casual") === selectedCategory);
+  }, [items, selectedCategory]);
 
   if (!isOpen) return null;
 
@@ -48,12 +66,11 @@ export default function WardrobeDrawer({
   };
 
   const handleCopyList = () => {
-
     if (items.length === 0) return;
     const text = items
       .map(
         (it, idx) =>
-          `${idx + 1}. ${it.name} - ${it.price} (${it.platform})\nLink: ${it.link}`
+          `${idx + 1}. [${getCategoryLabel(it.closetCategory)}] ${it.name} - ${it.price} (${it.platform})\nLink: ${it.link}`
       )
       .join("\n\n");
     const fullText = `👗 CunFashion - Tủ Đồ Cá Nhân Hóa (${items.length} món):\n\n${text}\n\nKhám phá thêm tại: https://cunfashion.com/style-advisor`;
@@ -69,6 +86,30 @@ export default function WardrobeDrawer({
       onTrackClick(item.id, item.name, item.platform, item.link);
     }
   };
+
+  function getCategoryLabel(cat?: ClosetCategory) {
+    switch (cat) {
+      case "party":
+        return "Đi tiệc";
+      case "office":
+        return "Công sở";
+      case "casual":
+      default:
+        return "Dạo phố";
+    }
+  }
+
+  function cycleCategory(currentCat?: ClosetCategory): ClosetCategory {
+    switch (currentCat) {
+      case "party":
+        return "office";
+      case "office":
+        return "casual";
+      case "casual":
+      default:
+        return "party";
+    }
+  }
 
   const getPlatformBadge = (platform: string) => {
     switch (platform) {
@@ -104,6 +145,13 @@ export default function WardrobeDrawer({
         };
     }
   };
+
+  const categoryTabs: { id: ClosetCategory; label: string; icon: string }[] = [
+    { id: "all", label: "Tất cả", icon: "✨" },
+    { id: "party", label: "Đi tiệc", icon: "🥂" },
+    { id: "office", label: "Công sở", icon: "💼" },
+    { id: "casual", label: "Dạo phố", icon: "☕" }
+  ];
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -161,6 +209,31 @@ export default function WardrobeDrawer({
             </div>
           </div>
 
+          {/* Closet Categorization Tabs */}
+          {count > 0 && (
+            <div className="px-4 py-2.5 bg-stone-950/40 border-b border-stone-800 flex items-center justify-between gap-1 overflow-x-auto">
+              {categoryTabs.map((tab) => {
+                const isActive = selectedCategory === tab.id;
+                const tabCount = counts[tab.id] || 0;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setSelectedCategory(tab.id)}
+                    className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 border whitespace-nowrap cursor-pointer ${
+                      isActive
+                        ? "bg-pink-600/30 border-pink-500/70 text-pink-300 shadow-sm"
+                        : "bg-stone-850 hover:bg-stone-800 border-stone-750 text-stone-400"
+                    }`}
+                  >
+                    <span>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                    <span className="text-[10px] opacity-75">({tabCount})</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
             {count === 0 ? (
@@ -183,9 +256,21 @@ export default function WardrobeDrawer({
                   Khám phá trang phục ngay
                 </button>
               </div>
+            ) : filteredItems.length === 0 ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center space-y-2">
+                <FolderHeart className="w-8 h-8 text-stone-500 stroke-[1.5]" />
+                <p className="text-xs font-bold text-stone-300">
+                  Chưa có trang phục nào trong phân nhóm này
+                </p>
+                <p className="text-[11px] text-stone-500">
+                  Bấm vào tag phong cách trên từng món đồ để phân loại sang nhóm này!
+                </p>
+              </div>
             ) : (
-              items.map((item) => {
+              filteredItems.map((item) => {
                 const badge = getPlatformBadge(item.platform);
+                const currentCat = item.closetCategory || "casual";
+
                 return (
                   <div
                     key={item.id}
@@ -205,12 +290,39 @@ export default function WardrobeDrawer({
                     {/* Content */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center gap-1.5 mb-1">
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${badge.bg}`}
                           >
                             {badge.label}
                           </span>
+
+                          {/* Interactive Closet Category Badge */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextCat = cycleCategory(currentCat);
+                              updateItemCategory(item.id, nextCat);
+                            }}
+                            title="Bấm để đổi phân nhóm (Đi tiệc ➜ Công sở ➜ Dạo phố)"
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition cursor-pointer flex items-center gap-1 ${
+                              currentCat === "party"
+                                ? "bg-purple-500/20 text-purple-300 border-purple-500/40 hover:bg-purple-500/30"
+                                : currentCat === "office"
+                                ? "bg-blue-500/20 text-blue-300 border-blue-500/40 hover:bg-blue-500/30"
+                                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
+                            }`}
+                          >
+                            <span>
+                              {currentCat === "party"
+                                ? "🥂 Đi tiệc"
+                                : currentCat === "office"
+                                ? "💼 Công sở"
+                                : "☕ Dạo phố"}
+                            </span>
+                            <span className="opacity-50 text-[9px]">⇄</span>
+                          </button>
+
                           {item.discount && (
                             <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-pink-500/20 text-pink-400">
                               {item.discount}
@@ -268,17 +380,23 @@ export default function WardrobeDrawer({
           {count > 0 && (
             <div className="p-4 border-t border-stone-800 bg-stone-950/80 space-y-2.5">
               <div className="flex items-center justify-between text-xs text-stone-400">
-                <span>Tổng cộng đã chọn:</span>
-                <span className="font-bold text-white">{count} món đồ</span>
+                <span>
+                  {selectedCategory === "all"
+                    ? "Tổng cộng trong tủ đồ:"
+                    : `Đang lọc theo [${getCategoryLabel(selectedCategory)}]:`}
+                </span>
+                <span className="font-bold text-white">
+                  {filteredItems.length} / {count} món đồ
+                </span>
               </div>
 
-              {/* Action 1: Export Haute Couture Lookbook Image Card */}
+              {/* Action 1: Export Multi-Theme Lookbook Story */}
               <button
                 onClick={() => setIsLookbookOpen(true)}
                 className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-pink-500 to-rose-500 hover:opacity-95 text-stone-950 text-xs font-black flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
               >
                 <Camera className="w-4 h-4 text-stone-950" />
-                <span>Xuất ảnh Lookbook Story (Instagram/TikTok)</span>
+                <span>Xuất ảnh Lookbook Story Studio (3 Themes)</span>
               </button>
 
               {/* Action 2: Copy Wardrobe URL Share Link */}
@@ -327,13 +445,12 @@ export default function WardrobeDrawer({
         </div>
       </div>
 
-      {/* Lookbook Export Modal */}
+      {/* Lookbook Export Modal with selected filtered items */}
       <LookbookModal
         isOpen={isLookbookOpen}
         onClose={() => setIsLookbookOpen(false)}
-        items={items}
+        items={filteredItems.length > 0 ? filteredItems : items}
       />
     </div>
   );
 }
-

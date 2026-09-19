@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, Download, Sparkles, Loader2, Share2, Check } from "lucide-react";
+import { X, Download, Sparkles, Loader2, Check, Palette } from "lucide-react";
 import { WardrobeItem } from "@/lib/hooks/useWardrobe";
-import { renderLookbookCanvas } from "@/lib/canvas/lookbook-generator";
+import {
+  renderLookbookCanvas,
+  LookbookTheme,
+  LOOKBOOK_THEMES
+} from "@/lib/canvas/lookbook-generator";
 
 interface LookbookModalProps {
   isOpen: boolean;
@@ -16,6 +20,7 @@ export default function LookbookModal({
   onClose,
   items
 }: LookbookModalProps) {
+  const [selectedTheme, setSelectedTheme] = useState<LookbookTheme>("haute-couture");
   const [loading, setLoading] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -32,7 +37,14 @@ export default function LookbookModal({
     let isMounted = true;
     setLoading(true);
 
-    renderLookbookCanvas(items, "HAUTE COUTURE LOOKBOOK")
+    const title =
+      selectedTheme === "cute-pastel"
+        ? "CUNCUTE PASTEL LOOKBOOK"
+        : selectedTheme === "minimalist-noir"
+        ? "MINIMALIST NOIR LOOKBOOK"
+        : "HAUTE COUTURE LOOKBOOK";
+
+    renderLookbookCanvas(items, title, selectedTheme)
       .then((canvas) => {
         if (!isMounted) return;
         canvasRef.current = canvas;
@@ -48,7 +60,7 @@ export default function LookbookModal({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, items]);
+  }, [isOpen, items, selectedTheme]);
 
   if (!isOpen) return null;
 
@@ -59,7 +71,7 @@ export default function LookbookModal({
     try {
       const a = document.createElement("a");
       a.href = previewUrl || (canvasRef.current ? canvasRef.current.toDataURL("image/png") : "");
-      a.download = `cunfashion-lookbook-${Date.now()}.png`;
+      a.download = `cunfashion-lookbook-${selectedTheme}-${Date.now()}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -74,6 +86,27 @@ export default function LookbookModal({
     }
   };
 
+  const themeOptions: { id: LookbookTheme; label: string; icon: string; style: string }[] = [
+    {
+      id: "haute-couture",
+      label: "Haute Couture",
+      icon: "👑",
+      style: "from-amber-500/30 to-amber-900/40 border-amber-500/60 text-amber-300"
+    },
+    {
+      id: "minimalist-noir",
+      label: "Minimalist Noir",
+      icon: "🖤",
+      style: "from-stone-700/40 to-stone-900/60 border-stone-500/60 text-stone-200"
+    },
+    {
+      id: "cute-pastel",
+      label: "Cute Pastel",
+      icon: "🌸",
+      style: "from-rose-500/30 to-pink-900/40 border-pink-500/60 text-pink-300"
+    }
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg bg-stone-900 border border-stone-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
@@ -85,10 +118,10 @@ export default function LookbookModal({
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-black text-white">
-                Xuất Ảnh Phối Đồ (Story Card)
+                Multi-Theme Lookbook Studio
               </h3>
               <p className="text-xs text-stone-400">
-                Tỉ lệ 9:16 chuẩn Instagram, TikTok & Facebook Story
+                Tỉ lệ 9:16 (1080x1920) chuẩn Instagram, TikTok & Facebook Story
               </p>
             </div>
           </div>
@@ -101,13 +134,41 @@ export default function LookbookModal({
           </button>
         </div>
 
+        {/* Theme Selector Bar */}
+        <div className="px-4 py-3 border-b border-stone-800/80 bg-stone-950/40 flex items-center justify-between gap-2 overflow-x-auto">
+          <div className="flex items-center gap-1.5 text-xs text-stone-400 font-bold flex-shrink-0">
+            <Palette className="w-3.5 h-3.5 text-amber-400" />
+            <span>Theme:</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-1 justify-end">
+            {themeOptions.map((th) => {
+              const isActive = selectedTheme === th.id;
+              return (
+                <button
+                  key={th.id}
+                  onClick={() => setSelectedTheme(th.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border cursor-pointer ${
+                    isActive
+                      ? `bg-gradient-to-r ${th.style} shadow-md scale-102`
+                      : "bg-stone-850 hover:bg-stone-800 border-stone-750 text-stone-400"
+                  }`}
+                >
+                  <span>{th.icon}</span>
+                  <span className="whitespace-nowrap">{th.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Body: Preview Area */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center bg-stone-950/50 min-h-[360px]">
           {loading ? (
             <div className="flex flex-col items-center justify-center space-y-3 p-8">
               <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
               <p className="text-xs font-bold text-stone-300">
-                Đang xử lý và ghép ảnh Haute Couture Canvas...
+                Đang vẽ giao diện theme {LOOKBOOK_THEMES[selectedTheme].name}...
               </p>
               <p className="text-[11px] text-stone-500">
                 Tự động tối ưu độ phân giải cao 1080x1920
@@ -161,7 +222,7 @@ export default function LookbookModal({
             ) : (
               <>
                 <Download className="w-4 h-4 text-stone-950" />
-                <span>Tải Ảnh Story (1080x1920)</span>
+                <span>Tải Ảnh Story (1080x1920) • {LOOKBOOK_THEMES[selectedTheme].name}</span>
               </>
             )}
           </button>

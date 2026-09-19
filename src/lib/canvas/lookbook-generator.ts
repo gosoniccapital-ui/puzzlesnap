@@ -10,6 +10,136 @@ export interface LookbookItem {
   category?: string;
 }
 
+export type LookbookTheme = "haute-couture" | "minimalist-noir" | "cute-pastel";
+
+export interface ThemeConfig {
+  id: LookbookTheme;
+  name: string;
+  bgGradStart: string;
+  bgGradMid: string;
+  bgGradEnd: string;
+  accentGlowTop: string;
+  accentGlowBot: string;
+  outerBorder: string;
+  innerBorder: string;
+  cornerColor: string;
+  eyebrowColor: string;
+  titleColor: string;
+  subtitleColor: string;
+  cardBg: string;
+  cardBorder: string;
+  fallbackBg: string;
+  fallbackTextColor: string;
+  badgeBg: string;
+  badgeBorder: string;
+  badgeTextColor: string;
+  itemNameColor: string;
+  priceColor: string;
+  discountBg: string;
+  discountColor: string;
+  calloutBoxBg: string;
+  calloutBoxBorder: string;
+  calloutTextColor: string;
+  urlColor: string;
+  subtextColor: string;
+}
+
+export const LOOKBOOK_THEMES: Record<LookbookTheme, ThemeConfig> = {
+  "haute-couture": {
+    id: "haute-couture",
+    name: "Haute Couture Gold",
+    bgGradStart: "#0c0a09",
+    bgGradMid: "#171412",
+    bgGradEnd: "#0a0908",
+    accentGlowTop: "rgba(245, 158, 11, 0.12)",
+    accentGlowBot: "rgba(236, 72, 153, 0.08)",
+    outerBorder: "rgba(245, 158, 11, 0.35)",
+    innerBorder: "rgba(255, 255, 255, 0.1)",
+    cornerColor: "#f59e0b",
+    eyebrowColor: "#f59e0b",
+    titleColor: "#ffffff",
+    subtitleColor: "#a8a29e",
+    cardBg: "rgba(28, 25, 23, 0.85)",
+    cardBorder: "rgba(68, 64, 60, 0.6)",
+    fallbackBg: "#292524",
+    fallbackTextColor: "#d6d3d1",
+    badgeBg: "rgba(0, 0, 0, 0.75)",
+    badgeBorder: "rgba(245, 158, 11, 0.5)",
+    badgeTextColor: "#fbbf24",
+    itemNameColor: "#f5f5f4",
+    priceColor: "#f472b6",
+    discountBg: "rgba(244, 114, 182, 0.2)",
+    discountColor: "#f472b6",
+    calloutBoxBg: "rgba(245, 158, 11, 0.12)",
+    calloutBoxBorder: "rgba(245, 158, 11, 0.4)",
+    calloutTextColor: "#fbbf24",
+    urlColor: "#ffffff",
+    subtextColor: "#78716c"
+  },
+  "minimalist-noir": {
+    id: "minimalist-noir",
+    name: "Minimalist Noir",
+    bgGradStart: "#ffffff",
+    bgGradMid: "#f9fafb",
+    bgGradEnd: "#f3f4f6",
+    accentGlowTop: "rgba(0, 0, 0, 0.03)",
+    accentGlowBot: "rgba(0, 0, 0, 0.04)",
+    outerBorder: "#111827",
+    innerBorder: "rgba(17, 24, 39, 0.2)",
+    cornerColor: "#111827",
+    eyebrowColor: "#4b5563",
+    titleColor: "#000000",
+    subtitleColor: "#6b7280",
+    cardBg: "rgba(255, 255, 255, 0.95)",
+    cardBorder: "#e5e7eb",
+    fallbackBg: "#f3f4f6",
+    fallbackTextColor: "#374151",
+    badgeBg: "#111827",
+    badgeBorder: "#000000",
+    badgeTextColor: "#ffffff",
+    itemNameColor: "#111827",
+    priceColor: "#111827",
+    discountBg: "#f3f4f6",
+    discountColor: "#4b5563",
+    calloutBoxBg: "#111827",
+    calloutBoxBorder: "#000000",
+    calloutTextColor: "#ffffff",
+    urlColor: "#111827",
+    subtextColor: "#9ca3af"
+  },
+  "cute-pastel": {
+    id: "cute-pastel",
+    name: "Cute Pastel",
+    bgGradStart: "#fff1f2",
+    bgGradMid: "#fdf2f8",
+    bgGradEnd: "#fce7f3",
+    accentGlowTop: "rgba(244, 63, 94, 0.12)",
+    accentGlowBot: "rgba(236, 72, 153, 0.15)",
+    outerBorder: "rgba(244, 63, 94, 0.4)",
+    innerBorder: "rgba(251, 113, 133, 0.25)",
+    cornerColor: "#fb7185",
+    eyebrowColor: "#e11d48",
+    titleColor: "#881337",
+    subtitleColor: "#9f1239",
+    cardBg: "rgba(255, 255, 255, 0.9)",
+    cardBorder: "rgba(253, 164, 175, 0.6)",
+    fallbackBg: "#ffe4e6",
+    fallbackTextColor: "#9f1239",
+    badgeBg: "rgba(255, 255, 255, 0.95)",
+    badgeBorder: "rgba(244, 63, 94, 0.4)",
+    badgeTextColor: "#e11d48",
+    itemNameColor: "#4c0519",
+    priceColor: "#e11d48",
+    discountBg: "rgba(244, 63, 94, 0.15)",
+    discountColor: "#e11d48",
+    calloutBoxBg: "rgba(244, 63, 94, 0.12)",
+    calloutBoxBorder: "rgba(244, 63, 94, 0.35)",
+    calloutTextColor: "#be123c",
+    urlColor: "#9f1239",
+    subtextColor: "#f43f5e"
+  }
+};
+
 /**
  * Utility to load an image with anonymous CORS support and safe fallback.
  */
@@ -75,13 +205,13 @@ function drawRoundedRect(
 }
 
 /**
- * Render a high-resolution 1080x1920 (9:16) Haute Couture Lookbook Card.
+ * Render a high-resolution 1080x1920 (9:16) Multi-Theme Lookbook Card.
  */
 export async function renderLookbookCanvas(
   items: LookbookItem[],
-  title = "HAUTE COUTURE LOOKBOOK"
+  title = "HAUTE COUTURE LOOKBOOK",
+  theme: LookbookTheme = "haute-couture"
 ): Promise<HTMLCanvasElement> {
-
   const width = 1080;
   const height = 1920;
 
@@ -91,39 +221,41 @@ export async function renderLookbookCanvas(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Unable to obtain 2D canvas context");
 
-  // 1. Background Gradient (Deep Stone Noir)
+  const cfg = LOOKBOOK_THEMES[theme] || LOOKBOOK_THEMES["haute-couture"];
+
+  // 1. Background Gradient
   const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-  bgGrad.addColorStop(0, "#0c0a09");
-  bgGrad.addColorStop(0.5, "#171412");
-  bgGrad.addColorStop(1, "#0a0908");
+  bgGrad.addColorStop(0, cfg.bgGradStart);
+  bgGrad.addColorStop(0.5, cfg.bgGradMid);
+  bgGrad.addColorStop(1, cfg.bgGradEnd);
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // Subtle Gold Ambient Glows
+  // Subtle Ambient Glows
   const topGlow = ctx.createRadialGradient(width / 2, 200, 10, width / 2, 200, 600);
-  topGlow.addColorStop(0, "rgba(245, 158, 11, 0.12)");
-  topGlow.addColorStop(1, "rgba(245, 158, 11, 0)");
+  topGlow.addColorStop(0, cfg.accentGlowTop);
+  topGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
   ctx.fillStyle = topGlow;
   ctx.fillRect(0, 0, width, 800);
 
   const botGlow = ctx.createRadialGradient(width / 2, height - 300, 10, width / 2, height - 300, 700);
-  botGlow.addColorStop(0, "rgba(236, 72, 153, 0.08)");
-  botGlow.addColorStop(1, "rgba(236, 72, 153, 0)");
+  botGlow.addColorStop(0, cfg.accentGlowBot);
+  botGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
   ctx.fillStyle = botGlow;
   ctx.fillRect(0, height - 800, width, 800);
 
-  // 2. Luxury Outer Frame & Accents
-  ctx.strokeStyle = "rgba(245, 158, 11, 0.35)";
+  // 2. Outer Frame & Accents
+  ctx.strokeStyle = cfg.outerBorder;
   ctx.lineWidth = 3;
   ctx.strokeRect(36, 36, width - 72, height - 72);
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.strokeStyle = cfg.innerBorder;
   ctx.lineWidth = 1;
   ctx.strokeRect(48, 48, width - 96, height - 96);
 
   // Corner Accents
   const cornerSize = 28;
-  ctx.fillStyle = "#f59e0b";
+  ctx.fillStyle = cfg.cornerColor;
   // Top-left
   ctx.fillRect(36, 36, cornerSize, 4);
   ctx.fillRect(36, 36, 4, cornerSize);
@@ -142,19 +274,20 @@ export async function renderLookbookCanvas(
 
   // Brand Eyebrow
   ctx.font = "bold 20px 'Cinzel', 'Playfair Display', serif, sans-serif";
-  ctx.fillStyle = "#f59e0b";
+  ctx.fillStyle = cfg.eyebrowColor;
   ctx.letterSpacing = "6px";
-  ctx.fillText("✨ C U N F A S H I O N ✨", width / 2, 120);
+  const brandIcon = theme === "cute-pastel" ? "🌸 C U N F A S H I O N 🌸" : "✨ C U N F A S H I O N ✨";
+  ctx.fillText(brandIcon, width / 2, 120);
 
   // Main Title
   ctx.font = "900 48px 'Cinzel', 'Playfair Display', sans-serif";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = cfg.titleColor;
   ctx.letterSpacing = "2px";
   ctx.fillText(title, width / 2, 185);
 
   // Subtitle
   ctx.font = "500 22px 'Montserrat', sans-serif";
-  ctx.fillStyle = "#a8a29e";
+  ctx.fillStyle = cfg.subtitleColor;
   ctx.letterSpacing = "1px";
   ctx.fillText(
     `Curated Wardrobe Collection • ${items.length} Selected Pieces`,
@@ -163,7 +296,7 @@ export async function renderLookbookCanvas(
   );
 
   // Divider Line
-  ctx.strokeStyle = "rgba(245, 158, 11, 0.3)";
+  ctx.strokeStyle = cfg.outerBorder;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(width / 2 - 180, 255);
@@ -171,7 +304,6 @@ export async function renderLookbookCanvas(
   ctx.stroke();
 
   // 4. Products Grid Rendering
-  // Select up to 6 items to display gracefully
   const displayItems = items.slice(0, 6);
   const itemCount = displayItems.length;
 
@@ -221,9 +353,9 @@ export async function renderLookbookCanvas(
     // Draw Card Background
     ctx.save();
     drawRoundedRect(ctx, x, y, cardWidth, cardHeight, 22);
-    ctx.fillStyle = "rgba(28, 25, 23, 0.85)";
+    ctx.fillStyle = cfg.cardBg;
     ctx.fill();
-    ctx.strokeStyle = "rgba(68, 64, 60, 0.6)";
+    ctx.strokeStyle = cfg.cardBorder;
     ctx.lineWidth = 1.5;
     ctx.stroke();
     ctx.restore();
@@ -259,17 +391,17 @@ export async function renderLookbookCanvas(
       ctx.drawImage(img, imgX + offsetX, imgY + offsetY, drawW, drawH);
     } else {
       // Graceful Vector Fallback
-      ctx.fillStyle = "#292524";
+      ctx.fillStyle = cfg.fallbackBg;
       ctx.fillRect(imgX, imgY, imgW, imgH);
 
-      ctx.fillStyle = "#78716c";
+      ctx.fillStyle = cfg.fallbackTextColor;
       ctx.font = "bold 36px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("👗", imgX + imgW / 2, imgY + imgH / 2 - 10);
+      ctx.fillText(theme === "cute-pastel" ? "🎀" : "👗", imgX + imgW / 2, imgY + imgH / 2 - 10);
 
       ctx.font = "bold 16px sans-serif";
-      ctx.fillStyle = "#d6d3d1";
-      ctx.fillText("Haute Couture Item", imgX + imgW / 2, imgY + imgH / 2 + 30);
+      ctx.fillStyle = cfg.fallbackTextColor;
+      ctx.fillText("Curated Item", imgX + imgW / 2, imgY + imgH / 2 + 30);
     }
     ctx.restore();
 
@@ -284,13 +416,13 @@ export async function renderLookbookCanvas(
     const badgeY = imgY + 10;
 
     drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
-    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+    ctx.fillStyle = cfg.badgeBg;
     ctx.fill();
-    ctx.strokeStyle = "rgba(245, 158, 11, 0.5)";
+    ctx.strokeStyle = cfg.badgeBorder;
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    ctx.fillStyle = "#fbbf24";
+    ctx.fillStyle = cfg.badgeTextColor;
     ctx.textAlign = "left";
     ctx.fillText(badgeText, badgeX + 8, badgeY + 16);
     ctx.restore();
@@ -302,31 +434,30 @@ export async function renderLookbookCanvas(
     ctx.save();
     ctx.textAlign = "left";
     ctx.font = "bold 17px sans-serif";
-    ctx.fillStyle = "#f5f5f4";
+    ctx.fillStyle = cfg.itemNameColor;
     const cleanName = fitText(ctx, item.name, cardWidth - 32);
     ctx.fillText(cleanName, x + 16, infoY + 22);
 
     // Item Price & Action
     ctx.font = "900 22px sans-serif";
-    ctx.fillStyle = "#f472b6"; // Haute Couture Pink/Gold
+    ctx.fillStyle = cfg.priceColor;
     ctx.fillText(item.price, x + 16, infoY + 56);
 
     if (item.discount) {
       const priceMetrics = ctx.measureText(item.price);
       ctx.font = "bold 12px sans-serif";
-      ctx.fillStyle = "rgba(244, 114, 182, 0.3)";
       const discW = ctx.measureText(item.discount).width + 12;
       drawRoundedRect(ctx, x + 24 + priceMetrics.width, infoY + 40, discW, 20, 4);
-      ctx.fillStyle = "rgba(244, 114, 182, 0.2)";
+      ctx.fillStyle = cfg.discountBg;
       ctx.fill();
-      ctx.fillStyle = "#f472b6";
+      ctx.fillStyle = cfg.discountColor;
       ctx.fillText(item.discount, x + 30 + priceMetrics.width, infoY + 54);
     }
 
     ctx.restore();
   }
 
-  // 5. Luxury Footer & Watermark
+  // 5. Footer & Watermark
   const footerY = height - 160;
 
   ctx.textAlign = "center";
@@ -340,25 +471,25 @@ export async function renderLookbookCanvas(
   const boxY = footerY - 15;
 
   drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 25);
-  ctx.fillStyle = "rgba(245, 158, 11, 0.12)";
+  ctx.fillStyle = cfg.calloutBoxBg;
   ctx.fill();
-  ctx.strokeStyle = "rgba(245, 158, 11, 0.4)";
+  ctx.strokeStyle = cfg.calloutBoxBorder;
   ctx.lineWidth = 1;
   ctx.stroke();
 
   ctx.font = "bold 18px sans-serif";
-  ctx.fillStyle = "#fbbf24";
+  ctx.fillStyle = cfg.calloutTextColor;
   ctx.fillText("✦  Khám Phá & Mua Sắm Tại CunFashion  ✦", width / 2, footerY + 16);
   ctx.restore();
 
   // Website URL
   ctx.font = "bold 22px 'Cinzel', serif, sans-serif";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = cfg.urlColor;
   ctx.fillText("https://cunfashion.com/style-advisor", width / 2, footerY + 75);
 
   // Small Copyright
   ctx.font = "500 14px sans-serif";
-  ctx.fillStyle = "#78716c";
+  ctx.fillStyle = cfg.subtextColor;
   ctx.fillText(
     "Haute Couture AI Fashion Styling Suite • Designed for Trendsetters",
     width / 2,
@@ -373,9 +504,10 @@ export async function renderLookbookCanvas(
  */
 export async function generateLookbookBlob(
   items: LookbookItem[],
-  title?: string
+  title?: string,
+  theme: LookbookTheme = "haute-couture"
 ): Promise<Blob> {
-  const canvas = await renderLookbookCanvas(items, title);
+  const canvas = await renderLookbookCanvas(items, title, theme);
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) {
@@ -392,10 +524,10 @@ export async function generateLookbookBlob(
  */
 export async function downloadLookbookImage(
   items: LookbookItem[],
-  filename = "cunfashion-outfit-lookbook.png"
+  filename = "cunfashion-outfit-lookbook.png",
+  theme: LookbookTheme = "haute-couture"
 ): Promise<void> {
-
-  const blob = await generateLookbookBlob(items);
+  const blob = await generateLookbookBlob(items, "HAUTE COUTURE LOOKBOOK", theme);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

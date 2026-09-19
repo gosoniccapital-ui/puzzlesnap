@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     const format = request.nextUrl.searchParams.get("format") || request.nextUrl.searchParams.get("export");
-    if (format === "csv") {
+    if (format === "csv" || format === "clicks_csv") {
       const records = getAllClickRecords();
       const csv = generateClickCsvString(records);
       const dateStr = new Date().toISOString().slice(0, 10);
@@ -50,7 +50,21 @@ export async function GET(request: NextRequest) {
         status: 200,
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": `attachment; filename="cunfashion-affiliate-analytics-${dateStr}.csv"`
+          "Content-Disposition": `attachment; filename="cunfashion-affiliate-clicks-${dateStr}.csv"`
+        }
+      });
+    }
+
+    if (format === "conversions_csv" || format === "orders_csv") {
+      const { getAllConversionRecords, generateConversionCsvString } = await import("@/lib/analytics/click-tracker");
+      const records = getAllConversionRecords();
+      const csv = generateConversionCsvString(records);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="cunfashion-affiliate-conversions-${dateStr}.csv"`
         }
       });
     }
