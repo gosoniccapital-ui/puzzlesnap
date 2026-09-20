@@ -10,10 +10,12 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - [x] Milestone 5.3 (Feature Completion): Chế độ xoay mảnh ghép (Piece Rotation Mode 90°/180°/270° qua Space, Right-Click, Double-Tap & UI Widgets), CunFashion Exclusive Lookbook Collection, tối ưu hóa 60fps Mobile Canvas Engine (rAF loop), và 8/8 automated invariant tests pass 100%.
 - [x] Milestone 6.1: Admin Security & Passcode Auth Gate (HMAC-SHA256, Next.js Edge Middleware, timing-safe compare, sliding-window rate limit, modal edit puzzle, floating reference thumbnail, 21/21 tests pass 100%).
 - [x] Milestone 6.2: Gamified E-Commerce Funnel (Haute Couture Victory Voucher Card, 1-click clipboard copy, Shop The Look CTA, admin e-commerce controls, XSS & URL sanitization, 25/25 automated tests pass 100%).
+- [x] Milestone 11.1 (Light Theme Default & Production Live Sync): Enforce Silk Alabaster & Warm Ivory Light Theme default, remove public admin link, fix player modal backdrop & ESC dismissal, eliminate favicon conflict, production deploy to cunfashion.com (Commit `cca150d`, Vercel `dpl_CKGJECytqtXMn1dSkzSByHLjfxjc`, 154/154 tests pass 100%).
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
-- **UI & UX Standard:** Tuân thủ `design-taste-frontend` (Anti-slop, tông màu Amber/Stone sang trọng, typography rõ ràng).
+- **Rollback Anchor:** `cca150d` trên nhánh `feature/fullstack-puzzle-foundation`.
+- **UI & UX Standard:** Tuân thủ `design-taste-frontend` (Anti-slop, tông màu Silk Alabaster Light default + Velvet Noir Dark mode, Champagne Gold Haute Couture `#dfba73`, typography rõ ràng).
 - **Core Puzzle Engine:**
   - `bezier-cutter.ts`: Tạo cạnh mấu lồi/lỗ khuyết Cubic Bézier mượt mà, đảm bảo bất biến đối xứng giữa 2 mảnh kề nhau.
   - `disjoint-set.ts`: Cấu trúc Union-Find quản lý cụm mảnh ghép đã snap, di chuyển đồng bộ toàn cụm.
@@ -25,9 +27,9 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - **Code Intelligence:** Đã index toàn bộ codebase qua CodeGraph CLI v1.5.0.
 - **Git Strategy:** Phát triển trên nhánh `feature/fullstack-puzzle-foundation`. Commit vertical slices an toàn với pre-check.
 - **Cloud Infrastructure:**
-  - Production Custom Domain: [https://cunfashion.com](https://cunfashion.com) (HTTP 200 OK, SSL Active)
-  - Vercel Deployment Alias: [https://puzzle-tung.vercel.app](https://puzzle-tung.vercel.app) & [https://cunfashion-qprzyoi2h-newgmer-s-projects.vercel.app](https://cunfashion-qprzyoi2h-newgmer-s-projects.vercel.app)
-  - GitHub Repository: https://github.com/gosoniccapital-ui/puzzlesnap
+  - Production Custom Domain: [https://cunfashion.com](https://cunfashion.com) (HTTP 200 OK, SSL Active, Vercel Deployment `dpl_CKGJECytqtXMn1dSkzSByHLjfxjc`)
+  - Vercel Deployment Alias: [https://puzzle-tung.vercel.app](https://puzzle-tung.vercel.app)
+  - GitHub Repository: https://github.com/gosoniccapital-ui/puzzlesnap (Commit `cca150d`)
   - Cloudflare Zone: `cunfashion.com` (Apex A Record trỏ 76.76.21.21, bảo toàn 100% LadiPage www và các subdomain khác).
 
 ## 📦 Skills Installed (Project Scope: `.agents/skills/`)
