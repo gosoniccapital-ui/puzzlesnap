@@ -100,13 +100,13 @@ test('Lookbook Generator & Architecture: Canvas, Modal, Banner and Admin integra
   const modalPath = path.resolve('src', 'components', 'wardrobe', 'LookbookModal.tsx');
   assert.ok(fs.existsSync(modalPath), 'LookbookModal.tsx must exist');
   const modalContent = fs.readFileSync(modalPath, 'utf8');
-  assert.ok(modalContent.includes('Tải Ảnh Story (1080x1920)'), 'Modal must have Story download button');
+  assert.ok(modalContent.includes('Download Story (1080x1920)') || modalContent.includes('Tải Ảnh Story (1080x1920)'), 'Modal must have Story download button');
 
   // 3. Shared Wardrobe Banner
   const bannerPath = path.resolve('src', 'components', 'wardrobe', 'SharedWardrobeBanner.tsx');
   assert.ok(fs.existsSync(bannerPath), 'SharedWardrobeBanner.tsx must exist');
   const bannerContent = fs.readFileSync(bannerPath, 'utf8');
-  assert.ok(bannerContent.includes('Tủ Đồ Outfit Được Chia Sẻ'), 'Banner must display shared wardrobe title');
+  assert.ok(bannerContent.includes('Shared Outfit Wardrobe') || bannerContent.includes('Tủ Đồ Outfit Được Chia Sẻ'), 'Banner must display shared wardrobe title');
   assert.ok(bannerContent.includes('importItems'), 'Banner must trigger importItems to merge into wardrobe');
 
   // 4. Admin CSV Export Integration

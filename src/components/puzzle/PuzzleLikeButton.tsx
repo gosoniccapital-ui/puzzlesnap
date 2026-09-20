@@ -59,7 +59,7 @@ export default function PuzzleLikeButton({ slug, initialLikes = 0 }: PuzzleLikeB
           ? "bg-rose-50 text-rose-600 border-rose-200 font-extrabold cursor-default"
           : "bg-white hover:bg-rose-50/60 text-stone-700 hover:text-rose-600 border-stone-200 active:scale-95"
       }`}
-      title={hasLiked ? "Bạn đã thích bức tranh này!" : "Thích bức tranh này"}
+      title={hasLiked ? "You liked this artwork!" : "Like this artwork"}
     >
       <Heart
         className={`w-3.5 h-3.5 transition-transform duration-300 ${

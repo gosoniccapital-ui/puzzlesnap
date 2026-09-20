@@ -22,6 +22,8 @@ export interface ClickRecord {
   affiliate_url: string;
   keyword?: string;
   device_type?: string;
+  country?: string;
+  city?: string;
   created_at: string;
 }
 

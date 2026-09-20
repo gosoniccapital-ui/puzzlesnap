@@ -58,6 +58,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const country =
+      request.headers.get("x-cun-country") ||
+      request.headers.get("x-vercel-ip-country") ||
+      request.cookies.get("cun_country")?.value ||
+      "US";
+
+    const rawCity =
+      request.headers.get("x-cun-city") ||
+      request.headers.get("x-vercel-ip-city") ||
+      request.cookies.get("cun_city")?.value ||
+      "";
+    let city = "";
+    try {
+      city = decodeURIComponent(rawCity);
+    } catch {
+      city = rawCity;
+    }
+
     const clickPayload = {
       product_id: productId,
       product_name: productName,
@@ -65,6 +83,8 @@ export async function POST(request: NextRequest) {
       affiliate_url: affiliateUrl,
       keyword: keyword || undefined,
       device_type: deviceType || undefined,
+      country: country.toUpperCase(),
+      city: city || undefined,
       created_at: new Date().toISOString()
     };
 

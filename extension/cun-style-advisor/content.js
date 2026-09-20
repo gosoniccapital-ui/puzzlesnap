@@ -1,4 +1,4 @@
-﻿// Content Script for Cun Style Advisor
+// Content Script for Cun Style Advisor
 
 // Lắng nghe message từ Background Script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -44,7 +44,7 @@ function initFloatingBadge() {
 
   const badge = document.createElement("div");
   badge.id = "cun-advisor-floating-badge";
-  badge.title = "Bấm để mở gợi ý phối đồ Cun Style Advisor";
+  badge.title = "Click to open Cun Style Advisor fashion looks";
   badge.innerHTML = `
     <span class="cun-icon">👗</span>
     <span>Cun Style</span>

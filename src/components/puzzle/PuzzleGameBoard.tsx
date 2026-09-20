@@ -352,7 +352,7 @@ export default function PuzzleGameBoard({
             0,
             true
           );
-          setCoopToast("🎯 Bạn bè vừa ghép đúng một mảnh!");
+          setCoopToast("🎯 A friend correctly snapped a piece!");
         }
       },
       undefined,
@@ -365,13 +365,13 @@ export default function PuzzleGameBoard({
           spread: 90,
           origin: { y: 0.5 },
         });
-        setCoopToast(`🏆 ${victoryEvent.winnerName} đã hoàn thành câu đố trong ${victoryEvent.timeFormatted}!`);
+        setCoopToast(`🏆 ${victoryEvent.winnerName} completed the puzzle in ${victoryEvent.timeFormatted}!`);
       },
       // onBoardSync: đồng bộ các mảnh ghép đã hoàn thành từ phòng
       (placedList) => {
         if (engineRef.current && Array.isArray(placedList) && placedList.length > 0) {
           engineRef.current.applyBoardSync(placedList);
-          setCoopToast(`Đã đồng bộ ${placedList.length} mảnh ghép từ phòng!`);
+          setCoopToast(`Synced ${placedList.length} pieces from room!`);
         }
       },
       // onRequestBoardSync: khi có người mới vào phòng xin trạng thái bàn cờ
@@ -432,7 +432,7 @@ export default function PuzzleGameBoard({
 
     if (targetRoom && targetRoom !== coopRoomId) {
       handleConnectCoopRoomRef.current(targetRoom);
-      setCoopToast(`Đã tham gia phòng Co-Op: ${targetRoom}`);
+      setCoopToast(`Joined Co-Op Room: ${targetRoom}`);
       const timer = setTimeout(() => setCoopToast(null), 4500);
       return () => clearTimeout(timer);
     }
@@ -638,23 +638,23 @@ export default function PuzzleGameBoard({
       >
         <canvas ref={canvasRef} className="absolute inset-0 cursor-grab active:cursor-grabbing w-full h-full" />
 
-        {/* Floating Mini Reference Image (Ảnh Mẫu Gốc Góc Bàn Cờ) */}
+        {/* Floating Mini Reference Image */}
         <div className="absolute top-3 right-3 z-10 bg-white/95 backdrop-blur-md rounded-2xl border border-stone-200 shadow-lg p-2 max-w-[150px] transition-all hover:scale-105 group">
           <div className="flex items-center justify-between mb-1 px-0.5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-stone-600">Ảnh Mẫu</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-stone-600">Guide</span>
             <button
               type="button"
               onClick={() => setShowPreviewModal(true)}
               className="text-[10px] font-extrabold text-amber-600 hover:text-amber-700 transition cursor-pointer"
-              title="Phóng to ảnh mẫu"
+              title="Expand Guide Photo"
             >
-              Phóng to ↗
+              Expand ↗
             </button>
           </div>
           <div
             onClick={() => setShowPreviewModal(true)}
             className="w-full aspect-4/3 rounded-xl overflow-hidden cursor-pointer border border-stone-200/80 bg-stone-100 relative shadow-2xs"
-            title="Nhấp để xem ảnh mẫu kích thước lớn"
+            title="Click to view high-resolution original image"
           >
             <img src={imageSrc} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
           </div>
@@ -664,7 +664,7 @@ export default function PuzzleGameBoard({
         {isRotationEnabled && (
           <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-amber-500/90 text-stone-950 text-xs font-black shadow-md backdrop-blur-xs flex items-center gap-1.5 animate-in fade-in duration-200 select-none pointer-events-none">
             <span className="inline-block w-2 h-2 rounded-full bg-stone-950 animate-pulse" />
-            <span>Xoay mảnh: Spacebar / Chuột phải / Chạm đúp</span>
+            <span>Rotate: Spacebar / Right-click / Double-tap</span>
           </div>
         )}
 
@@ -762,24 +762,24 @@ export default function PuzzleGameBoard({
             </div>
             <div className="space-y-2">
               <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-500/20 text-amber-300">
-                Phòng Co-Op Có Người Về Đích!
+                Co-Op Room Victory Alert!
               </span>
               <h3 className="text-2xl font-black text-white">
-                {remoteVictory.winnerName} Đã Thắng!
+                {remoteVictory.winnerName} Won!
               </h3>
               <p className="text-sm text-stone-300">
-                Đã hoàn thành câu đố trong <strong>{remoteVictory.timeFormatted}</strong> với <strong>{remoteVictory.moves} lượt đi</strong>!
+                Completed the puzzle in <strong>{remoteVictory.timeFormatted}</strong> with <strong>{remoteVictory.moves} moves</strong>!
               </p>
             </div>
             <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs text-amber-200 text-left">
-              💡 Bạn có thể tiếp tục tự ghép cho xong bức tranh của mình, hoặc bấm &quot;Chơi Ván Mới&quot; cùng phòng!
+              💡 You can continue solving your own board, or start a new game together!
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setRemoteVictory(null)}
                 className="flex-1 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white text-xs font-bold transition cursor-pointer"
               >
-                Tiếp tục ghép
+                Keep Playing
               </button>
               <button
                 onClick={() => {
@@ -788,7 +788,7 @@ export default function PuzzleGameBoard({
                 }}
                 className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition cursor-pointer"
               >
-                Chơi Ván Mới
+                New Game
               </button>
             </div>
           </div>

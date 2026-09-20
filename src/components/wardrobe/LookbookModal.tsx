@@ -80,7 +80,7 @@ export default function LookbookModal({
       setTimeout(() => setDownloadSuccess(false), 2500);
     } catch (err) {
       console.error("Failed to download image:", err);
-      alert("Không thể tải ảnh tự động. Đại Ka có thể nhấn giữ hoặc chuột phải vào ảnh để lưu!");
+      alert("Could not download automatically. Please right-click or press-and-hold the image to save!");
     } finally {
       setDownloading(false);
     }
@@ -121,7 +121,7 @@ export default function LookbookModal({
                 Multi-Theme Lookbook Studio
               </h3>
               <p className="text-xs text-stone-400">
-                Tỉ lệ 9:16 (1080x1920) chuẩn Instagram, TikTok & Facebook Story
+                9:16 Ratio (1080x1920) for Instagram, TikTok & Facebook Stories
               </p>
             </div>
           </div>
@@ -168,10 +168,10 @@ export default function LookbookModal({
             <div className="flex flex-col items-center justify-center space-y-3 p-8">
               <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
               <p className="text-xs font-bold text-stone-300">
-                Đang vẽ giao diện theme {LOOKBOOK_THEMES[selectedTheme].name}...
+                Generating {LOOKBOOK_THEMES[selectedTheme].name} canvas...
               </p>
               <p className="text-[11px] text-stone-500">
-                Tự động tối ưu độ phân giải cao 1080x1920
+                Optimizing high-res 1080x1920 layout
               </p>
             </div>
           ) : previewUrl ? (
@@ -186,10 +186,10 @@ export default function LookbookModal({
           ) : (
             <div className="text-center p-6 space-y-2">
               <p className="text-sm font-bold text-red-400">
-                Không thể tải bản xem trước ảnh Lookbook
+                Failed to preview Lookbook image
               </p>
               <p className="text-xs text-stone-400">
-                Vui lòng thử lại hoặc kiểm tra kết nối mạng của bạn.
+                Please try again or check your network connection.
               </p>
             </div>
           )}
@@ -201,7 +201,7 @@ export default function LookbookModal({
             onClick={onClose}
             className="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-bold transition cursor-pointer"
           >
-            Đóng
+            Close
           </button>
 
           <button
@@ -212,17 +212,17 @@ export default function LookbookModal({
             {downloadSuccess ? (
               <>
                 <Check className="w-4 h-4 text-emerald-950" />
-                <span className="text-stone-950">Đã tải ảnh về máy!</span>
+                <span className="text-stone-950">Image Downloaded!</span>
               </>
             ) : downloading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
-                <span>Đang xuất ảnh...</span>
+                <span>Exporting Story...</span>
               </>
             ) : (
               <>
                 <Download className="w-4 h-4 text-stone-950" />
-                <span>Tải Ảnh Story (1080x1920) • {LOOKBOOK_THEMES[selectedTheme].name}</span>
+                <span>Download Story (1080x1920) • {LOOKBOOK_THEMES[selectedTheme].name}</span>
               </>
             )}
           </button>

@@ -185,10 +185,10 @@ export default function PuzzleToolbar({
               ? "bg-amber-500 text-stone-950 border-amber-500 font-extrabold"
               : "bg-white hover:bg-stone-100 text-stone-700 border-stone-200"
           }`}
-          title="Bật/tắt ảnh mẫu mờ trên bàn cờ để dễ lắp ráp theo"
+          title="Toggle background guide image on board"
         >
           <ImageIcon className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Hình Mẫu</span>
+          <span className="hidden md:inline">Ghost</span>
           <span className={`text-[9px] px-1 py-0.2 rounded font-black ${showGhost ? "bg-stone-950 text-amber-400" : "bg-stone-200 text-stone-600"}`}>
             {showGhost ? "ON" : "OFF"}
           </span>
@@ -263,11 +263,11 @@ export default function PuzzleToolbar({
                 ? "bg-emerald-500 text-stone-950 border-emerald-400 font-black shadow-emerald-500/20"
                 : "bg-amber-500 hover:bg-amber-400 text-stone-950 border-amber-400 font-extrabold shadow-amber-500/20"
             }`}
-            title="Chơi cùng bạn bè (Multiplayer Co-op Room)"
+            title="Play together with friends (Multiplayer Co-Op Room)"
           >
             <Users className="w-3.5 h-3.5" />
             <span className="hidden md:inline">
-              {isCoopConnected ? `Co-op (${coopPlayerCount || 1})` : "Rủ bạn chơi"}
+              {isCoopConnected ? `Co-Op (${coopPlayerCount || 1})` : "Co-Op Play"}
             </span>
             {isCoopConnected && (
               <span className="inline-block w-2 h-2 rounded-full bg-stone-950 animate-pulse" />

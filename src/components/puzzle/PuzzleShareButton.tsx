@@ -26,10 +26,10 @@ export default function PuzzleShareButton({ title }: { title: string }) {
           ? "bg-emerald-50 text-emerald-700 border-emerald-300 font-extrabold"
           : "bg-white hover:bg-stone-50 text-stone-700 border-stone-200"
       }`}
-      title={`Chia sẻ câu đố "${title}"`}
+      title={`Share puzzle "${title}"`}
     >
       {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" /> : <Share2 className="w-3.5 h-3.5 text-stone-500" />}
-      <span>{copied ? "Đã sao chép link!" : "Share"}</span>
+      <span>{copied ? "Link Copied!" : "Share"}</span>
     </button>
   );
 }

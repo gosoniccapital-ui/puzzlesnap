@@ -431,10 +431,10 @@ export default function StyleAdvisorPage() {
             <ShoppingBag className="w-3.5 h-3.5" />
             <span>
               {p.platform === "CunCute Store"
-                ? "Mua tại CunCute Store"
+                ? "Shop at CunCute Store"
                 : p.platform === "Rakuten"
-                ? "Mua trên Rakuten"
-                : "Xem trên Amazon US"}
+                ? "Shop on Rakuten"
+                : "Shop on Amazon US"}
             </span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
@@ -443,17 +443,17 @@ export default function StyleAdvisorPage() {
               handleCopyLink(p);
               handleTrackAffiliateClick(p.id, p.name, p.platform, p.link);
             }}
-            className="w-full py-1 text-[11px] font-semibold text-stone-500 hover:text-stone-800 transition flex items-center justify-center gap-1"
+            className="w-full py-1 text-[11px] font-semibold text-stone-500 hover:text-stone-800 transition flex items-center justify-center gap-1 cursor-pointer"
           >
             {copiedId === p.id ? (
               <>
                 <Check className="w-3 h-3 text-emerald-600" />
-                <span className="text-emerald-600">Đã sao chép link</span>
+                <span className="text-emerald-600">Link copied!</span>
               </>
             ) : (
               <>
                 <Copy className="w-3 h-3" />
-                <span>Copy link affiliate</span>
+                <span>Copy affiliate link</span>
               </>
             )}
           </button>
@@ -476,7 +476,7 @@ export default function StyleAdvisorPage() {
                   ? "bg-stone-700 text-white shadow"
                   : "text-stone-400 hover:text-white"
               }`}
-              title="Giao diện toàn màn hình máy tính"
+              title="Full screen desktop view"
             >
               <Monitor className="w-3.5 h-3.5" />
               <span>Wide</span>
@@ -488,7 +488,7 @@ export default function StyleAdvisorPage() {
                   ? "bg-pink-600 text-white shadow"
                   : "text-stone-400 hover:text-white"
               }`}
-              title="Giao diện khung điện thoại (như ảnh demo)"
+              title="Mobile frame view"
             >
               <Smartphone className="w-3.5 h-3.5" />
               <span>Mobile</span>
@@ -500,11 +500,11 @@ export default function StyleAdvisorPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsWardrobeOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 shadow transition relative"
-            title="Xem Tủ Đồ cá nhân hóa"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 shadow transition relative cursor-pointer"
+            title="Open Personalized Wardrobe"
           >
             <ShoppingBag className="w-3.5 h-3.5 text-pink-400" />
-            <span>Tủ đồ</span>
+            <span>Wardrobe</span>
             {wardrobeCount > 0 && (
               <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-pink-600 text-white shadow">
                 {wardrobeCount}
@@ -514,10 +514,10 @@ export default function StyleAdvisorPage() {
 
           <button
             onClick={() => setShowExtensionModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white shadow transition"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white shadow transition cursor-pointer"
           >
             <Chrome className="w-3.5 h-3.5" />
-            <span>Google Extension</span>
+            <span>Chrome Extension</span>
           </button>
         </div>
       </div>
@@ -540,13 +540,13 @@ export default function StyleAdvisorPage() {
             : "max-w-4xl"
         }`}
       >
-        {/* Banner Link to Chrome Extension (ở chế độ Wide) */}
+        {/* Banner Link to Chrome Extension (in Wide mode) */}
         {viewMode === "wide" && !isExtensionBannerDismissed && (
           <div className="mb-6 bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 border border-pink-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-xs relative">
             <button
               onClick={() => setIsExtensionBannerDismissed(true)}
-              className="absolute top-2 right-2 p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-black/5 transition"
-              title="Đóng thông báo này"
+              className="absolute top-2 right-2 p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-black/5 transition cursor-pointer"
+              title="Dismiss banner"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -562,31 +562,31 @@ export default function StyleAdvisorPage() {
                   </span>
                 </p>
                 <p className="text-xs text-stone-600">
-                  Tự động đề xuất set đồ phối hợp ngay khi bạn đang lướt Amazon, Pinterest, Zara, ASOS...
+                  Instantly receive outfit styling matches while browsing Amazon, Pinterest, Zara, ASOS...
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowExtensionModal(true)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl shadow transition shrink-0"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl shadow transition shrink-0 cursor-pointer"
             >
-              <span>Xem & Cài đặt Extension</span>
+              <span>Get Chrome Extension</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        {/* Header Tiêu Đề */}
+        {/* Header Title */}
         <div className="text-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
             Cun Style Advisor
           </h1>
           <p className="text-stone-500 mt-1.5 text-xs sm:text-sm font-medium">
-            Gõ từ khóa tìm đồ HOẶC Upload ảnh trang phục → Nhận tư vấn stylist + link mua hàng
+            Search luxury fashion pieces OR upload an outfit photo for AI styling advice and direct shopping links
           </p>
         </div>
 
-        {/* Card Form Chính: Unified Omni-Search Bar + Upload Image + ALL Market + Filters */}
+        {/* Card Form Main: Unified Omni-Search Bar + Upload Image + ALL Market + Filters */}
         <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-4 sm:p-6 mb-6">
           {/* Main Search Bar with Inline Camera & Search Button */}
           <div className="relative flex items-center">
@@ -615,7 +615,7 @@ export default function StyleAdvisorPage() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 rounded-xl text-stone-500 hover:text-pink-600 hover:bg-pink-50 transition cursor-pointer"
-                title="Tải ảnh trang phục lên để AI Vision quét mẫu"
+                title="Upload outfit photo for AI Vision styling"
               >
                 <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
@@ -641,7 +641,7 @@ export default function StyleAdvisorPage() {
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <>
-                    <span>Tìm</span>
+                    <span>Search</span>
                     <Sparkles className="w-3 h-3 text-pink-300" />
                   </>
                 )}
@@ -659,17 +659,17 @@ export default function StyleAdvisorPage() {
               />
               <div className="flex flex-col text-left">
                 <span className="text-xs font-bold text-pink-900 line-clamp-1">
-                  {imageName || "Ảnh trang phục đã tải lên"}
+                  {imageName || "Uploaded outfit photo"}
                 </span>
                 <span className="text-[10px] text-pink-600 font-medium">
-                  AI Vision sẵn sàng phân tích
+                  AI Vision ready to analyze
                 </span>
               </div>
               <button
                 type="button"
                 onClick={handleClearImage}
                 className="ml-1 p-1 rounded-full text-pink-700 hover:bg-pink-200/60 transition cursor-pointer"
-                title="Xóa ảnh"
+                title="Clear image"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -679,13 +679,13 @@ export default function StyleAdvisorPage() {
           {/* Quick Keywords & Surprise Me Button */}
           <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-stone-100">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[11px] text-stone-400 font-medium mr-1">Gợi ý nhanh:</span>
+              <span className="text-[11px] text-stone-400 font-medium mr-1">Quick tags:</span>
               {QUICK_KEYWORDS.map((kw) => (
                 <button
                   key={kw}
                   type="button"
                   onClick={() => setKeyword(kw)}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-medium ${
+                  className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-medium cursor-pointer ${
                     keyword.toLowerCase() === kw.toLowerCase()
                       ? "bg-pink-100 text-pink-700 border-pink-300 font-bold"
                       : "bg-stone-100/80 hover:bg-stone-200/70 text-stone-600 border-stone-200/80"
@@ -701,71 +701,71 @@ export default function StyleAdvisorPage() {
               type="button"
               onClick={handleSurpriseMe}
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition shadow-2xs cursor-pointer"
-              title="Phối đồ ngẫu hứng không cần suy nghĩ"
+              title="Surprise me with trending looks"
             >
               <Shuffle className="w-3.5 h-3.5 text-amber-600" />
-              <span>🎲 Gợi ý ngẫu hứng</span>
+              <span>🎲 Surprise Me</span>
             </button>
           </div>
 
-          {/* Sàn liên kết (Affiliate Market Selector) with ALL as default */}
+          {/* Affiliate Market Selector with ALL as default */}
           <div className="mt-4 pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2">
             <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
-              Sàn mua sắm (Affiliate Market):
+              Affiliate Market:
             </label>
             <div className="inline-flex flex-wrap rounded-xl bg-stone-100 p-1 border border-stone-200 gap-1">
               <button
                 type="button"
                 onClick={() => setMarket("ALL")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   market === "ALL"
                     ? "bg-stone-900 text-white shadow-xs"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
-                title="Quét & tổng hợp sản phẩm trên tất cả các sàn (Khuyên dùng)"
+                title="Scan & aggregate fashion across all global platforms (Recommended)"
               >
-                <span>🌐 Tất cả sàn (All Global)</span>
+                <span>🌐 All Global Platforms</span>
               </button>
               <button
                 type="button"
                 onClick={() => setMarket("US")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   market === "US"
                     ? "bg-amber-500 text-stone-950 font-black shadow-xs"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
-                title="Amazon US Affiliate (StoreID: cuncute-20)"
+                title="Amazon US Associates (StoreID: cuncute-20)"
               >
                 <span>📦 Amazon US</span>
               </button>
               <button
                 type="button"
                 onClick={() => setMarket("RAKUTEN")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   market === "RAKUTEN"
                     ? "bg-red-600 text-white shadow-xs"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
-                title="Thời trang chính hãng qua Rakuten Advertising (Nike, Macy's, ASOS...)"
+                title="Designer brands via Rakuten Advertising (Nike, Macy's, ASOS...)"
               >
                 <span>👗 Rakuten Brands</span>
               </button>
               <button
                 type="button"
                 onClick={() => setMarket("FOURTHWALL")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   market === "FOURTHWALL"
                     ? "bg-pink-600 text-white shadow-xs"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
-                title="Sản phẩm thời trang độc quyền từ CunCute Store (cute.cunfashion.com)"
+                title="Exclusive fashion from CunCute Store (cute.cunfashion.com)"
               >
                 <span>🌟 Cun Cute Store</span>
               </button>
             </div>
           </div>
 
-          {/* Toggle Bộ Lọc Nâng Cao (Collapsible Filters) */}
+          {/* Collapsible Advanced Filters */}
           <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between">
             <button
               type="button"
@@ -773,81 +773,81 @@ export default function StyleAdvisorPage() {
               className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-pink-600 transition cursor-pointer"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-pink-600" />
-              <span>Bộ lọc nâng cao (Dịp, Phong cách, Ngân sách, Màu sắc)</span>
+              <span>Advanced Filters (Occasion, Style, Budget, Color)</span>
               {showFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
             <span className="text-[11px] text-stone-400 font-medium">
-              {showFilters ? "Bấm để thu gọn" : "Tùy chọn thêm"}
+              {showFilters ? "Click to collapse" : "More options"}
             </span>
           </div>
 
-          {/* Panel Bộ Lọc Nâng Cao */}
+          {/* Advanced Filters Panel */}
           {showFilters && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-4 rounded-2xl bg-stone-50 border border-stone-200 animate-in fade-in duration-200">
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                  Dịp sử dụng
+                  Occasion
                 </label>
                 <select
                   value={occasion}
                   onChange={(e) => setOccasion(e.target.value)}
                   className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
                 >
-                  <option value="all">Tất cả / Mọi dịp</option>
-                  <option value="work">Đi làm / Công sở</option>
-                  <option value="casual">Casual / Hàng ngày</option>
-                  <option value="date">Hẹn hò lãng mạn</option>
-                  <option value="party">Party / Tiệc tùng</option>
-                  <option value="travel">Du lịch & Dạo phố</option>
+                  <option value="all">All Occasions</option>
+                  <option value="work">Work / Office</option>
+                  <option value="casual">Casual / Daily</option>
+                  <option value="date">Date Night</option>
+                  <option value="party">Party / Evening</option>
+                  <option value="travel">Travel & Street</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                  Phong cách
+                  Style Mood
                 </label>
                 <select
                   value={style}
                   onChange={(e) => setStyle(e.target.value)}
                   className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
                 >
-                  <option value="all">Tất cả / Đa dạng phong cách</option>
-                  <option value="elegant">Elegant / Thanh lịch</option>
-                  <option value="minimal">Minimal / Tối giản</option>
-                  <option value="street">Streetwear / Cá tính</option>
-                  <option value="romantic">Romantic / Nữ tính</option>
-                  <option value="classic">Classic / Cổ điển</option>
+                  <option value="all">All Styles</option>
+                  <option value="elegant">Elegant / Haute</option>
+                  <option value="minimal">Minimal / Chic</option>
+                  <option value="street">Streetwear</option>
+                  <option value="romantic">Romantic</option>
+                  <option value="classic">Classic</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                  Ngân sách
+                  Budget
                 </label>
                 <select
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                   className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
                 >
-                  <option value="all">Mọi mức giá</option>
-                  <option value="low">Tiết kiệm</option>
-                  <option value="mid">Tiêu chuẩn</option>
-                  <option value="high">Cao cấp</option>
+                  <option value="all">All Budgets</option>
+                  <option value="low">Value (&lt; $50)</option>
+                  <option value="mid">Mid-Tier ($50 - $150)</option>
+                  <option value="high">Luxury (&gt; $150)</option>
                 </select>
               </div>
 
               <div>
                 <label htmlFor="style-advisor-color-input" className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
-                  Tông màu yêu thích
+                  Preferred Color Accent
                 </label>
                 <input
                   type="text"
                   id="style-advisor-color-input"
                   name="color"
-                  aria-label="Tông màu yêu thích"
+                  aria-label="Preferred Color Accent"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  placeholder="Để trống hoặc gõ màu..."
+                  placeholder="Optional (e.g. beige, black, emerald...)"
                   className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800 placeholder:text-stone-400"
                 />
               </div>
@@ -858,12 +858,12 @@ export default function StyleAdvisorPage() {
         {/* Kết Quả Phân Tích */}
         {result && (
           <div ref={resultRef} className="space-y-6 animate-in fade-in duration-300">
-            {/* 1. Card Gợi ý phong cách */}
+            {/* 1. Stylist Advice Card */}
             <div className="bg-white rounded-3xl shadow-sm border border-stone-200 p-5 sm:p-6">
               <div className="flex items-center justify-between mb-2.5">
                 <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2">
                   <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold">💡</span>
-                  <span>Gợi ý phong cách</span>
+                  <span>Haute Couture Stylist Recommendation</span>
                 </h2>
                 {result.source === "gemini-vision" ? (
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs">
@@ -879,12 +879,12 @@ export default function StyleAdvisorPage() {
                 {result.adviceText}
               </p>
 
-              {/* Món đồ nhận diện từ AI hoặc Từ khóa tìm kiếm */}
+              {/* Detected Items from AI or Search Keywords */}
               {result.detectedItems && result.detectedItems.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-stone-100">
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                      {result.keyword ? "Món đồ tìm kiếm & bóc tách phối hợp:" : "Món đồ AI nhận diện được từ ảnh:"}
+                      {result.keyword ? "Detected Items & Styling Breakdown:" : "Items detected by AI Vision:"}
                     </p>
                     {result.keyword && (
                       <span className="text-[11px] bg-pink-50 text-pink-700 px-2 py-0.5 rounded-md font-bold border border-pink-200">
@@ -904,11 +904,11 @@ export default function StyleAdvisorPage() {
                 </div>
               )}
 
-              {/* Bảng phối màu đề xuất */}
+              {/* Suggested Color Palette */}
               {result.palette && result.palette.length > 0 && (
                 <div className="mt-4 pt-3 border-t border-stone-100">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-2">
-                    Bảng phối màu gợi ý (Color Palette):
+                    Suggested Color Palette:
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {result.palette.map((c, i) => (
@@ -925,7 +925,7 @@ export default function StyleAdvisorPage() {
               )}
             </div>
 
-            {/* 1.5 Direct Affiliate Search Hub (khi từ khóa tìm kiếm không có sẵn trong catalog) */}
+            {/* Direct Affiliate Search Hub (when search term has no direct catalog matches) */}
             {result.hasDirectMatch === false && result.keyword && (
               <div className="bg-white rounded-3xl shadow-sm border-2 border-amber-300/80 p-5 sm:p-6 bg-gradient-to-br from-amber-50/60 via-white to-pink-50/40">
                 <div className="flex items-start gap-3 mb-4">
@@ -934,10 +934,10 @@ export default function StyleAdvisorPage() {
                   </div>
                   <div>
                     <h3 className="text-base sm:text-lg font-extrabold text-stone-900">
-                      Tìm kiếm trực tiếp &quot;{result.keyword}&quot; trên các sàn mua sắm
+                      Search directly for &quot;{result.keyword}&quot; across global stores
                     </h3>
                     <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
-                      Từ khóa <strong>&quot;{result.keyword}&quot;</strong> không có trong kho mẫu thời trang có sẵn. Bấm vào các liên kết trực tiếp bên dưới để tìm sản phẩm chính xác và nhận ưu đãi affiliate tốt nhất:
+                      The keyword <strong>&quot;{result.keyword}&quot;</strong> is not in our static catalog. Click below to search live inventory and get verified affiliate pricing:
                     </p>
                   </div>
                 </div>
@@ -969,24 +969,24 @@ export default function StyleAdvisorPage() {
               </div>
             )}
 
-            {/* 2. Card Sản phẩm gợi ý (Affiliate) */}
+            {/* 2. Suggested Products (Affiliate) */}
             <div>
               {result.keyMatchedProducts &&
               result.keyMatchedProducts.length > 0 &&
               result.coordinatedProducts &&
               result.coordinatedProducts.length > 0 ? (
                 <div className="space-y-8">
-                  {/* Phân nhóm 1: Món đồ tìm kiếm trọng tâm */}
+                  {/* Group 1: Target Search Matches */}
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
                       <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
                         <span className="w-6 h-6 rounded-lg bg-pink-600 text-white flex items-center justify-center text-xs font-black">
                           🎯
                         </span>
-                        <span>Món đồ tìm kiếm trọng tâm</span>
+                        <span>Target Search Matches</span>
                         {result.keyword && (
                           <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
-                            Khớp từ khóa: &quot;{result.keyword}&quot;
+                            Matched: &quot;{result.keyword}&quot;
                           </span>
                         )}
                       </h2>
@@ -1006,17 +1006,17 @@ export default function StyleAdvisorPage() {
                     </div>
                   </div>
 
-                  {/* Phân nhóm 2: Gợi ý phối đồ hoàn hảo (Complete The Look) */}
+                  {/* Group 2: Complete The Look */}
                   <div className="pt-2">
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
                       <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
                         <span className="w-6 h-6 rounded-lg bg-amber-500 text-stone-950 flex items-center justify-center text-xs font-black">
                           ✨
                         </span>
-                        <span>Gợi ý phối đồ hoàn hảo (Complete The Look)</span>
+                        <span>Complete The Look (Coordinated Pairings)</span>
                         {result.keyword && (
                           <span className="text-xs font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200">
-                            Phối cùng &quot;{result.keyword}&quot;
+                            Paired with &quot;{result.keyword}&quot;
                           </span>
                         )}
                       </h2>
@@ -1043,17 +1043,17 @@ export default function StyleAdvisorPage() {
                       <ShoppingBag className="w-5 h-5 text-pink-600 shrink-0" />
                       <span>
                         {result.hasDirectMatch === false
-                          ? "🔥 Gợi ý thời trang thịnh hành dành cho bạn (Trending Picks)"
-                          : "Sản phẩm gợi ý (Affiliate)"}
+                          ? "🔥 Trending Picks Curated For You"
+                          : "Curated Fashion Matches"}
                       </span>
                       {result.keyword && (
                         result.hasDirectMatch === false ? (
                           <span className="text-xs font-semibold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-lg border border-stone-200">
-                            Gợi ý tham khảo (Kho mẫu không có &quot;{result.keyword}&quot;)
+                            Trending alternative for &quot;{result.keyword}&quot;
                           </span>
                         ) : (
                           <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
-                            Khớp từ khóa: &quot;{result.keyword}&quot;
+                            Matched: &quot;{result.keyword}&quot;
                           </span>
                         )
                       )}
@@ -1083,11 +1083,11 @@ export default function StyleAdvisorPage() {
       {wardrobeCount > 0 && (
         <button
           onClick={() => setIsWardrobeOpen(true)}
-          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-2xl shadow-pink-600/40 border-2 border-white flex items-center gap-2.5 transition hover:scale-105 active:scale-95 animate-bounce-short"
-          title="Xem Tủ Đồ yêu thích của bạn"
+          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-2xl shadow-pink-600/40 border-2 border-white flex items-center gap-2.5 transition hover:scale-105 active:scale-95 animate-bounce-short cursor-pointer"
+          title="View your saved wardrobe"
         >
           <ShoppingBag className="w-4 h-4 text-white animate-pulse" />
-          <span>Tủ Đồ ({wardrobeCount})</span>
+          <span>Wardrobe ({wardrobeCount})</span>
         </button>
       )}
 
@@ -1104,7 +1104,8 @@ export default function StyleAdvisorPage() {
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 relative">
             <button
               onClick={() => setShowExtensionModal(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition"
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition cursor-pointer"
+              aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1117,25 +1118,25 @@ export default function StyleAdvisorPage() {
                 <h3 className="text-base sm:text-lg font-extrabold text-stone-900">
                   Cun Style Advisor Chrome Extension
                 </h3>
-                <p className="text-xs text-stone-500">Đề xuất gợi ý outfit khi lướt web (Manifest V3)</p>
+                <p className="text-xs text-stone-500">Live AI styling recommendations while browsing the web (Manifest V3)</p>
               </div>
             </div>
 
             <div className="p-4 bg-pink-50 rounded-2xl border border-pink-100 mb-5 text-xs text-pink-900 space-y-1.5">
-              <p className="font-bold">Cách cài đặt vào Google Chrome (30 giây):</p>
+              <p className="font-bold">How to install in Google Chrome (30 seconds):</p>
               <ol className="list-decimal list-inside space-y-1 text-[11px] text-pink-800">
-                <li>Mở trình duyệt Google Chrome, gõ <code className="bg-pink-100 px-1 rounded">chrome://extensions</code></li>
-                <li>Bật công tắc <strong>"Developer mode"</strong> ở góc trên bên phải.</li>
-                <li>Bấm nút <strong>"Load unpacked"</strong> và chọn thư mục <code className="bg-pink-100 px-1 rounded">extension/cun-style-advisor</code></li>
-                <li>Ghim (Pin) icon Cun Style Advisor lên thanh công cụ để sử dụng tiện lợi nhất!</li>
+                <li>Open Google Chrome and navigate to <code className="bg-pink-100 px-1 rounded">chrome://extensions</code></li>
+                <li>Turn ON the <strong>&quot;Developer mode&quot;</strong> toggle in the top-right corner.</li>
+                <li>Click <strong>&quot;Load unpacked&quot;</strong> and select the directory <code className="bg-pink-100 px-1 rounded">extension/cun-style-advisor</code></li>
+                <li>Pin the Cun Style Advisor icon to your browser toolbar for instant 1-click styling!</li>
               </ol>
             </div>
 
             <button
               onClick={() => setShowExtensionModal(false)}
-              className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl text-xs transition"
+              className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl text-xs transition cursor-pointer"
             >
-              Đã hiểu & Đóng
+              Got it, close
             </button>
           </div>
         </div>

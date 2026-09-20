@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/brand/Logo";
 import { CATEGORIES_LIST } from "@/lib/data/puzzles-data";
-import { Search, ChevronDown, Sparkles, Users } from "lucide-react";
+import { Search, ChevronDown, Sparkles, Users, Globe } from "lucide-react";
 import PlayerProfileModal from "@/components/puzzle/PlayerProfileModal";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Navbar() {
+  const { t, lang, changeLanguage, isEnglish } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCategoriesMenu, setShowCategoriesMenu] = useState(false);
-  const [playerName, setPlayerName] = useState("Người chơi");
+  const [playerName, setPlayerName] = useState("Player");
   const [playerColor, setPlayerColor] = useState("#f59e0b");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const router = useRouter();
@@ -58,7 +60,7 @@ export default function Navbar() {
             className="hover:text-amber-600 transition flex items-center gap-1.5"
           >
             <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
-            Daily Puzzle
+            {t.navbar.dailyPuzzle}
           </Link>
 
           <Link
@@ -66,7 +68,7 @@ export default function Navbar() {
             className="hover:text-amber-600 transition flex items-center gap-1.5 text-amber-600 font-extrabold"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            Lookbook
+            {t.navbar.lookbook}
           </Link>
 
           <Link
@@ -74,7 +76,7 @@ export default function Navbar() {
             className="hover:text-pink-600 transition flex items-center gap-1.5 text-pink-600 font-extrabold"
           >
             <Sparkles className="w-4 h-4 text-pink-500 fill-pink-500" />
-            Style Advisor
+            {t.navbar.styleAdvisor}
           </Link>
 
           {/* Categories Mega Dropdown */}
@@ -87,14 +89,14 @@ export default function Navbar() {
               onClick={() => setShowCategoriesMenu((prev) => !prev)}
               className="hover:text-amber-600 transition flex items-center gap-1 py-2 font-bold"
             >
-              <span>Categories</span>
+              <span>{t.navbar.categories}</span>
               <ChevronDown className="w-4 h-4 text-stone-400" />
             </button>
 
             {showCategoriesMenu && (
               <div className="absolute top-full left-0 w-64 bg-white border border-stone-200 rounded-2xl shadow-xl py-3 z-50 animate-in fade-in zoom-in-95 duration-150">
                 <div className="px-3 pb-2 text-[11px] uppercase font-bold tracking-wider text-stone-400 border-b border-stone-100">
-                  Select a category
+                  {t.navbar.selectCategory}
                 </div>
                 <div className="max-h-72 overflow-y-auto py-1">
                   {CATEGORIES_LIST.map((cat) => (
@@ -114,7 +116,7 @@ export default function Navbar() {
                     onClick={() => setShowCategoriesMenu(false)}
                     className="block text-center text-xs font-bold text-amber-600 hover:text-amber-700 py-1"
                   >
-                    See all categories →
+                    {t.navbar.seeAllCategories}
                   </Link>
                 </div>
               </div>
@@ -122,7 +124,7 @@ export default function Navbar() {
           </div>
 
           <Link href="/make-puzzle" className="hover:text-amber-600 transition">
-            Make Puzzles
+            {t.navbar.makePuzzles}
           </Link>
         </nav>
 
@@ -135,25 +137,38 @@ export default function Navbar() {
             aria-label="Search puzzles"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search puzzles..."
+            placeholder={t.navbar.searchPlaceholder}
             className="w-full pl-9 pr-4 py-2 text-xs font-medium bg-stone-100/90 text-stone-800 placeholder-stone-400 rounded-full border border-stone-200 outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
           />
           <Search className="w-4 h-4 text-stone-400 absolute left-3 pointer-events-none" />
         </form>
 
-        {/* Right: Player Profile / Co-Op / CTA */}
+        {/* Right: Language Switcher / Player Profile / CTA */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Language Switcher Pill */}
+          <button
+            type="button"
+            onClick={() => changeLanguage(isEnglish ? "vi" : "en")}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-black text-stone-700 hover:text-amber-800 bg-stone-100/90 hover:bg-amber-50 border border-stone-200 hover:border-amber-300 rounded-full transition cursor-pointer shadow-2xs"
+            title={isEnglish ? "Chuyển sang Tiếng Việt" : "Switch to English"}
+            aria-label="Toggle language"
+          >
+            <Globe className="w-3.5 h-3.5 text-stone-500" />
+            <span>{isEnglish ? "EN" : "VI"}</span>
+          </button>
+
+          {/* Player Profile Pill */}
           <button
             type="button"
             onClick={() => setIsProfileModalOpen(true)}
             className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-stone-700 hover:text-amber-700 bg-stone-100/90 hover:bg-amber-50 border border-stone-200/90 hover:border-amber-300 rounded-full transition cursor-pointer shadow-xs"
-            title="Đổi tên hiển thị & màu đại diện phòng chơi"
+            title={t.navbar.profileTooltip}
           >
             <span
               className="w-3 h-3 rounded-full border border-white shadow-xs shrink-0"
               style={{ backgroundColor: playerColor }}
             />
-            <span className="max-w-[100px] truncate">{playerName}</span>
+            <span className="max-w-[100px] truncate">{playerName || t.navbar.playerDefaultName}</span>
             <Users className="w-3.5 h-3.5 text-stone-400 shrink-0" />
           </button>
 
@@ -161,7 +176,7 @@ export default function Navbar() {
             href="/make-puzzle"
             className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-xs font-extrabold bg-[#ffb703] hover:bg-[#e0a102] text-stone-950 rounded-full shadow-sm hover:shadow transition"
           >
-            Make Your Own
+            {t.navbar.makeYourOwn}
           </Link>
         </div>
       </div>

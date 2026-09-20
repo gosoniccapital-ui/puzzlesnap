@@ -41,14 +41,14 @@ export default function SharedWardrobeBanner({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-xs sm:text-sm text-white">
-                ✨ Tủ Đồ Outfit Được Chia Sẻ ({sharedItems.length} món)
+                ✨ Shared Outfit Wardrobe ({sharedItems.length} {sharedItems.length === 1 ? "item" : "items"})
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-600 text-white">
-                Khám phá ngay
+                Explore Now
               </span>
             </div>
             <p className="text-[11px] text-stone-300 truncate max-w-xl">
-              Bạn bè vừa chia sẻ bộ sưu tập trang phục thời trang từ CunFashion kèm liên kết mua sắm trực tiếp.
+              A friend just shared a curated fashion outfit collection with direct shopping links.
             </p>
           </div>
         </div>
@@ -65,14 +65,14 @@ export default function SharedWardrobeBanner({
                 <Check className="w-3.5 h-3.5 text-white" />
                 <span>
                   {addedCount !== null && addedCount > 0
-                    ? `Đã lưu thêm ${addedCount} món!`
-                    : "Đã có trong Tủ Đồ!"}
+                    ? `Saved ${addedCount} new ${addedCount === 1 ? "item" : "items"}!`
+                    : "Already in Wardrobe!"}
                 </span>
               </>
             ) : (
               <>
                 <Download className="w-3.5 h-3.5" />
-                <span>Lưu vào Tủ Đồ của tôi</span>
+                <span>Save to My Wardrobe</span>
               </>
             )}
           </button>
@@ -82,13 +82,13 @@ export default function SharedWardrobeBanner({
             className="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-amber-400" />
-            <span>Xem chi tiết</span>
+            <span>View Details</span>
           </button>
 
           <button
             onClick={onDismiss}
             className="p-1.5 text-stone-400 hover:text-white hover:bg-stone-800/80 rounded-lg transition cursor-pointer"
-            title="Đóng thông báo"
+            title="Dismiss banner"
           >
             <X className="w-4 h-4" />
           </button>

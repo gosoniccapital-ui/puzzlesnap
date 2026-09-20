@@ -1,4 +1,4 @@
-﻿/* Cun Style Advisor Popup Styles */
+/* Cun Style Advisor Popup Styles */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -196,6 +196,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
 
 .form-group label {

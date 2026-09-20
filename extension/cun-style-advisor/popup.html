@@ -1,5 +1,5 @@
-﻿<!DOCTYPE html>
-<html lang="vi">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,84 +14,89 @@
         <span class="logo-badge">C</span>
         <div>
           <h1 class="brand-title">Cun Style Advisor</h1>
-          <p class="brand-subtitle">Gợi ý phối đồ chuẩn gu khi lướt web</p>
+          <p class="brand-subtitle">AI Visual Stylist & Live Amazon US</p>
         </div>
       </div>
-      <a href="https://cunfashion.com/style-advisor" target="_blank" class="header-link" title="Mở trang web">
-        🌐 Web
+      <a href="https://cunfashion.com/style-advisor" target="_blank" class="header-link" title="Open Full Screen Web App">
+        🌐 Web App
       </a>
     </div>
   </header>
 
   <!-- Main Container -->
   <main class="main-container">
-    <!-- Active Image Preview -->
+    <!-- Active Image Preview / Upload -->
     <div class="section-card image-card">
       <div class="card-header">
-        <span class="card-label">1. Trang phục phân tích</span>
-        <button id="btnRemoveImage" class="btn-text-danger hidden">✕ Xóa</button>
+        <span class="card-label">1. Outfit Image (Optional)</span>
+        <button id="btnRemoveImage" class="btn-text-danger hidden">✕ Clear</button>
       </div>
 
       <div id="imagePreviewContainer" class="preview-area empty">
         <div id="emptyState" class="empty-state">
           <span class="empty-icon">📷</span>
-          <p class="empty-text">Click chuột phải vào ảnh bất kỳ trên web & chọn <b>"Tư vấn phối đồ"</b> hoặc chọn ảnh bên dưới</p>
+          <p class="empty-text">Right-click any web photo and choose <b>"Style Advisor"</b> or upload below</p>
           <label class="btn-upload">
-            <span>Chọn ảnh từ máy</span>
+            <span>Upload Image</span>
             <input type="file" id="fileInput" accept="image/*" class="file-input-hidden" />
           </label>
         </div>
         <img id="previewImage" class="preview-img hidden" alt="Selected outfit" />
       </div>
-      <p id="imageSourceTag" class="source-tag hidden">✨ Nhận diện từ trang web đang xem</p>
+      <p id="imageSourceTag" class="source-tag hidden">✨ Captured from current web page</p>
     </div>
 
-    <!-- Filter Options -->
+    <!-- Filter & Search Criteria -->
     <div class="section-card">
       <div class="card-header">
-        <span class="card-label">2. Tiêu chí lựa chọn</span>
+        <span class="card-label">2. Search & Preferences</span>
       </div>
 
       <div class="form-grid">
+        <div class="form-group full-width">
+          <label for="inputKeyword">Keyword / Search Item</label>
+          <input type="text" id="inputKeyword" placeholder="Trench coat, blazer, cocktail dress..." class="form-input" />
+        </div>
+
         <div class="form-group">
-          <label for="selectOccasion">Dịp sử dụng</label>
+          <label for="selectOccasion">Occasion</label>
           <select id="selectOccasion" class="form-select">
-            <option value="casual">Casual / Hàng ngày</option>
-            <option value="work">Đi làm / Công sở</option>
-            <option value="date">Hẹn hò lãng mạn</option>
-            <option value="party">Party / Sự kiện</option>
-            <option value="travel">Du lịch / Dạo phố</option>
+            <option value="casual">Casual / Daily</option>
+            <option value="work">Work / Office</option>
+            <option value="date">Date Night</option>
+            <option value="party">Party / Evening</option>
+            <option value="travel">Travel / Street</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="selectStyle">Phong cách</label>
+          <label for="selectStyle">Style Mood</label>
           <select id="selectStyle" class="form-select">
-            <option value="minimal">Minimal / Tối giản</option>
-            <option value="elegant">Elegant / Thanh lịch</option>
+            <option value="minimal">Minimal / Chic</option>
+            <option value="elegant">Elegant / Haute</option>
             <option value="street">Streetwear</option>
-            <option value="romantic">Romantic / Nữ tính</option>
-            <option value="classic">Classic / Cổ điển</option>
+            <option value="romantic">Romantic</option>
+            <option value="classic">Classic</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="selectBudget">Ngân sách</label>
+          <label for="selectBudget">Budget</label>
           <select id="selectBudget" class="form-select">
-            <option value="low">Dưới 500k</option>
-            <option value="mid">500k - 1.5tr</option>
-            <option value="high">Trên 1.5tr</option>
+            <option value="low">Under $50</option>
+            <option value="mid">$50 - $150</option>
+            <option value="high">Over $150 (Luxury)</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="inputColor">Màu ưa thích</label>
-          <input type="text" id="inputColor" placeholder="Hồng pastel, đen, be..." class="form-input" />
+          <label for="inputColor">Color Accent</label>
+          <input type="text" id="inputColor" placeholder="Beige, noir black, emerald..." class="form-input" />
         </div>
       </div>
 
       <button id="btnAnalyze" class="btn-primary">
-        <span>✨ Phân Tích & Gợi Ý Sản Phẩm</span>
+        <span>✨ Analyze & Match Looks</span>
       </button>
     </div>
 
@@ -99,13 +104,13 @@
     <div id="resultsSection" class="results-container hidden">
       <div class="section-card advice-card">
         <div class="card-header">
-          <span class="card-label">💡 Lời khuyên Stylist</span>
+          <span class="card-label">💡 AI Stylist Recommendation</span>
         </div>
         <p id="adviceText" class="advice-text"></p>
       </div>
 
       <div class="products-header">
-        <h3 class="products-title">Sản Phẩm Phối Đồ Gợi Ý (Affiliate)</h3>
+        <h3 class="products-title">Matched Outfits (Amazon US & Curated)</h3>
       </div>
       <div id="productsList" class="products-list"></div>
     </div>
@@ -114,7 +119,7 @@
   <!-- Footer -->
   <footer class="app-footer">
     <a href="https://cunfashion.com/style-advisor" target="_blank" class="footer-btn">
-      <span>Mở toàn màn hình trên CunFashion.com →</span>
+      <span>Open Full Experience on CunFashion.com →</span>
     </a>
   </footer>
 

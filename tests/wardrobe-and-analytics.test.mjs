@@ -84,7 +84,7 @@ test('Wardrobe Architecture: Component and Hook files exist and are integrated c
   const drawerPath = path.resolve('src', 'components', 'wardrobe', 'WardrobeDrawer.tsx');
   assert.ok(fs.existsSync(drawerPath), 'WardrobeDrawer component must exist on disk');
   const drawerContent = fs.readFileSync(drawerPath, 'utf8');
-  assert.ok(drawerContent.includes('Tủ Đồ Cá Nhân Hóa'), 'Must render wardrobe title');
+  assert.ok(drawerContent.includes('Personal Wardrobe') || drawerContent.includes('Tủ Đồ Cá Nhân Hóa'), 'Must render wardrobe title');
   assert.ok(drawerContent.includes('clearWardrobe'), 'Must provide clear wardrobe option');
 
   const pagePath = path.resolve('src', 'app', 'style-advisor', 'page.tsx');
