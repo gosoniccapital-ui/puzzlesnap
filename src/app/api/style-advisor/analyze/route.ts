@@ -10,6 +10,7 @@ import {
 } from "@/lib/data/style-advisor-data";
 import { searchRakutenProducts } from "@/lib/affiliate/rakuten-client";
 import { fetchFourthwallProducts } from "@/lib/fourthwall/client";
+import { searchAmazonLiveProducts } from "@/lib/affiliate/amazon-live-client";
 
 // In-memory sliding window rate limiter: max 20 requests / min per IP with auto-pruning
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -226,24 +227,19 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
             let multiSourceProducts: StyleProduct[] = [];
             let hasDirectMatch = true;
 
-            const amzCatalogMatches = cleanKeyword
-              ? AMAZON_STYLE_CATALOG.filter(p =>
-                  p.name.toLowerCase().includes(cleanKeyword.toLowerCase()) ||
-                  p.category.toLowerCase().includes(cleanKeyword.toLowerCase()) ||
-                  (p.colorTags || []).some(t => t.toLowerCase().includes(cleanKeyword.toLowerCase()))
-                )
-              : [];
+            const liveQuery = cleanKeyword || detectedItems[0]?.searchQuery || `${style} ${occasion} outfit`;
 
             if (isAll) {
-              const [fwItems, rkItems] = await Promise.all([
+              const [fwItems, rkItems, amzLiveItems] = await Promise.all([
                 fetchFourthwallProducts(3, cleanKeyword),
-                searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 3)
+                searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 3),
+                searchAmazonLiveProducts(liveQuery, 4)
               ]);
 
               const directMatches = [
+                ...amzLiveItems,
                 ...fwItems,
-                ...rkItems,
-                ...amzCatalogMatches
+                ...rkItems
               ];
 
               if (cleanKeyword) {
@@ -252,27 +248,28 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
                   multiSourceProducts = directMatches;
                 } else {
                   hasDirectMatch = false;
-                  // Zero direct match for query: show real trending picks across platforms, NO synthetic cards!
-                  const [defaultFw, defaultRk] = await Promise.all([
+                  // Zero direct match: fetch real live trending picks across platforms
+                  const [defaultFw, defaultRk, defaultAmz] = await Promise.all([
                     fetchFourthwallProducts(2),
-                    searchRakutenProducts("fashion clothing", 2)
+                    searchRakutenProducts("fashion clothing", 2),
+                    searchAmazonLiveProducts("trending fashion outfit", 4)
                   ]);
                   multiSourceProducts = [
+                    ...defaultAmz,
                     ...defaultFw,
-                    ...defaultRk,
-                    ...AMAZON_STYLE_CATALOG.slice(0, 4)
+                    ...defaultRk
                   ];
                 }
               } else {
                 hasDirectMatch = true;
                 multiSourceProducts = [
+                  ...amzLiveItems,
                   ...fwItems,
-                  ...rkItems,
-                  ...AMAZON_STYLE_CATALOG.slice(0, 4)
+                  ...rkItems
                 ];
               }
 
-              // Pad up to 6 from catalog if needed without duplicates
+              // Pad up to 6 from live or catalog if needed without duplicates
               if (multiSourceProducts.length < 6) {
                 for (const catItem of AMAZON_STYLE_CATALOG) {
                   if (multiSourceProducts.length >= 6) break;
@@ -296,13 +293,16 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
                 hasDirectMatch = true;
                 multiSourceProducts = rkItems;
               } else {
-                if (cleanKeyword) hasDirectMatch = false;
-                multiSourceProducts = AMAZON_STYLE_CATALOG.slice(0, 6);
+                // If Rakuten returns empty or has credentials issues, gracefully fallback to real live Amazon data
+                const amzLiveFallback = await searchAmazonLiveProducts(cleanKeyword || `${style} ${occasion}`, 6);
+                multiSourceProducts = amzLiveFallback.length > 0 ? amzLiveFallback : AMAZON_STYLE_CATALOG.slice(0, 6);
+                if (cleanKeyword && amzLiveFallback.length === 0) hasDirectMatch = false;
               }
             } else if (isUS) {
-              if (amzCatalogMatches.length > 0) {
+              const liveAmz = await searchAmazonLiveProducts(liveQuery, 6);
+              if (liveAmz.length > 0) {
                 hasDirectMatch = true;
-                multiSourceProducts = amzCatalogMatches;
+                multiSourceProducts = liveAmz;
               } else {
                 if (cleanKeyword) hasDirectMatch = false;
                 multiSourceProducts = AMAZON_STYLE_CATALOG.slice(0, 6);
@@ -382,27 +382,35 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
 
     if (fallbackAdvice.hasDirectMatch !== false) {
       if (isAll) {
-        const [fw, rk] = await Promise.all([
+        const [fw, rk, liveAmz] = await Promise.all([
           fetchFourthwallProducts(2, cleanKeyword),
-          searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 2)
+          searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 2),
+          searchAmazonLiveProducts(cleanKeyword || `${style} ${occasion}`, 4)
         ]);
-        const amz = AMAZON_STYLE_CATALOG.filter(p => !cleanKeyword || p.name.toLowerCase().includes(cleanKeyword.toLowerCase())).slice(0, 4);
-        fallbackProducts = [...fw, ...rk, ...amz].filter(Boolean);
+        fallbackProducts = [...liveAmz, ...fw, ...rk].filter(Boolean);
       } else if (market === "FOURTHWALL") {
         fallbackProducts = await fetchFourthwallProducts(6, cleanKeyword);
       } else if (market === "RAKUTEN") {
-        fallbackProducts = await searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 6);
+        const rk = await searchRakutenProducts(cleanKeyword || `${style} ${occasion}`, 6);
+        if (rk.length > 0) {
+          fallbackProducts = rk;
+        } else {
+          fallbackProducts = await searchAmazonLiveProducts(cleanKeyword || `${style} ${occasion}`, 6);
+        }
+      } else if (market === "US") {
+        fallbackProducts = await searchAmazonLiveProducts(cleanKeyword || `${style} ${occasion}`, 6);
       }
     } else {
       // Zero matches for keyword: fetch honest trending items across platforms
-      const [defaultFw, defaultRk] = await Promise.all([
+      const [defaultFw, defaultRk, defaultAmz] = await Promise.all([
         fetchFourthwallProducts(2),
-        searchRakutenProducts("fashion clothing", 2)
+        searchRakutenProducts("fashion clothing", 2),
+        searchAmazonLiveProducts("trending fashion outfit", 4)
       ]);
       fallbackProducts = [
+        ...defaultAmz,
         ...defaultFw,
-        ...defaultRk,
-        ...AMAZON_STYLE_CATALOG.slice(0, 4)
+        ...defaultRk
       ].filter(Boolean);
     }
 
