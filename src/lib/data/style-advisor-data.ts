@@ -1,4 +1,5 @@
-export const AMAZON_ASSOCIATE_TAG = "cuncute-20";
+export const AMAZON_ASSOCIATE_TAG =
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_AMAZON_TAG) || "cuncute-20";
 
 export function buildAmazonSearchUrl(query: string, subId?: string): string {
   // Condense to 3-4 clean keywords to prevent Amazon 503 / "Sorry! Something went wrong!" error page
@@ -15,10 +16,13 @@ export function buildAmazonSearchUrl(query: string, subId?: string): string {
   return url;
 }
 
-export function buildAmazonProductUrl(asin: string, subId?: string): string {
+export function buildAmazonProductUrl(asin: string, subId?: string, options?: { preserveVariants?: boolean }): string {
   let url = `https://www.amazon.com/dp/${asin}?tag=${AMAZON_ASSOCIATE_TAG}`;
   if (subId) {
     url += `&ascsubtag=${encodeURIComponent(subId)}`;
+  }
+  if (options?.preserveVariants) {
+    url += `&th=1&psc=1`;
   }
   return url;
 }

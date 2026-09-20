@@ -1488,7 +1488,7 @@ export default function AdminDashboardPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. 1.250.000₫"
+                      placeholder="e.g. $59.99"
                       value={newProductPriceOriginal}
                       onChange={(e) => setNewProductPriceOriginal(e.target.value)}
                       className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
@@ -1500,7 +1500,7 @@ export default function AdminDashboardPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. 1.050.000₫"
+                      placeholder="e.g. $49.99"
                       value={newProductPriceSale}
                       onChange={(e) => setNewProductPriceSale(e.target.value)}
                       className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
@@ -1703,7 +1703,7 @@ export default function AdminDashboardPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. 1.250.000₫"
+                      placeholder="e.g. $59.99"
                       value={editProductPriceOriginal}
                       onChange={(e) => setEditProductPriceOriginal(e.target.value)}
                       className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"
@@ -1715,7 +1715,7 @@ export default function AdminDashboardPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. 1.050.000₫"
+                      placeholder="e.g. $49.99"
                       value={editProductPriceSale}
                       onChange={(e) => setEditProductPriceSale(e.target.value)}
                       className="w-full px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-stone-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-amber-500"

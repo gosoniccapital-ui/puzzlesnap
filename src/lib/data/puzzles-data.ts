@@ -1,3 +1,10 @@
+const AMAZON_TAG =
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_AMAZON_TAG) || "cuncute-20";
+
+function buildAmazonLookbookUrl(asin: string, subId: string): string {
+  return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_TAG}&ascsubtag=${encodeURIComponent(subId)}&th=1&psc=1`;
+}
+
 export interface PuzzleItem {
   id: string;
   slug: string;
@@ -51,12 +58,12 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 98,
     difficulty: "medium",
     description: "Luxurious haute couture designer collection showcasing modern elegance and warmth.",
-    voucherCode: "CUNAUTUMN15",
+    voucherCode: "AMZAUTUMN15",
     discountPercent: 15,
-    productUrl: "https://cute.cunfashion.com?coupon=CUNAUTUMN15&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
-    productPriceOriginal: "1.450.000₫",
-    productPriceSale: "1.232.500₫",
-    ctaText: "Shop Cute Outfits",
+    productUrl: buildAmazonLookbookUrl("B0CSWYSY6V", "puz-autumn-couture"),
+    productPriceOriginal: "$59.99",
+    productPriceSale: "$49.99",
+    ctaText: "Shop Look on Amazon",
   },
   {
     id: "f2",
@@ -69,12 +76,12 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 76,
     difficulty: "easy",
     description: "Bold contemporary streetwear outfit with neon metropolitan accents.",
-    voucherCode: "CYBERPUNK20",
+    voucherCode: "AMZSTREET20",
     discountPercent: 20,
-    productUrl: "https://cute.cunfashion.com?coupon=CYBERPUNK20&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
-    productPriceOriginal: "950.000₫",
-    productPriceSale: "760.000₫",
-    ctaText: "Shop Cute Outfits",
+    productUrl: buildAmazonLookbookUrl("B09V7N7Y6B", "puz-streetwear"),
+    productPriceOriginal: "$45.00",
+    productPriceSale: "$34.99",
+    ctaText: "Shop Look on Amazon",
   },
   {
     id: "f3",
@@ -87,12 +94,12 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 52,
     difficulty: "medium",
     description: "Timeless classic denim styling paired with confident editorial photography.",
-    voucherCode: "RETRODENIM10",
+    voucherCode: "AMZDENIM10",
     discountPercent: 10,
-    productUrl: "https://cute.cunfashion.com?coupon=RETRODENIM10&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
-    productPriceOriginal: "850.000₫",
-    productPriceSale: "765.000₫",
-    ctaText: "Shop Cute Outfits",
+    productUrl: buildAmazonLookbookUrl("B0B5Y8Q2L1", "puz-vintage-denim"),
+    productPriceOriginal: "$39.99",
+    productPriceSale: "$29.99",
+    ctaText: "Shop Look on Amazon",
   },
   {
     id: "f4",
@@ -105,12 +112,12 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 88,
     difficulty: "hard",
     description: "Exquisite silk evening gown flowing gracefully down the high-fashion runway.",
-    voucherCode: "RUNWAY25",
+    voucherCode: "AMZRUNWAY25",
     discountPercent: 25,
-    productUrl: "https://cute.cunfashion.com?coupon=RUNWAY25&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
-    productPriceOriginal: "2.800.000₫",
-    productPriceSale: "2.100.000₫",
-    ctaText: "Shop Cute Outfits",
+    productUrl: buildAmazonLookbookUrl("B07N4J7W9T", "puz-runway-gown"),
+    productPriceOriginal: "$119.00",
+    productPriceSale: "$89.99",
+    ctaText: "Shop Look on Amazon",
   },
   {
     id: "f5",
@@ -123,12 +130,12 @@ export const PUZZLES_DATA: PuzzleItem[] = [
     likes: 64,
     difficulty: "supreme",
     description: "Clean monochromatic lines and premium textiles celebrating modern sartorial taste.",
-    voucherCode: "MINIMALIST15",
+    voucherCode: "AMZMINIMAL15",
     discountPercent: 15,
-    productUrl: "https://cute.cunfashion.com?coupon=MINIMALIST15&utm_source=puzzlesnap&utm_medium=victory_modal&utm_campaign=puzzle_reward",
-    productPriceOriginal: "1.200.000₫",
-    productPriceSale: "1.020.000₫",
-    ctaText: "Shop Cute Outfits",
+    productUrl: buildAmazonLookbookUrl("B098K4Y95J", "puz-minimalist"),
+    productPriceOriginal: "$54.00",
+    productPriceSale: "$42.50",
+    ctaText: "Shop Look on Amazon",
   },
   {
     id: "p1",
