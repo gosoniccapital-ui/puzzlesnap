@@ -134,17 +134,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isForbiddenHost =
-      image.includes("localhost") ||
-      image.includes("127.0.0.1") ||
-      image.includes("169.254.") ||
-      image.includes("0.0.0.0") ||
-      image.includes("::1");
-    if (isForbiddenHost) {
-      return NextResponse.json(
-        { success: false, error: "Private or loopback IP addresses are not permitted" },
-        { status: 400 }
-      );
+    if (image.startsWith("http://") || image.startsWith("https://")) {
+      try {
+        const parsed = new URL(image);
+        const hostname = parsed.hostname.toLowerCase();
+        const isForbiddenHost =
+          ["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(hostname) ||
+          hostname.endsWith(".local") ||
+          hostname.endsWith(".internal") ||
+          hostname.endsWith(".lan") ||
+          /^(?:10|127|169\.254|192\.168)\./.test(hostname) ||
+          /^172\.(?:1[6-9]|2\d|3[0-1])\./.test(hostname);
+
+        if (isForbiddenHost) {
+          return NextResponse.json(
+            { success: false, error: "Private or loopback IP addresses are not permitted" },
+            { status: 400 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { success: false, error: "Invalid image URL format" },
+          { status: 400 }
+        );
+      }
     }
 
     const cleanTitle = sanitizeText(title).substring(0, 80) || "Shared Custom Puzzle";

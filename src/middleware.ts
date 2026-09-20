@@ -109,6 +109,24 @@ export async function middleware(request: NextRequest) {
     });
   }
 
+  // 5. Automatic Edge Language Onboarding (Auto-detect & localize for international visitors)
+  const currentCookieLang = request.cookies.get("cun_lang")?.value;
+  if (!currentCookieLang) {
+    let defaultLang = "en";
+    if (country === "VN") defaultLang = "vi";
+    else if (country === "JP") defaultLang = "ja";
+    else if (country === "FR") defaultLang = "fr";
+    else if (country === "DE" || country === "AT" || country === "CH") defaultLang = "de";
+    else if (["ES", "MX", "AR", "CO", "CL", "PE"].includes(country)) defaultLang = "es";
+    else if (["CN", "TW", "HK"].includes(country)) defaultLang = "zh";
+
+    response.cookies.set("cun_lang", defaultLang, {
+      path: "/",
+      maxAge: 365 * 24 * 60 * 60,
+      sameSite: "lax",
+    });
+  }
+
   return response;
 }
 

@@ -94,14 +94,23 @@ export async function POST(request: NextRequest) {
               base64Data = matches[2];
             }
           } else if (image.startsWith("http://") || image.startsWith("https://")) {
-            const isForbiddenHost =
-              image.includes("localhost") ||
-              image.includes("127.0.0.1") ||
-              image.includes("169.254.") ||
-              image.includes("0.0.0.0") ||
-              image.includes("::1");
+            let isSafeUrl = false;
+            try {
+              const parsed = new URL(image);
+              const hostname = parsed.hostname.toLowerCase();
+              const isForbidden =
+                ["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(hostname) ||
+                hostname.endsWith(".local") ||
+                hostname.endsWith(".internal") ||
+                hostname.endsWith(".lan") ||
+                /^(?:10|127|169\.254|192\.168)\./.test(hostname) ||
+                /^172\.(?:1[6-9]|2\d|3[0-1])\./.test(hostname);
+              isSafeUrl = !isForbidden;
+            } catch {
+              isSafeUrl = false;
+            }
 
-            if (!isForbiddenHost) {
+            if (isSafeUrl) {
               try {
                 const imgRes = await fetch(image, { signal: AbortSignal.timeout(6000) });
                 if (imgRes.ok) {

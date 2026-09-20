@@ -634,9 +634,14 @@ export default function PuzzleGameBoard({
       {/* 2. Main Canvas Interactive Workspace */}
       <div
         ref={containerRef}
-        className="relative w-full h-[620px] bg-[#f2ede4] overflow-hidden select-none"
+        className="relative w-full h-[620px] bg-[#f2ede4] overflow-hidden select-none overscroll-none touch-none"
+        style={{ overscrollBehavior: "none", touchAction: "none" }}
       >
-        <canvas ref={canvasRef} className="absolute inset-0 cursor-grab active:cursor-grabbing w-full h-full" />
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 cursor-grab active:cursor-grabbing w-full h-full touch-none select-none"
+          style={{ touchAction: "none", userSelect: "none" }}
+        />
 
         {/* Floating Mini Reference Image */}
         <div className="absolute top-3 right-3 z-10 bg-white/95 backdrop-blur-md rounded-2xl border border-stone-200 shadow-lg p-2 max-w-[150px] transition-all hover:scale-105 group">
