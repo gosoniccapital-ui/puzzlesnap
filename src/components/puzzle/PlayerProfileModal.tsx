@@ -42,6 +42,18 @@ export default function PlayerProfileModal({
     }
   }, [isOpen]);
 
+  // Handle ESC key to dismiss modal cleanly
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSave = (e: React.FormEvent) => {
@@ -68,8 +80,16 @@ export default function PlayerProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-      <div className="bg-stone-900 border border-stone-800 rounded-3xl p-6 max-w-md w-full space-y-6 shadow-2xl">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/50 dark:bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 cursor-pointer"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-[#161822] border border-stone-200 dark:border-stone-800 rounded-3xl p-6 max-w-md w-full space-y-6 shadow-2xl cursor-default transition-colors duration-200"
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -80,17 +100,17 @@ export default function PlayerProfileModal({
               <User className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-stone-900 dark:text-white font-cinzel">
                 {isVietnamese ? "Hồ Sơ Người Chơi" : "Player Profile"}
               </h3>
-              <p className="text-xs text-stone-400">
+              <p className="text-xs text-stone-500 dark:text-stone-400">
                 {isVietnamese ? "Danh tính tham gia ghép hình & rủ bạn bè" : "Your identity in leaderboards and co-op rooms"}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-stone-400 hover:text-white p-1 rounded-lg transition cursor-pointer"
+            className="text-stone-400 hover:text-stone-700 dark:hover:text-white p-1 rounded-lg transition cursor-pointer"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -100,7 +120,7 @@ export default function PlayerProfileModal({
         {/* Profile Form */}
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-stone-300">
+            <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
               {isVietnamese ? "Tên Nickname hiển thị:" : "Display Nickname:"}
             </label>
             <input
@@ -110,9 +130,9 @@ export default function PlayerProfileModal({
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               placeholder={isVietnamese ? "Ví dụ: Minh Tuấn, Sunny, Hero..." : "e.g., Alex, Sophia, Hawk..."}
-              className="w-full bg-stone-950 text-stone-200 text-sm font-semibold px-4 py-3 rounded-xl border border-stone-800 outline-none focus:border-amber-500 transition"
+              className="w-full bg-stone-50 dark:bg-[#0c0d12] text-stone-900 dark:text-stone-100 text-sm font-semibold px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-800 outline-none focus:border-amber-500 transition"
             />
-            <p className="text-[11px] text-stone-500">
+            <p className="text-[11px] text-stone-500 dark:text-stone-400">
               {isVietnamese
                 ? "Tên này sẽ tự động xuất hiện trên Bảng Xếp Hạng và khi bạn rủ bạn bè vào phòng Co-Op."
                 : "This name appears on the leaderboard and in multiplayer Co-Op games."}
@@ -121,7 +141,7 @@ export default function PlayerProfileModal({
 
           {/* Color Palette */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-stone-300">
+            <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
               {isVietnamese ? "Màu sắc đại diện trong phòng:" : "Player Badge Color:"}
             </label>
             <div className="flex items-center gap-2.5 pt-1">
@@ -146,8 +166,8 @@ export default function PlayerProfileModal({
           </div>
 
           {/* Benefit Card */}
-          <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-2.5 text-xs text-amber-200/90 leading-relaxed">
-            <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-200/90 leading-relaxed">
+            <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <span>
               {isVietnamese
                 ? "Không cần đăng ký phức tạp! Danh tính được lưu tự động trên trình duyệt để bạn sẵn sàng chơi ngay và mời bạn bè bất cứ lúc nào."
@@ -160,7 +180,7 @@ export default function PlayerProfileModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-bold transition cursor-pointer"
+              className="flex-1 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold transition cursor-pointer"
             >
               {isVietnamese ? "Hủy" : "Cancel"}
             </button>
@@ -169,7 +189,7 @@ export default function PlayerProfileModal({
               className={`flex-1 py-2.5 rounded-xl text-stone-950 text-xs font-extrabold transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer ${
                 savedSuccess
                   ? "bg-emerald-400 hover:bg-emerald-300"
-                  : "bg-amber-400 hover:bg-amber-300 active:scale-95"
+                  : "bg-gradient-to-r from-amber-400 to-[#dfba73] hover:brightness-105 active:scale-95"
               }`}
             >
               {savedSuccess ? <Check className="w-4 h-4 stroke-[3]" /> : null}

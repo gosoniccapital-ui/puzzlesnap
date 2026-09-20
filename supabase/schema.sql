@@ -110,3 +110,19 @@ on storage.objects for select using (bucket_id = 'puzzle-images');
 
 create policy "Allow public upload puzzle-images storage" 
 on storage.objects for insert with check (bucket_id = 'puzzle-images');
+
+-- 6. USER WARDROBES (Cloud Wardrobe Sync & Multi-Device Persistence)
+create table if not exists public.user_wardrobes (
+    player_id text primary key,
+    items jsonb not null default '[]'::jsonb,
+    updated_at timestamp with time zone default now()
+);
+
+create index if not exists idx_user_wardrobes_player on public.user_wardrobes(player_id);
+
+alter table public.user_wardrobes enable row level security;
+
+create policy "Allow public read user_wardrobes" on public.user_wardrobes for select using (true);
+create policy "Allow public upsert user_wardrobes" on public.user_wardrobes for insert with check (true);
+create policy "Allow public update user_wardrobes" on public.user_wardrobes for update using (true);
+create policy "Allow service_role full user_wardrobes" on public.user_wardrobes for all using (true);

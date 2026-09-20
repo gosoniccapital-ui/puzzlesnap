@@ -5,6 +5,8 @@ import PuzzleLikeButton from "@/components/puzzle/PuzzleLikeButton";
 import Link from "next/link";
 import { getPuzzleBySlug } from "@/lib/data/puzzles-data";
 
+import { generatePuzzleGameSchema, generateBreadcrumbSchema } from "@/lib/seo/json-ld";
+
 interface PuzzlePageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -19,10 +21,37 @@ export async function generateMetadata({ params }: PuzzlePageProps) {
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
+  const description = puzzle?.description || `Play the free online jigsaw puzzle: ${formattedTitle} on CunFashion.`;
+  const image = puzzle?.image || "/images/sample-puzzle.jpg";
+  const canonicalUrl = `https://cunfashion.com/puzzle/${slug}`;
 
   return {
     title: `${formattedTitle} - Jigsaw Puzzle | CunFashion`,
-    description: puzzle?.description || `Play the free online jigsaw puzzle: ${formattedTitle} on CunFashion.`,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: `${formattedTitle} — Online Jigsaw Puzzle | CunFashion`,
+      description,
+      url: canonicalUrl,
+      siteName: "CunFashion",
+      type: "website",
+      images: [
+        {
+          url: image.startsWith("http") ? image : `https://cunfashion.com${image}`,
+          width: 1200,
+          height: 630,
+          alt: formattedTitle,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${formattedTitle} — Online Jigsaw Puzzle | CunFashion`,
+      description,
+      images: [image.startsWith("http") ? image : `https://cunfashion.com${image}`],
+    },
   };
 }
 
@@ -40,8 +69,37 @@ export default async function PuzzleDetailPage({ params, searchParams }: PuzzleP
       .join(" ");
   const imageSrc = puzzle?.image || "/images/sample-puzzle.jpg";
 
+  const gameSchema = generatePuzzleGameSchema({
+    title,
+    description: puzzle?.description || `Play the free online jigsaw puzzle: ${title} on CunFashion.`,
+    image: imageSrc,
+    url: `https://cunfashion.com/puzzle/${slug}`,
+    category: puzzle?.category,
+    difficulty: puzzle?.difficulty,
+    playsCount: puzzle?.plays,
+    likesCount: puzzle?.likes,
+  });
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: "Home", url: "https://cunfashion.com" },
+    {
+      name: puzzle?.category || "Puzzles",
+      url: `https://cunfashion.com/categories/${puzzle?.categorySlug || ""}`,
+    },
+    { name: title, url: `https://cunfashion.com/puzzle/${slug}` },
+  ]);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(gameSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Breadcrumbs & Title Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <nav className="flex items-center gap-2 text-xs text-stone-400">
@@ -76,6 +134,7 @@ export default async function PuzzleDetailPage({ params, searchParams }: PuzzleP
         ctaText={puzzle?.ctaText}
       />
     </div>
+    </>
   );
 }
 

@@ -23,16 +23,13 @@ test('Behavioral & Security Audit Invariants', async (t) => {
     assert.ok(fs.statSync(appFaviconPath).size > 0, 'src/app/favicon.ico must not be empty');
   });
 
-  await t.test('2. Middleware Geo-Language Onboarding: Auto-detects and sets default language for first-time visitors', () => {
+  await t.test('2. Global English Default Language Invariant: Enforces English default for all new visitors', () => {
     assert.ok(fs.existsSync(middlewarePath), 'middleware.ts must exist');
     const content = fs.readFileSync(middlewarePath, 'utf8');
 
     assert.ok(content.includes('cun_lang'), 'Middleware must inspect cun_lang cookie');
-    assert.ok(content.includes('country === "VN"'), 'Must map VN to Vietnamese');
-    assert.ok(content.includes('country === "JP"'), 'Must map JP to Japanese');
-    assert.ok(content.includes('country === "FR"'), 'Must map FR to French');
-    assert.ok(content.includes('defaultLang = "en"'), 'Must fallback to English for other regions');
-    assert.ok(content.includes('response.cookies.set("cun_lang"'), 'Must set cun_lang response cookie');
+    assert.ok(content.includes('defaultLang = "en"'), 'Must strictly default to English');
+    assert.ok(content.includes('response.cookies.set("cun_lang", defaultLang'), 'Must set cun_lang response cookie with defaultLang');
   });
 
   await t.test('3. Mobile Canvas Touch Hardening: Prevents browser pull-to-refresh and rubber-banding conflicts', () => {

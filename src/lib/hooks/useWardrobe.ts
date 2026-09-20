@@ -23,6 +23,45 @@ const STORAGE_KEY = "cunfashion_wardrobe_v1";
 const EVENT_NAME = "cunfashion:wardrobe-updated";
 
 /**
+ * Resolves or creates a persistent player ID for multi-device sync
+ */
+export function getOrCreatePlayerId(): string {
+  if (typeof window === "undefined") return "guest";
+  let id = localStorage.getItem("cunfashion_player_id");
+  if (!id) {
+    const rawName =
+      localStorage.getItem("cunfashion_player_name") ||
+      localStorage.getItem("puzzlesnap_player_name") ||
+      "player";
+    const cleanName = rawName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12) || "player";
+    const rand = Math.random().toString(36).substring(2, 8);
+    id = `${cleanName}-${rand}`;
+    localStorage.setItem("cunfashion_player_id", id);
+  }
+  return id;
+}
+
+let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function triggerCloudSync(items: WardrobeItem[]) {
+  if (typeof window === "undefined") return;
+  const playerId = getOrCreatePlayerId();
+  if (!playerId || playerId === "guest") return;
+
+  if (syncTimeout) clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => {
+    fetch("/api/wardrobe/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playerId, items }),
+    }).catch((err) => {
+      // Background non-blocking sync error
+      console.warn("[Cloud Wardrobe] Background sync deferred:", err);
+    });
+  }, 1200);
+}
+
+/**
  * Infer an initial closet category from product name, category or occasion
  */
 export function inferClosetCategory(name?: string, category?: string): ClosetCategory {
@@ -75,6 +114,7 @@ function saveWardrobeToStorage(items: WardrobeItem[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: items }));
+    triggerCloudSync(items);
   } catch (err) {
     console.error("Failed to save wardrobe items to localStorage:", err);
   }
@@ -83,6 +123,7 @@ function saveWardrobeToStorage(items: WardrobeItem[]) {
 export function useWardrobe() {
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
 
   const refreshItems = useCallback(() => {
     setItems(loadWardrobeFromStorage());
@@ -205,9 +246,32 @@ export function useWardrobe() {
     return toAdd.length;
   }, []);
 
+  const pullFromCloud = useCallback(async (targetPlayerId?: string): Promise<number> => {
+    if (typeof window === "undefined") return 0;
+    const playerId = targetPlayerId || getOrCreatePlayerId();
+    if (!playerId || playerId === "guest") return 0;
+
+    setIsCloudSyncing(true);
+    try {
+      const res = await fetch(`/api/wardrobe/sync?playerId=${encodeURIComponent(playerId)}`);
+      if (!res.ok) return 0;
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items) && data.items.length > 0) {
+        return importItems(data.items);
+      }
+      return 0;
+    } catch (err) {
+      console.warn("[Cloud Wardrobe] Pull failed:", err);
+      return 0;
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  }, [importItems]);
+
   return {
     items,
     isLoaded,
+    isCloudSyncing,
     count: items.length,
     isSaved,
     saveItem,
@@ -215,7 +279,8 @@ export function useWardrobe() {
     toggleItem,
     clearWardrobe,
     importItems,
-    updateItemCategory
+    updateItemCategory,
+    pullFromCloud
   };
 }
 

@@ -255,11 +255,11 @@ function MakePuzzleContent() {
 
   if (isPlaying && selectedImage) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 transition-colors duration-300">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => setIsPlaying(false)}
-            className="text-xs font-semibold px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 border border-stone-800 transition cursor-pointer"
+            className="text-xs font-semibold px-4 py-2 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-800 transition cursor-pointer shadow-2xs"
           >
             ← Back to Customizer
           </button>
@@ -268,7 +268,7 @@ function MakePuzzleContent() {
             <button
               onClick={handleCreateShareLink}
               disabled={isSharing}
-              className="text-xs font-semibold px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 transition flex items-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
+              className="text-xs font-semibold px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 via-[#dfba73] to-amber-500 hover:brightness-110 text-stone-950 transition flex items-center gap-1.5 shadow-md shadow-amber-500/20 cursor-pointer disabled:opacity-50"
             >
               {isSharing ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -292,34 +292,34 @@ function MakePuzzleContent() {
 
         {/* Share Modal Dialog */}
         {showShareModal && (
-          <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-            <div className="bg-stone-900 border border-stone-800 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl">
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+            <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black">
-                    <Share2 className="w-5 h-5 text-amber-400" />
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-[#dfba73] flex items-center justify-center font-black">
+                    <Share2 className="w-5 h-5 text-[#dfba73]" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Share Your Puzzle</h3>
-                    <p className="text-xs text-stone-400">Anyone with this link can play this puzzle immediately</p>
+                    <h3 className="text-base font-bold text-stone-900 dark:text-white font-cinzel">Share Your Puzzle</h3>
+                    <p className="text-xs text-stone-500 dark:text-stone-400">Anyone with this link can play this puzzle immediately</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="text-stone-400 hover:text-white text-lg font-bold p-1 cursor-pointer"
+                  className="text-stone-400 hover:text-stone-900 dark:hover:text-white text-lg font-bold p-1 cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-stone-300">Sharable Puzzle Link</label>
-                <div className="flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-xl p-2">
+                <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">Sharable Puzzle Link</label>
+                <div className="flex items-center gap-2 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl p-2">
                   <input
                     type="text"
                     readOnly
                     value={shareUrl}
-                    className="bg-transparent text-xs text-amber-300 font-mono w-full outline-none select-all"
+                    className="bg-transparent text-xs text-amber-600 dark:text-amber-300 font-mono w-full outline-none select-all"
                   />
                   <button
                     onClick={() => {
@@ -327,7 +327,7 @@ function MakePuzzleContent() {
                       setCopied(true);
                       setTimeout(() => setCopied(false), 2000);
                     }}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition flex items-center gap-1 cursor-pointer shrink-0"
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-[#dfba73] hover:brightness-105 text-stone-950 text-xs font-black transition flex items-center gap-1 cursor-pointer shrink-0"
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copied ? "Copied" : "Copy"}</span>
@@ -335,8 +335,8 @@ function MakePuzzleContent() {
                 </div>
               </div>
 
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2 text-xs text-amber-200">
-                <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2 text-xs text-amber-900 dark:text-amber-200">
+                <Sparkles className="w-4 h-4 text-[#dfba73] shrink-0" />
                 <span>Link đã được sao chép vào bộ nhớ tạm! Bạn có thể dán gửi ngay cho bạn bè qua Zalo, Messenger, Telegram...</span>
               </div>
             </div>
@@ -349,19 +349,19 @@ function MakePuzzleContent() {
   if (isConnectingRoom) {
     const roomParam = searchParams.get("room");
     return (
-      <div className="max-w-xl mx-auto px-4 py-24 text-center space-y-6">
-        <div className="w-20 h-20 rounded-3xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto animate-pulse shadow-xl shadow-amber-500/10">
+      <div className="max-w-xl mx-auto px-4 py-24 text-center space-y-6 transition-colors duration-300">
+        <div className="w-20 h-20 rounded-3xl bg-amber-500/15 border border-amber-500/30 text-[#dfba73] flex items-center justify-center mx-auto animate-pulse shadow-xl shadow-amber-500/10">
           <Users className="w-10 h-10" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-stone-100">
+          <h2 className="text-2xl font-black text-stone-900 dark:text-stone-100 font-cinzel">
             Đang Tham Gia Phòng {roomParam}...
           </h2>
-          <p className="text-sm text-stone-400 max-w-md mx-auto">
+          <p className="text-sm text-stone-500 dark:text-stone-400 max-w-md mx-auto">
             Hệ thống đang kết nối trực tiếp với Chủ phòng để đồng bộ hình ảnh câu đố ghép chung. Xin vui lòng chờ giây lát...
           </p>
         </div>
-        <div className="flex items-center justify-center gap-2 text-xs font-semibold text-amber-400">
+        <div className="flex items-center justify-center gap-2 text-xs font-semibold text-[#dfba73]">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span>Đang đồng bộ Realtime...</span>
         </div>
@@ -370,16 +370,16 @@ function MakePuzzleContent() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 space-y-10">
+    <div className="max-w-4xl mx-auto px-4 py-12 space-y-10 transition-colors duration-300">
       {roomSyncError && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4 text-xs text-amber-200">
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4 text-xs text-amber-900 dark:text-amber-200">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-amber-400 shrink-0" />
+            <Users className="w-4 h-4 text-[#dfba73] shrink-0" />
             <span>{roomSyncError}</span>
           </div>
           <button
             onClick={() => setRoomSyncError(null)}
-            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-[11px] cursor-pointer shrink-0"
+            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-[#dfba73] hover:brightness-105 text-stone-950 font-bold text-[11px] cursor-pointer shrink-0"
           >
             Tạo phòng mới
           </button>
@@ -388,33 +388,33 @@ function MakePuzzleContent() {
 
       {/* Title */}
       <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs font-semibold shadow-2xs">
+          <Sparkles className="w-3.5 h-3.5 text-[#dfba73]" />
           Custom Puzzle Maker
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-stone-100 tracking-tight">
-          Turn Any Photo Into a <span className="text-amber-400">Playable Jigsaw</span>
+        <h1 className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-stone-100 tracking-tight font-cinzel">
+          Turn Any Photo Into a <span className="gold-gradient-text">Playable Jigsaw</span>
         </h1>
-        <p className="text-stone-400 text-sm max-w-lg mx-auto">
+        <p className="text-stone-600 dark:text-stone-400 text-sm max-w-lg mx-auto">
           Upload any personal photo or illustration. We slice it in real-time in your browser with no signup required.
         </p>
       </div>
 
       {/* Upload Box */}
-      <div className="bg-stone-900/60 border border-stone-800 rounded-3xl p-8 backdrop-blur shadow-2xl space-y-8">
+      <div className="bg-white/90 dark:bg-stone-900/60 border border-stone-200/90 dark:border-stone-800 rounded-3xl p-8 backdrop-blur shadow-xl space-y-8">
         {!selectedImage ? (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-stone-700 hover:border-amber-500/80 rounded-2xl p-12 text-center cursor-pointer transition bg-stone-950/40 hover:bg-stone-900/40 flex flex-col items-center justify-center gap-4"
+            className="border-2 border-dashed border-stone-300 dark:border-stone-700 hover:border-[#dfba73] rounded-2xl p-12 text-center cursor-pointer transition bg-stone-50/70 dark:bg-stone-950/40 hover:bg-stone-100/70 dark:hover:bg-stone-900/40 flex flex-col items-center justify-center gap-4"
           >
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <Upload className="w-8 h-8 text-amber-400" />
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-[#dfba73] flex items-center justify-center">
+              <Upload className="w-8 h-8 text-[#dfba73]" />
             </div>
             <div>
-              <p className="text-base font-bold text-stone-200">
+              <p className="text-base font-bold text-stone-800 dark:text-stone-200">
                 Click to browse or drag and drop your photo here
               </p>
-              <p className="text-xs text-stone-500 mt-1">Supports PNG, JPG, WEBP, GIF up to 50MB</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">Supports PNG, JPG, WEBP, GIF up to 50MB</p>
             </div>
             <input
               ref={fileInputRef}
@@ -426,26 +426,26 @@ function MakePuzzleContent() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="relative rounded-2xl overflow-hidden max-h-[380px] bg-stone-950 flex items-center justify-center border border-stone-800">
+            <div className="relative rounded-2xl overflow-hidden max-h-[380px] bg-stone-100 dark:bg-stone-950 flex items-center justify-center border border-stone-200 dark:border-stone-800">
               <img
                 src={selectedImage}
                 alt="Uploaded preview"
                 className="max-h-[360px] w-auto object-contain rounded-lg p-2"
               />
               {isUploading ? (
-                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold backdrop-blur flex items-center gap-1.5 animate-pulse">
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs font-bold backdrop-blur flex items-center gap-1.5 animate-pulse">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   <span>Syncing to Cloud...</span>
                 </div>
               ) : isCloudStored ? (
-                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold backdrop-blur flex items-center gap-1.5">
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold backdrop-blur flex items-center gap-1.5">
                   <CloudUpload className="w-3.5 h-3.5" />
                   <span>Cloud Ready</span>
                 </div>
               ) : null}
               <button
                 onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-black/70 hover:bg-black text-stone-200 text-xs font-semibold backdrop-blur transition cursor-pointer"
+                className="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-stone-900/80 hover:bg-stone-900 text-white text-xs font-semibold backdrop-blur transition cursor-pointer shadow-xs"
               >
                 Change Photo
               </button>
@@ -454,18 +454,18 @@ function MakePuzzleContent() {
             {/* Config Options */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-stone-400 mb-2">Puzzle Title</label>
+                <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">Puzzle Title</label>
                 <input
                   type="text"
                   value={puzzleTitle}
                   onChange={(e) => setPuzzleTitle(e.target.value)}
-                  className="w-full bg-stone-950 text-stone-200 text-sm px-4 py-2.5 rounded-xl border border-stone-800 outline-none focus:border-amber-500 transition"
+                  className="w-full bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-200 text-sm px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-800 outline-none focus:border-[#dfba73] transition"
                   placeholder="Enter a title for your puzzle"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-stone-400 mb-2">Difficulty & Pieces</label>
+                <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">Difficulty & Pieces</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(["easy", "medium", "hard"] as const).map((diff) => (
                     <button
@@ -474,8 +474,8 @@ function MakePuzzleContent() {
                       onClick={() => setDifficulty(diff)}
                       className={`py-2.5 px-3 rounded-xl text-xs font-bold capitalize transition border ${
                         difficulty === diff
-                          ? "bg-amber-500 text-stone-950 border-amber-500 shadow-md shadow-amber-500/20"
-                          : "bg-stone-950 text-stone-400 border-stone-800 hover:border-stone-700"
+                          ? "bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 border-amber-400 shadow-md shadow-amber-500/20"
+                          : "bg-stone-50 dark:bg-stone-950 text-stone-700 dark:text-stone-400 border-stone-200 dark:border-stone-800 hover:border-[#dfba73]/50"
                       }`}
                     >
                       {diff === "easy" ? "9 pcs" : diff === "medium" ? "16 pcs" : "30 pcs"}
@@ -488,7 +488,7 @@ function MakePuzzleContent() {
             {/* Launch Button */}
             <button
               onClick={() => setIsPlaying(true)}
-              className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-base shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-[#dfba73] to-amber-500 hover:brightness-110 text-stone-950 font-black text-base shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Play Puzzle Now</span>
               <ArrowRight className="w-5 h-5" />

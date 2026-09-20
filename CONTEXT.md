@@ -89,21 +89,9 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
   - 7 Languages Global Parity: Completely eliminated mixed-language text by expanding i18n to 7 major world languages (`en`, `vi`, `ja`, `fr`, `de`, `es`, `zh`) with 100% dictionary key parity across 9 core sections (`common`, `navbar`, `home`, `toolbar`, `victory`, `styleAdvisor`, `coop`, `pwa`, `footer`). Upgraded Navbar with 7-language luxury dropdown with national flags and active gold state.
   - Mobile PWA & Touch UX: Configured `viewportFit: "cover"` and safe-area insets (`.safe-area-top`, `.safe-area-bottom`). Enforced touch targets >= 44px (`.touch-target`). Built smart `PwaInstallBanner.tsx` supporting iOS Safari A2HS guidance and Android Chrome `beforeinstallprompt` with 7-day dismissal memory. Updated `site.webmanifest` to `#09090b` / `#dfba73` and bumped Service Worker to `cunfashion-cache-v13`.
   - Testing, Emulation & Build: Verified 130/130 automated tests pass 100% (20 test suites, including new `tests/sprint-10-luxury-and-i18n.test.mjs`). Verified `npm run build` compiles cleanly across all 25/25 production routes. Conducted live mobile emulation (iPhone 15 Pro, 393x852, touch=true, dark mode) via Chrome DevTools MCP with screenshot verification. Documented in `docs/PHASE_10_HAUTE_COUTURE_I18N_AND_MOBILE_PWA_REPORT.md`.
-- [x] Milestone 10.1 (Behavioral Model Debugger, Edge Geo-Language Onboarding & Security Hardening):
-  - Behavioral Invariant Audit: Executed deep behavioral state-machine audit via `/behavior-model-debugger`. Hardened PuzzleGameBoard against mobile gesture collisions by enforcing `overscrollBehavior: "none"` and `touchAction: "none"` to prevent Safari iOS & Chrome Android pull-to-refresh and rubber-banding during piece dragging.
-  - Zero-Click Edge Geo-Language Onboarding: Enhanced Next.js Edge Middleware (`src/middleware.ts`) to automatically detect visitor country via Vercel/Cloudflare edge headers and auto-assign localized language cookie `cun_lang` (`VN->vi`, `JP->ja`, `FR->fr`, `DE/AT/CH->de`, `ES/MX/AR...->es`, `CN/TW/HK->zh`, other->`en`).
-  - Comprehensive SSRF & Host Guard: Strengthened input validation in `/api/custom-puzzles` and `/api/style-advisor/analyze` with RFC 1918 private subnet checks (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), Link-Local (`169.254.0.0/16`), Loopback (`127.0.0.1`, `localhost`), and internal domains (`.local`, `.internal`, `.lan`).
-  - Root Favicon Static Parity: Synchronized `public/favicon.ico` alongside `src/app/favicon.ico` to eliminate legacy 404s.
-  - Strict Verification & Production Rollout: Created `tests/behavioral-and-security-audit.test.mjs` verifying all new invariants. 136/136 automated tests passing 100%, Next.js 15 production build clean across 25/25 routes. Deployed live to `https://cunfashion.com/` (Deployment ID: `dpl_EhcuJx4bhKxM1fzPRTozQMyfHG3v`, Commit: `7b54b01`). Verified live Edge Geo-IP and cookie header response. Documented in `docs/BEHAVIORAL_AUDIT_SECURITY_REFACTOR_REPORT.md`. Rollback Anchor: `7b54b01`.
-
-
-
-
-
-
-
-
-
+  - Haute Couture OpenGraph & Twitter Cards: Configured high-resolution dynamic OpenGraph cards (`og:image`, `og:title`, `og:description`) for individual puzzles and site-wide luxury cards with `summary_large_image` Twitter cards and canonical URLs.
+  - Cloud Wardrobe Sync: Added `user_wardrobes` table to `supabase/schema.sql` with RLS policies and index. Implemented Next.js route `/api/wardrobe/sync` with rate limiting, 512KB payload cap, and memory fallback. Upgraded `useWardrobe.ts` to local-first background reconciler with `getOrCreatePlayerId()`, debounced cloud sync, `pullFromCloud()`, and visual sync state in `WardrobeDrawer.tsx`.
+  - Strict Verification: Created `tests/sprint-11-seo-and-wardrobe.test.mjs` verifying all 9 invariants. 146/146 automated tests passing 100%, Next.js 15 production build clean across 26/26 routes. Rollback Anchor: `ad44730`.
 
 
 

@@ -143,7 +143,7 @@ test('Sprint 10 Invariants - Haute Couture Aesthetics & Design Tokens', async (t
     assert.ok(layout.includes('themeColor: "#09090b"'), 'themeColor must be #09090b');
     assert.ok(layout.includes('viewportFit: "cover"'), 'viewportFit must be cover');
     assert.ok(layout.includes('PwaInstallBanner'), 'Must import and render PwaInstallBanner');
-    assert.ok(layout.includes('bg-[#09090b]'), 'body must use bg-[#09090b]');
+    assert.ok(layout.includes('bg-[var(--background)]') || layout.includes('bg-[#09090b]'), 'body must use adaptive theme background');
   });
 
   await t.test('site.webmanifest specifies obsidian theme color and background', () => {

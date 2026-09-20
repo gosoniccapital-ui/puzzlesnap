@@ -346,11 +346,11 @@ export default function StyleAdvisorPage() {
     return (
       <div
         key={p.id}
-        className="bg-stone-900/80 rounded-2xl border border-stone-800 overflow-hidden shadow-lg hover:shadow-[0_0_25px_rgba(223,186,115,0.25)] hover:border-[#dfba73]/60 transition-all duration-300 flex flex-col justify-between group backdrop-blur-md"
+        className="bg-white dark:bg-[#161822] rounded-2xl border border-stone-200/90 dark:border-stone-800/80 overflow-hidden shadow-sm hover:shadow-[0_12px_30px_rgba(223,186,115,0.2)] dark:hover:shadow-[0_12px_30px_rgba(223,186,115,0.15)] hover:border-[#dfba73] dark:hover:border-[#dfba73] transition-all duration-300 flex flex-col justify-between group backdrop-blur-md"
       >
         <div>
           {/* Product Image */}
-          <div className="relative aspect-[3/4] bg-stone-950 overflow-hidden">
+          <div className="relative aspect-[3/4] bg-stone-100 dark:bg-stone-950 overflow-hidden">
             <img
               src={p.img}
               alt={p.name}
@@ -385,7 +385,7 @@ export default function StyleAdvisorPage() {
               className={`absolute bottom-2.5 right-2.5 p-2 rounded-xl backdrop-blur-md transition shadow-md flex items-center justify-center cursor-pointer ${
                 saved
                   ? "bg-pink-600 text-white shadow-pink-600/40 scale-105"
-                  : "bg-black/70 text-white hover:bg-[#dfba73] hover:text-stone-950 hover:scale-105 border border-white/10"
+                  : "bg-black/60 dark:bg-black/70 text-white hover:bg-[#dfba73] hover:text-stone-950 hover:scale-105 border border-white/20"
               }`}
               title={saved ? "Remove from Wardrobe" : "Save to Wardrobe"}
             >
@@ -395,7 +395,7 @@ export default function StyleAdvisorPage() {
 
           {/* Product Info */}
           <div className="p-3.5">
-            <h4 className="text-xs sm:text-sm font-bold text-stone-200 line-clamp-2 leading-snug group-hover:text-[#dfba73] transition">
+            <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 line-clamp-2 leading-snug group-hover:text-[#dfba73] dark:group-hover:text-[#dfba73] transition">
               {p.name}
             </h4>
             <div className="flex items-baseline gap-2 mt-2">
@@ -403,7 +403,7 @@ export default function StyleAdvisorPage() {
                 {p.price}
               </span>
               {p.originalPrice && (
-                <span className="text-xs text-stone-500 line-through">
+                <span className="text-xs text-stone-400 dark:text-stone-500 line-through">
                   {p.originalPrice}
                 </span>
               )}
@@ -425,7 +425,7 @@ export default function StyleAdvisorPage() {
                 ? "bg-red-600 hover:bg-red-700 text-white"
                 : p.platform === "Amazon"
                 ? "bg-gradient-to-r from-amber-400 via-[#dfba73] to-amber-500 hover:brightness-110 text-stone-950 font-black shadow-[0_0_15px_rgba(223,186,115,0.3)]"
-                : "bg-stone-800 hover:bg-stone-700 text-white"
+                : "bg-stone-900 dark:bg-stone-800 hover:bg-stone-800 dark:hover:bg-stone-700 text-white"
             }`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
@@ -443,12 +443,12 @@ export default function StyleAdvisorPage() {
               handleCopyLink(p);
               handleTrackAffiliateClick(p.id, p.name, p.platform, p.link);
             }}
-            className="w-full py-1 text-[11px] font-semibold text-stone-500 hover:text-stone-800 transition flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full py-1 text-[11px] font-semibold text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200 transition flex items-center justify-center gap-1 cursor-pointer"
           >
             {copiedId === p.id ? (
               <>
-                <Check className="w-3 h-3 text-emerald-600" />
-                <span className="text-emerald-600">Link copied!</span>
+                <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-emerald-600 dark:text-emerald-400">Link copied!</span>
               </>
             ) : (
               <>
@@ -463,18 +463,18 @@ export default function StyleAdvisorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-stone-100 pb-20 font-sans">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-20 font-sans transition-colors duration-300">
       {/* Top Toolbar Switcher (Wide | Mobile | Extension) */}
-      <div className="sticky top-0 z-30 bg-[#09090b]/90 backdrop-blur-md text-stone-200 border-b border-stone-800 px-4 py-2.5 flex items-center justify-between shadow-md">
+      <div className="sticky top-0 z-30 bg-white/85 dark:bg-[#0c0d12]/85 backdrop-blur-md text-stone-800 dark:text-stone-200 border-b border-stone-200/80 dark:border-stone-800/80 px-4 py-2.5 flex items-center justify-between shadow-xs transition-colors duration-300">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Switcher Viewport */}
-          <div className="flex items-center bg-stone-900 rounded-xl p-1 border border-stone-800">
+          <div className="flex items-center bg-stone-100 dark:bg-stone-900 rounded-xl p-1 border border-stone-200 dark:border-stone-800">
             <button
               onClick={() => setViewMode("wide")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 viewMode === "wide"
-                  ? "bg-stone-800 text-[#dfba73] shadow"
-                  : "text-stone-400 hover:text-white"
+                  ? "bg-white dark:bg-stone-800 text-stone-900 dark:text-[#dfba73] shadow-xs"
+                  : "text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white"
               }`}
               title="Full screen desktop view"
             >
@@ -485,8 +485,8 @@ export default function StyleAdvisorPage() {
               onClick={() => setViewMode("mobile")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 viewMode === "mobile"
-                  ? "bg-amber-500 text-stone-950 font-extrabold shadow"
-                  : "text-stone-400 hover:text-white"
+                  ? "bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 font-black shadow-xs"
+                  : "text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white"
               }`}
               title="Mobile frame view"
             >
@@ -494,13 +494,12 @@ export default function StyleAdvisorPage() {
               <span>Mobile</span>
             </button>
           </div>
-
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsWardrobeOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 hover:border-[#dfba73]/40 shadow transition relative cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-800 hover:border-[#dfba73]/50 shadow-xs transition relative cursor-pointer"
             title="Open Personalized Wardrobe (Tủ Đồ)"
             aria-label="Tủ Đồ Wardrobe"
           >
@@ -515,10 +514,11 @@ export default function StyleAdvisorPage() {
 
           <button
             onClick={() => setShowExtensionModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 shadow hover:brightness-110 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 shadow-xs hover:brightness-105 transition cursor-pointer"
           >
             <Chrome className="w-3.5 h-3.5" />
-            <span>Chrome Extension</span>
+            <span className="hidden sm:inline">Chrome Extension</span>
+            <span className="sm:hidden">Extension</span>
           </button>
         </div>
       </div>
@@ -533,43 +533,42 @@ export default function StyleAdvisorPage() {
       )}
 
       {/* Main Container Wrapper */}
-
       <div
         className={`mx-auto pt-6 px-4 transition-all duration-300 ${
           viewMode === "mobile"
-            ? "max-w-[420px] my-6 bg-stone-950 rounded-[40px] border-8 border-stone-800 shadow-2xl p-4 sm:p-5 overflow-hidden"
+            ? "max-w-[420px] my-6 bg-stone-50 dark:bg-stone-950 rounded-[40px] border-8 border-stone-300 dark:border-stone-800 shadow-2xl p-4 sm:p-5 overflow-hidden"
             : "max-w-4xl"
         }`}
       >
         {/* Banner Link to Chrome Extension (in Wide mode) */}
         {viewMode === "wide" && !isExtensionBannerDismissed && (
-          <div className="mb-6 bg-stone-900/80 border border-stone-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-xl relative backdrop-blur-md">
+          <div className="mb-6 bg-white/90 dark:bg-[#161822]/90 border border-amber-500/20 dark:border-amber-400/20 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-sm relative backdrop-blur-md">
             <button
               onClick={() => setIsExtensionBannerDismissed(true)}
-              className="absolute top-2 right-2 p-1 text-stone-500 hover:text-stone-300 rounded-lg hover:bg-stone-800 transition cursor-pointer"
+              className="absolute top-2 right-2 p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer"
               title="Dismiss banner"
             >
               <X className="w-3.5 h-3.5" />
             </button>
             <div className="flex items-center gap-3 pr-6 sm:pr-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 to-[#dfba73] text-stone-950 flex items-center justify-center shadow-md shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 to-[#dfba73] text-stone-950 flex items-center justify-center shadow-sm shrink-0">
                 <Chrome className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-[#dfba73] flex items-center gap-1.5">
                   <span>Google Chrome Extension</span>
-                  <span className="px-1.5 py-0.2 rounded text-[9px] bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/30">
-                    NEW
+                  <span className="px-1.5 py-0.2 rounded text-[9px] bg-amber-500/20 text-amber-800 dark:text-amber-300 font-extrabold border border-amber-500/30">
+                    VIP COMPANION
                   </span>
                 </p>
-                <p className="text-xs text-stone-400">
+                <p className="text-xs text-stone-600 dark:text-stone-400">
                   Instantly receive outfit styling matches while browsing Amazon, Pinterest, Zara, ASOS...
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowExtensionModal(true)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-gradient-to-r from-amber-400 to-[#dfba73] hover:brightness-110 text-stone-950 rounded-xl shadow transition shrink-0 cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-gradient-to-r from-amber-400 to-[#dfba73] hover:brightness-105 text-stone-950 rounded-xl shadow-xs transition shrink-0 cursor-pointer"
             >
               <span>Get Chrome Extension</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -579,19 +578,19 @@ export default function StyleAdvisorPage() {
 
         {/* Header Title */}
         <div className="text-center mb-8 space-y-2">
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight font-cinzel">
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-cinzel">
             <span className="gold-gradient-text">{t.styleAdvisor.title}</span>
           </h1>
-          <p className="text-stone-400 text-xs sm:text-sm font-medium font-playfair italic max-w-xl mx-auto leading-relaxed">
+          <p className="text-stone-600 dark:text-stone-400 text-xs sm:text-sm font-medium font-playfair italic max-w-xl mx-auto leading-relaxed">
             {t.styleAdvisor.subtitle}
           </p>
         </div>
 
         {/* Card Form Main: Unified Omni-Search Bar + Upload Image + ALL Market + Filters */}
-        <div className="bg-stone-900/80 rounded-3xl shadow-2xl border border-stone-800/90 p-4 sm:p-6 mb-8 backdrop-blur-xl">
+        <div className="bg-white/90 dark:bg-[#161822]/90 rounded-3xl shadow-xl border border-stone-200/90 dark:border-stone-800/90 p-4 sm:p-6 mb-8 backdrop-blur-xl transition-colors duration-300">
           {/* Main Search Bar with Inline Camera & Search Button */}
           <div className="relative flex items-center">
-            <Search className="w-5 h-5 text-stone-500 absolute left-4 pointer-events-none" />
+            <Search className="w-5 h-5 text-stone-400 dark:text-stone-500 absolute left-4 pointer-events-none" />
             <input
               type="text"
               id="style-advisor-keyword-input"
@@ -606,7 +605,7 @@ export default function StyleAdvisorPage() {
                 }
               }}
               placeholder={t.styleAdvisor.searchPlaceholder}
-              className="w-full border border-stone-700 rounded-2xl pl-12 pr-32 py-3.5 text-xs sm:text-sm bg-stone-950/80 focus:bg-stone-950 focus:border-[#dfba73] focus:ring-4 focus:ring-[#dfba73]/15 outline-none transition font-medium text-stone-100 placeholder:text-stone-500 shadow-inner"
+              className="w-full border border-stone-300 dark:border-stone-700 rounded-2xl pl-12 pr-32 py-3.5 text-xs sm:text-sm bg-stone-50/70 dark:bg-stone-950/80 focus:bg-white dark:focus:bg-stone-950 focus:border-[#dfba73] focus:ring-4 focus:ring-[#dfba73]/15 outline-none transition font-medium text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 shadow-inner"
             />
 
             {/* Right Action Controls: Inline Camera + Submit */}
@@ -615,7 +614,7 @@ export default function StyleAdvisorPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-xl text-stone-500 hover:text-pink-600 hover:bg-pink-50 transition cursor-pointer"
+                className="p-2 rounded-xl text-stone-500 dark:text-stone-400 hover:text-amber-600 dark:hover:text-[#dfba73] hover:bg-amber-50 dark:hover:bg-white/5 transition cursor-pointer"
                 title="Upload outfit photo for AI Vision styling"
               >
                 <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -636,14 +635,14 @@ export default function StyleAdvisorPage() {
                 type="button"
                 onClick={handleAnalyze}
                 disabled={isAnalyzing}
-                className="bg-stone-900 hover:bg-pink-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1 shadow-sm cursor-pointer disabled:opacity-60"
+                className="bg-stone-900 dark:bg-[#dfba73] hover:bg-[#dfba73] hover:text-stone-950 dark:hover:bg-amber-400 text-white dark:text-stone-950 text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1 shadow-sm cursor-pointer disabled:opacity-60"
               >
                 {isAnalyzing ? (
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <>
                     <span>Search</span>
-                    <Sparkles className="w-3 h-3 text-pink-300" />
+                    <Sparkles className="w-3 h-3 text-[#dfba73] dark:text-stone-950" />
                   </>
                 )}
               </button>
@@ -652,24 +651,24 @@ export default function StyleAdvisorPage() {
 
           {/* Active Image Chip Preview */}
           {selectedImage && (
-            <div className="mt-3 inline-flex items-center gap-2.5 bg-pink-50 border border-pink-200/90 rounded-2xl px-3 py-1.5 shadow-xs animate-in fade-in duration-200">
+            <div className="mt-3 inline-flex items-center gap-2.5 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-2xl px-3 py-1.5 shadow-xs animate-in fade-in duration-200">
               <img
                 src={selectedImage}
                 alt="Selected"
-                className="w-8 h-8 rounded-lg object-cover border border-pink-200"
+                className="w-8 h-8 rounded-lg object-cover border border-amber-300 dark:border-amber-700"
               />
               <div className="flex flex-col text-left">
-                <span className="text-xs font-bold text-pink-900 line-clamp-1">
+                <span className="text-xs font-bold text-amber-900 dark:text-amber-200 line-clamp-1">
                   {imageName || "Uploaded outfit photo"}
                 </span>
-                <span className="text-[10px] text-pink-600 font-medium">
+                <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
                   AI Vision ready to analyze
                 </span>
               </div>
               <button
                 type="button"
                 onClick={handleClearImage}
-                className="ml-1 p-1 rounded-full text-pink-700 hover:bg-pink-200/60 transition cursor-pointer"
+                className="ml-1 p-1 rounded-full text-amber-800 dark:text-amber-300 hover:bg-amber-200/60 dark:hover:bg-amber-900/60 transition cursor-pointer"
                 title="Clear image"
               >
                 <X className="w-3.5 h-3.5" />
@@ -678,9 +677,9 @@ export default function StyleAdvisorPage() {
           )}
 
           {/* Quick Keywords & Surprise Me Button */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-stone-100">
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-stone-200/80 dark:border-stone-800/80">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[11px] text-stone-400 font-medium mr-1">Quick tags:</span>
+              <span className="text-[11px] text-stone-500 dark:text-stone-400 font-medium mr-1">Quick tags:</span>
               {QUICK_KEYWORDS.map((kw) => (
                 <button
                   key={kw}
@@ -688,8 +687,8 @@ export default function StyleAdvisorPage() {
                   onClick={() => setKeyword(kw)}
                   className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-medium cursor-pointer ${
                     keyword.toLowerCase() === kw.toLowerCase()
-                      ? "bg-pink-100 text-pink-700 border-pink-300 font-bold"
-                      : "bg-stone-100/80 hover:bg-stone-200/70 text-stone-600 border-stone-200/80"
+                      ? "bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 border-[#dfba73] font-bold shadow-xs"
+                      : "bg-stone-100 dark:bg-stone-800/80 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700"
                   }`}
                 >
                   {kw}
@@ -701,27 +700,27 @@ export default function StyleAdvisorPage() {
             <button
               type="button"
               onClick={handleSurpriseMe}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition shadow-2xs cursor-pointer"
               title="Surprise me with trending looks"
             >
-              <Shuffle className="w-3.5 h-3.5 text-amber-600" />
+              <Shuffle className="w-3.5 h-3.5 text-[#dfba73]" />
               <span>🎲 Surprise Me</span>
             </button>
           </div>
 
           {/* Affiliate Market Selector with ALL as default */}
-          <div className="mt-4 pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
+          <div className="mt-4 pt-3 border-t border-stone-200/80 dark:border-stone-800/80 flex flex-wrap items-center justify-between gap-2">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
               Affiliate Market:
             </label>
-            <div className="inline-flex flex-wrap rounded-xl bg-stone-100 p-1 border border-stone-200 gap-1">
+            <div className="inline-flex flex-wrap rounded-xl bg-stone-100 dark:bg-stone-900 p-1 border border-stone-200 dark:border-stone-800 gap-1">
               <button
                 type="button"
                 onClick={() => setMarket("ALL")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   market === "ALL"
-                    ? "bg-stone-900 text-white shadow-xs"
-                    : "text-stone-600 hover:text-stone-900"
+                    ? "bg-stone-900 dark:bg-[#dfba73] text-white dark:text-stone-950 shadow-xs"
+                    : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white"
                 }`}
                 title="Scan & aggregate fashion across all global platforms (Recommended)"
               >
@@ -732,8 +731,8 @@ export default function StyleAdvisorPage() {
                 onClick={() => setMarket("US")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   market === "US"
-                    ? "bg-amber-500 text-stone-950 font-black shadow-xs"
-                    : "text-stone-600 hover:text-stone-900"
+                    ? "bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 font-black shadow-xs"
+                    : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white"
                 }`}
                 title="Amazon US Associates (StoreID: cuncute-20)"
               >
@@ -745,7 +744,7 @@ export default function StyleAdvisorPage() {
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   market === "RAKUTEN"
                     ? "bg-red-600 text-white shadow-xs"
-                    : "text-stone-600 hover:text-stone-900"
+                    : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white"
                 }`}
                 title="Designer brands via Rakuten Advertising (Nike, Macy's, ASOS...)"
               >
@@ -757,7 +756,7 @@ export default function StyleAdvisorPage() {
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   market === "FOURTHWALL"
                     ? "bg-pink-600 text-white shadow-xs"
-                    : "text-stone-600 hover:text-stone-900"
+                    : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white"
                 }`}
                 title="Exclusive fashion from CunCute Store (cute.cunfashion.com)"
               >
@@ -767,32 +766,32 @@ export default function StyleAdvisorPage() {
           </div>
 
           {/* Collapsible Advanced Filters */}
-          <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between">
+          <div className="mt-3 pt-3 border-t border-stone-200/80 dark:border-stone-800/80 flex items-center justify-between">
             <button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-pink-600 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 dark:text-stone-400 hover:text-[#dfba73] dark:hover:text-[#dfba73] transition cursor-pointer"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-pink-600" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-[#dfba73]" />
               <span>Advanced Filters (Occasion, Style, Budget, Color)</span>
               {showFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
-            <span className="text-[11px] text-stone-400 font-medium">
+            <span className="text-[11px] text-stone-400 dark:text-stone-500 font-medium">
               {showFilters ? "Click to collapse" : "More options"}
             </span>
           </div>
 
           {/* Advanced Filters Panel */}
           {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-4 rounded-2xl bg-stone-50 border border-stone-200 animate-in fade-in duration-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-4 rounded-2xl bg-stone-50 dark:bg-[#12131a] border border-stone-200 dark:border-stone-800/80 animate-in fade-in duration-200">
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-1">
                   Occasion
                 </label>
                 <select
                   value={occasion}
                   onChange={(e) => setOccasion(e.target.value)}
-                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                  className="w-full border border-stone-300 dark:border-stone-700 rounded-xl px-2.5 py-2 text-xs bg-white dark:bg-stone-900 focus:border-[#dfba73] outline-none transition font-medium text-stone-800 dark:text-stone-200"
                 >
                   <option value="all">All Occasions</option>
                   <option value="work">Work / Office</option>
@@ -804,13 +803,13 @@ export default function StyleAdvisorPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-1">
                   Style Mood
                 </label>
                 <select
                   value={style}
                   onChange={(e) => setStyle(e.target.value)}
-                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                  className="w-full border border-stone-300 dark:border-stone-700 rounded-xl px-2.5 py-2 text-xs bg-white dark:bg-stone-900 focus:border-[#dfba73] outline-none transition font-medium text-stone-800 dark:text-stone-200"
                 >
                   <option value="all">All Styles</option>
                   <option value="elegant">Elegant / Haute</option>
@@ -822,13 +821,13 @@ export default function StyleAdvisorPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-1">
                   Budget
                 </label>
                 <select
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800"
+                  className="w-full border border-stone-300 dark:border-stone-700 rounded-xl px-2.5 py-2 text-xs bg-white dark:bg-stone-900 focus:border-[#dfba73] outline-none transition font-medium text-stone-800 dark:text-stone-200"
                 >
                   <option value="all">All Budgets</option>
                   <option value="low">Value (&lt; $50)</option>
@@ -838,7 +837,7 @@ export default function StyleAdvisorPage() {
               </div>
 
               <div>
-                <label htmlFor="style-advisor-color-input" className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                <label htmlFor="style-advisor-color-input" className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-1">
                   Preferred Color Accent
                 </label>
                 <input
@@ -849,7 +848,7 @@ export default function StyleAdvisorPage() {
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
                   placeholder="Optional (e.g. beige, black, emerald...)"
-                  className="w-full border border-stone-200 rounded-xl px-2.5 py-2 text-xs bg-white focus:border-pink-500 outline-none transition font-medium text-stone-800 placeholder:text-stone-400"
+                  className="w-full border border-stone-300 dark:border-stone-700 rounded-xl px-2.5 py-2 text-xs bg-white dark:bg-stone-900 focus:border-[#dfba73] outline-none transition font-medium text-stone-800 dark:text-stone-200 placeholder:text-stone-400 dark:placeholder:text-stone-500"
                 />
               </div>
             </div>
@@ -860,45 +859,45 @@ export default function StyleAdvisorPage() {
         {result && (
           <div ref={resultRef} className="space-y-6 animate-in fade-in duration-300">
             {/* 1. Stylist Advice Card */}
-            <div className="bg-white rounded-3xl shadow-sm border border-stone-200 p-5 sm:p-6">
+            <div className="bg-white dark:bg-[#161822] rounded-3xl shadow-sm border border-stone-200/90 dark:border-stone-800/90 p-5 sm:p-6 transition-colors duration-300">
               <div className="flex items-center justify-between mb-2.5">
-                <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold">💡</span>
+                <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2 font-cinzel">
+                  <span className="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-[#dfba73] flex items-center justify-center text-xs font-bold">💡</span>
                   <span>Haute Couture Stylist Recommendation</span>
                 </h2>
                 {result.source === "gemini-vision" ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 flex items-center gap-1 shadow-2xs">
                     ✨ Google Gemini 3.6 Flash
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700/60 flex items-center gap-1">
                     ⚡ Smart Heuristic
                   </span>
                 )}
               </div>
-              <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-medium bg-pink-50/40 p-4 rounded-2xl border border-pink-100">
+              <p className="text-xs sm:text-sm text-stone-800 dark:text-stone-200 leading-relaxed font-medium bg-amber-500/10 dark:bg-amber-400/5 p-4 rounded-2xl border border-amber-500/20 dark:border-amber-400/20">
                 {result.adviceText}
               </p>
 
               {/* Detected Items from AI or Search Keywords */}
               {result.detectedItems && result.detectedItems.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-stone-100">
+                <div className="mt-3 pt-3 border-t border-stone-200/80 dark:border-stone-800/80">
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
                       {result.keyword ? "Detected Items & Styling Breakdown:" : "Items detected by AI Vision:"}
                     </p>
                     {result.keyword && (
-                      <span className="text-[11px] bg-pink-50 text-pink-700 px-2 py-0.5 rounded-md font-bold border border-pink-200">
+                      <span className="text-[11px] bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-md font-bold border border-[#dfba73]">
                         🔍 &quot;{result.keyword}&quot;
                       </span>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {result.detectedItems.map((item, idx) => (
-                      <span key={idx} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-800 border border-stone-200 flex items-center gap-1">
+                      <span key={idx} className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700 flex items-center gap-1">
                         <span>👗</span>
                         <span>{item.name}</span>
-                        {item.color && <span className="text-stone-500 font-normal">({item.color})</span>}
+                        {item.color && <span className="text-stone-400 font-normal">({item.color})</span>}
                       </span>
                     ))}
                   </div>
@@ -907,16 +906,16 @@ export default function StyleAdvisorPage() {
 
               {/* Suggested Color Palette */}
               {result.palette && result.palette.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-stone-100">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-2">
+                <div className="mt-4 pt-3 border-t border-stone-200/80 dark:border-stone-800/80">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">
                     Suggested Color Palette:
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {result.palette.map((c, i) => (
-                      <div key={i} className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200/80">
+                      <div key={i} className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800">
                         <span className="w-5 h-5 rounded-lg border border-black/10 shrink-0" style={{ backgroundColor: c.hex }} />
                         <div className="min-w-0">
-                          <p className="text-[11px] font-bold text-stone-800 truncate">{c.name}</p>
+                          <p className="text-[11px] font-bold text-stone-800 dark:text-stone-200 truncate">{c.name}</p>
                           <p className="text-[9px] text-stone-400 font-mono uppercase">{c.hex}</p>
                         </div>
                       </div>
@@ -928,16 +927,16 @@ export default function StyleAdvisorPage() {
 
             {/* Direct Affiliate Search Hub (when search term has no direct catalog matches) */}
             {result.hasDirectMatch === false && result.keyword && (
-              <div className="bg-white rounded-3xl shadow-sm border-2 border-amber-300/80 p-5 sm:p-6 bg-gradient-to-br from-amber-50/60 via-white to-pink-50/40">
+              <div className="bg-white dark:bg-[#161822] rounded-3xl shadow-sm border-2 border-amber-300/80 dark:border-[#dfba73]/40 p-5 sm:p-6 bg-gradient-to-br from-amber-50/60 dark:from-[#161822] via-white dark:via-[#161822] to-amber-50/20 dark:to-transparent">
                 <div className="flex items-start gap-3 mb-4">
                   <div className="w-10 h-10 rounded-2xl bg-amber-500 text-stone-950 flex items-center justify-center shrink-0 shadow-sm font-black">
                     <Search className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-extrabold text-stone-900">
+                    <h3 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-stone-100 font-cinzel">
                       Search directly for &quot;{result.keyword}&quot; across global stores
                     </h3>
-                    <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">
                       The keyword <strong>&quot;{result.keyword}&quot;</strong> is not in our static catalog. Click below to search live inventory and get verified affiliate pricing:
                     </p>
                   </div>
@@ -980,18 +979,18 @@ export default function StyleAdvisorPage() {
                   {/* Group 1: Target Search Matches */}
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
-                      <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
-                        <span className="w-6 h-6 rounded-lg bg-pink-600 text-white flex items-center justify-center text-xs font-black">
+                      <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2 flex-wrap font-cinzel">
+                        <span className="w-6 h-6 rounded-lg bg-stone-900 dark:bg-[#dfba73] text-[#dfba73] dark:text-stone-950 flex items-center justify-center text-xs font-black">
                           🎯
                         </span>
                         <span>Target Search Matches</span>
                         {result.keyword && (
-                          <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
+                          <span className="text-xs font-semibold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-lg border border-[#dfba73]">
                             Matched: &quot;{result.keyword}&quot;
                           </span>
                         )}
                       </h2>
-                      <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                      <span className="text-[11px] font-bold text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-full border border-stone-200 dark:border-stone-700">
                         {result.keyMatchedProducts.length} items
                       </span>
                     </div>
@@ -1010,18 +1009,18 @@ export default function StyleAdvisorPage() {
                   {/* Group 2: Complete The Look */}
                   <div className="pt-2">
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
-                      <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
-                        <span className="w-6 h-6 rounded-lg bg-amber-500 text-stone-950 flex items-center justify-center text-xs font-black">
+                      <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2 flex-wrap font-cinzel">
+                        <span className="w-6 h-6 rounded-lg bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 flex items-center justify-center text-xs font-black">
                           ✨
                         </span>
                         <span>Complete The Look (Coordinated Pairings)</span>
                         {result.keyword && (
-                          <span className="text-xs font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200">
+                          <span className="text-xs font-semibold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-lg border border-amber-300 dark:border-amber-700">
                             Paired with &quot;{result.keyword}&quot;
                           </span>
                         )}
                       </h2>
-                      <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                      <span className="text-[11px] font-bold text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-full border border-stone-200 dark:border-stone-700">
                         {result.coordinatedProducts.length} items
                       </span>
                     </div>
@@ -1040,8 +1039,8 @@ export default function StyleAdvisorPage() {
               ) : (
                 <div>
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
-                    <h2 className="text-base sm:text-lg font-bold text-stone-900 flex items-center gap-2 flex-wrap">
-                      <ShoppingBag className="w-5 h-5 text-pink-600 shrink-0" />
+                    <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2 flex-wrap font-cinzel">
+                      <ShoppingBag className="w-5 h-5 text-[#dfba73] shrink-0" />
                       <span>
                         {result.hasDirectMatch === false
                           ? "🔥 Trending Picks Curated For You"
@@ -1049,17 +1048,17 @@ export default function StyleAdvisorPage() {
                       </span>
                       {result.keyword && (
                         result.hasDirectMatch === false ? (
-                          <span className="text-xs font-semibold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-lg border border-stone-200">
+                          <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-0.5 rounded-lg border border-stone-200 dark:border-stone-700">
                             Trending alternative for &quot;{result.keyword}&quot;
                           </span>
                         ) : (
-                          <span className="text-xs font-semibold text-pink-700 bg-pink-50 px-2.5 py-0.5 rounded-lg border border-pink-200">
+                          <span className="text-xs font-semibold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-lg border border-[#dfba73]">
                             Matched: &quot;{result.keyword}&quot;
                           </span>
                         )
                       )}
                     </h2>
-                    <span className="text-[11px] font-bold text-stone-500 bg-stone-200/60 px-2.5 py-1 rounded-full">
+                    <span className="text-[11px] font-bold text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-full border border-stone-200 dark:border-stone-700">
                       {result.suggestedProducts.length} items
                     </span>
                   </div>
@@ -1084,10 +1083,10 @@ export default function StyleAdvisorPage() {
       {wardrobeCount > 0 && (
         <button
           onClick={() => setIsWardrobeOpen(true)}
-          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-extrabold text-xs sm:text-sm rounded-full shadow-2xl shadow-pink-600/40 border-2 border-white flex items-center gap-2.5 transition hover:scale-105 active:scale-95 animate-bounce-short cursor-pointer"
+          className="fixed bottom-6 right-6 z-40 px-4 py-3 bg-gradient-to-r from-amber-500 via-[#dfba73] to-amber-600 hover:brightness-110 text-stone-950 font-black text-xs sm:text-sm rounded-full shadow-2xl shadow-amber-500/30 border-2 border-white/80 dark:border-stone-900 flex items-center gap-2.5 transition hover:scale-105 active:scale-95 animate-bounce-short cursor-pointer"
           title="View your saved wardrobe"
         >
-          <ShoppingBag className="w-4 h-4 text-white animate-pulse" />
+          <ShoppingBag className="w-4 h-4 text-stone-950 animate-pulse" />
           <span>Wardrobe ({wardrobeCount})</span>
         </button>
       )}
@@ -1101,41 +1100,41 @@ export default function StyleAdvisorPage() {
 
       {/* Extension Modal */}
       {showExtensionModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 relative">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#161822] rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 dark:border-stone-800 relative text-stone-900 dark:text-stone-100">
             <button
               onClick={() => setShowExtensionModal(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition cursor-pointer"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 rounded-2xl bg-pink-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/30">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-[#dfba73] text-stone-950 flex items-center justify-center shadow-md">
                 <Chrome className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base sm:text-lg font-extrabold text-stone-900">
+                <h3 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-stone-100 font-cinzel">
                   Cun Style Advisor Chrome Extension
                 </h3>
-                <p className="text-xs text-stone-500">Live AI styling recommendations while browsing the web (Manifest V3)</p>
+                <p className="text-xs text-stone-500 dark:text-stone-400">Live AI styling recommendations while browsing the web (Manifest V3)</p>
               </div>
             </div>
 
-            <div className="p-4 bg-pink-50 rounded-2xl border border-pink-100 mb-5 text-xs text-pink-900 space-y-1.5">
-              <p className="font-bold">How to install in Google Chrome (30 seconds):</p>
-              <ol className="list-decimal list-inside space-y-1 text-[11px] text-pink-800">
-                <li>Open Google Chrome and navigate to <code className="bg-pink-100 px-1 rounded">chrome://extensions</code></li>
+            <div className="p-4 bg-amber-500/10 dark:bg-amber-400/5 rounded-2xl border border-amber-500/20 dark:border-amber-400/20 mb-5 text-xs text-stone-800 dark:text-stone-200 space-y-1.5">
+              <p className="font-bold text-[#dfba73]">How to install in Google Chrome (30 seconds):</p>
+              <ol className="list-decimal list-inside space-y-1 text-[11px] text-stone-600 dark:text-stone-300">
+                <li>Open Google Chrome and navigate to <code className="bg-stone-100 dark:bg-stone-800 px-1 rounded border border-stone-200 dark:border-stone-700">chrome://extensions</code></li>
                 <li>Turn ON the <strong>&quot;Developer mode&quot;</strong> toggle in the top-right corner.</li>
-                <li>Click <strong>&quot;Load unpacked&quot;</strong> and select the directory <code className="bg-pink-100 px-1 rounded">extension/cun-style-advisor</code></li>
+                <li>Click <strong>&quot;Load unpacked&quot;</strong> and select the directory <code className="bg-stone-100 dark:bg-stone-800 px-1 rounded border border-stone-200 dark:border-stone-700">extension/cun-style-advisor</code></li>
                 <li>Pin the Cun Style Advisor icon to your browser toolbar for instant 1-click styling!</li>
               </ol>
             </div>
 
             <button
               onClick={() => setShowExtensionModal(false)}
-              className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+              className="w-full py-2.5 bg-stone-900 dark:bg-[#dfba73] hover:bg-[#dfba73] hover:text-stone-950 dark:hover:bg-amber-400 text-white dark:text-stone-950 font-bold rounded-xl text-xs transition cursor-pointer"
             >
               Got it, close
             </button>

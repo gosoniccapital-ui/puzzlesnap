@@ -1,74 +1,120 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Nunito+Sans:ital,opsz,wght@0,6..12,300..900;1,6..12,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================================
+   HAUTE COUTURE LUXURY DESIGN SYSTEM
+   - Light Theme: Default (Silk Alabaster, Warm Ivory, Champagne)
+   - Dark Theme: Optimized Velvet Midnight Obsidian (No harsh blacks)
+   ======================================================== */
+
 :root {
-  --background: #09090b;
-  --foreground: #fafaf9;
-  --surface: #141210;
-  --surface-raised: #1c1a17;
-  --border-subtle: #292524;
-  --border-hairline: rgba(223, 186, 115, 0.18);
+  /* LIGHT THEME (DEFAULT) */
+  --background: #faf9f6;
+  --foreground: #18181b;
+  --foreground-muted: #52525b;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --surface-card: rgba(255, 255, 255, 0.88);
+  --surface-raised: #f4f2ea;
+  --border-subtle: #e5e3dc;
+  --border-hairline: rgba(197, 155, 76, 0.3);
+  --brand-gold: #c59b4c;
+  --brand-gold-light: #fef7e9;
+  --brand-gold-hover: #b08738;
+  --brand-gold-dark: #8c6721;
+  --accent-gold-gradient: linear-gradient(135deg, #18181b 0%, #b08738 50%, #c59b4c 100%);
+  --luxury-glass-bg: rgba(255, 255, 255, 0.82);
+  --luxury-glass-border: rgba(197, 155, 76, 0.25);
+  --card-shadow: 0 4px 20px -2px rgba(24, 24, 27, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  --card-shadow-hover: 0 16px 36px -4px rgba(197, 155, 76, 0.16), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+}
+
+.dark {
+  /* DARK THEME (OPTIMIZED VELVET NOIR - GENTLE ON EYES) */
+  --background: #0c0d12;
+  --foreground: #f3f4f6;
+  --foreground-muted: #9ca3af;
+  --surface: #12141c;
+  --card: #161822;
+  --surface-card: rgba(22, 24, 34, 0.8);
+  --surface-raised: #1a1c27;
+  --border-subtle: #242736;
+  --border-hairline: rgba(223, 186, 115, 0.22);
   --brand-gold: #dfba73;
   --brand-gold-light: #fef3c7;
+  --brand-gold-hover: #e8c682;
   --brand-gold-dark: #b45309;
-  --brand-rose: #f472b6;
-  --brand-yellow: #dfba73;
+  --accent-gold-gradient: linear-gradient(135deg, #fffbeb 0%, #dfba73 50%, #d97706 100%);
+  --luxury-glass-bg: rgba(18, 20, 28, 0.78);
+  --luxury-glass-border: rgba(223, 186, 115, 0.2);
+  --card-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.5);
+  --card-shadow-hover: 0 16px 40px -6px rgba(223, 186, 115, 0.2);
 }
 
 body {
   color: var(--foreground);
   background-color: var(--background);
-  font-family: 'Plus Jakarta Sans', 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: clip;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Haute Couture Typography Utilities */
+/* Haute Couture Typography */
 .font-display {
   font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
 }
 
 .font-editorial {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
 }
 
-/* Haute Couture Glassmorphism & Gold Styling */
+/* Glassmorphism & Surface Elevation */
 .luxury-glass {
-  background: rgba(20, 18, 16, 0.75);
+  background: var(--luxury-glass-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(223, 186, 115, 0.18);
+  border: 1px solid var(--luxury-glass-border);
 }
 
-.luxury-glass-card {
-  background: rgba(28, 25, 23, 0.65);
+.luxury-card {
+  background: var(--surface-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(223, 186, 115, 0.14);
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--card-shadow);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.luxury-glass-card:hover {
-  border-color: rgba(223, 186, 115, 0.45);
-  box-shadow: 0 16px 36px -10px rgba(223, 186, 115, 0.15);
+.luxury-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
 }
 
+/* Gold Gradient Typography */
 .gold-gradient-text {
-  background: linear-gradient(135deg, #fffbeb 0%, #dfba73 50%, #d97706 100%);
+  background: var(--accent-gold-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+/* Subtle Champagne Glow */
 .gold-glow {
-  box-shadow: 0 0 25px -5px rgba(223, 186, 115, 0.22);
+  box-shadow: 0 0 25px -5px rgba(223, 186, 115, 0.2);
 }
 
 .gold-glow-hover:hover {
-  box-shadow: 0 0 35px -5px rgba(223, 186, 115, 0.35);
+  box-shadow: 0 0 35px -5px rgba(223, 186, 115, 0.3);
+}
+
+/* Hairline Gold Borders */
+.gold-hairline {
+  border-color: var(--border-hairline);
 }
 
 /* Mobile Safe Area Insets */
@@ -93,10 +139,13 @@ body {
   min-height: 44px;
 }
 
-/* Jigsaw grid overlay texture on cards */
+/* Jigsaw Texture Overlay */
 .jigsaw-overlay {
-  background-image: radial-gradient(circle at 50% 50%, rgba(223, 186, 115, 0.1) 1px, transparent 1px),
-                    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 32px 32px;
+  background-image: radial-gradient(circle at 50% 50%, rgba(197, 155, 76, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.dark .jigsaw-overlay {
+  background-image: radial-gradient(circle at 50% 50%, rgba(223, 186, 115, 0.12) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
