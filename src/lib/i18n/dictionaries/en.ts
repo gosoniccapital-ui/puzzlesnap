@@ -29,6 +29,23 @@ export const en = {
     profileTooltip: "Change display name and co-op avatar color",
     switchLanguage: "Language",
   },
+  home: {
+    heroTitle: "Free Online Jigsaw Puzzles",
+    heroSubtitle: "From Our Haute Couture Library or Your Own Photos",
+    heroDescription: "Immerse yourself in thousands of curated luxury picture puzzles — or transform any photo into an artisanal jigsaw puzzle in seconds.",
+    playToday: "Play Today's Puzzle",
+    makeYourOwn: "Make Your Own",
+    dailyBadge: "Daily Puzzle",
+    plays: "plays",
+    likes: "likes",
+    featuredTitle: "Featured Puzzles",
+    viewAll: "View All →",
+    originalsBadge: "CunFashion Originals",
+    lookbookTitle: "Haute Couture & Lookbook Collection",
+    exploreLookbooks: "Explore Lookbooks →",
+    categoriesTitle: "Curated Categories",
+    seeAllCategories: "See all categories →",
+  },
   toolbar: {
     resumeTimer: "Resume Timer",
     pauseTimer: "Pause Timer",
@@ -118,6 +135,19 @@ export const en = {
     host: "Host",
     you: "You",
     leaveRoom: "Leave Room",
+  },
+  pwa: {
+    installTitle: "Install CunFashion App",
+    installSubtitle: "Fast, immersive, full-screen offline experience on your mobile home screen.",
+    iosStep1: "Tap the Share button below",
+    iosStep2: "Select 'Add to Home Screen'",
+    androidInstallBtn: "Install App",
+    closeBanner: "Dismiss",
+  },
+  footer: {
+    brandTitle: "CunFashion — Artisanal Online Jigsaw Puzzles",
+    copyright: "© 2026 CunFashion. All rights reserved.",
+    adminAccess: "Admin Access",
   },
 };
 

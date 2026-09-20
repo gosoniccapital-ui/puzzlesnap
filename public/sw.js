@@ -1,5 +1,5 @@
-// CunFashion PWA Service Worker v12.0.0 (Sprint 8.4 Global-First Affiliate Suite & Amazon Associates Expansion)
-const CACHE_NAME = 'cunfashion-cache-v12';
+// CunFashion PWA Service Worker v13.0.0 (Phase 10 Haute Couture Aesthetics, 7 Languages & Mobile Experience)
+const CACHE_NAME = 'cunfashion-cache-v13';
 
 const STATIC_ASSETS = [
   '/',

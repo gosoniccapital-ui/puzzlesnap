@@ -38,10 +38,10 @@ import {
   AMAZON_STYLE_CATALOG,
   getRandomSurpriseLook
 } from "@/lib/data/style-advisor-data";
-
-
+import { useTranslation } from "@/lib/i18n";
 
 export default function StyleAdvisorPage() {
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<"wide" | "mobile">("wide");
   const [market, setMarket] = useState<"ALL" | "FOURTHWALL" | "RAKUTEN" | "US">("ALL");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -346,15 +346,15 @@ export default function StyleAdvisorPage() {
     return (
       <div
         key={p.id}
-        className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-xs hover:shadow-md hover:border-pink-300 transition flex flex-col justify-between group"
+        className="bg-stone-900/80 rounded-2xl border border-stone-800 overflow-hidden shadow-lg hover:shadow-[0_0_25px_rgba(223,186,115,0.25)] hover:border-[#dfba73]/60 transition-all duration-300 flex flex-col justify-between group backdrop-blur-md"
       >
         <div>
           {/* Product Image */}
-          <div className="relative aspect-[3/4] bg-stone-100 overflow-hidden">
+          <div className="relative aspect-[3/4] bg-stone-950 overflow-hidden">
             <img
               src={p.img}
               alt={p.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+              className="w-full h-full object-cover group-hover:scale-105 transition duration-500 brightness-95 group-hover:brightness-105"
             />
             <span
               className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm ${
@@ -363,14 +363,14 @@ export default function StyleAdvisorPage() {
                   : p.platform === "Rakuten"
                   ? "bg-red-600 text-white"
                   : p.platform === "Amazon"
-                  ? "bg-amber-500 text-stone-950 font-black"
+                  ? "bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 font-black shadow-md"
                   : "bg-stone-900 text-white"
               }`}
             >
               {p.platform}
             </span>
             {p.tag && (
-              <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-stone-900 text-white shadow-sm">
+              <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-stone-950/90 text-[#dfba73] border border-[#dfba73]/30 shadow-sm backdrop-blur-md">
                 {p.tag}
               </span>
             )}
@@ -382,28 +382,28 @@ export default function StyleAdvisorPage() {
                 e.stopPropagation();
                 toggleWardrobeItem(p);
               }}
-              className={`absolute bottom-2.5 right-2.5 p-2 rounded-xl backdrop-blur-md transition shadow-md flex items-center justify-center ${
+              className={`absolute bottom-2.5 right-2.5 p-2 rounded-xl backdrop-blur-md transition shadow-md flex items-center justify-center cursor-pointer ${
                 saved
                   ? "bg-pink-600 text-white shadow-pink-600/40 scale-105"
-                  : "bg-black/60 text-white hover:bg-pink-600 hover:scale-105"
+                  : "bg-black/70 text-white hover:bg-[#dfba73] hover:text-stone-950 hover:scale-105 border border-white/10"
               }`}
-              title={saved ? "Bỏ lưu khỏi Tủ Đồ" : "Lưu vào Tủ Đồ yêu thích"}
+              title={saved ? "Remove from Wardrobe" : "Save to Wardrobe"}
             >
-              <Heart className={`w-4 h-4 ${saved ? "fill-white text-white" : "text-white"}`} />
+              <Heart className={`w-4 h-4 ${saved ? "fill-white text-white" : "text-current"}`} />
             </button>
           </div>
 
           {/* Product Info */}
           <div className="p-3.5">
-            <h4 className="text-xs sm:text-sm font-bold text-stone-800 line-clamp-2 leading-snug group-hover:text-pink-600 transition">
+            <h4 className="text-xs sm:text-sm font-bold text-stone-200 line-clamp-2 leading-snug group-hover:text-[#dfba73] transition">
               {p.name}
             </h4>
-            <div className="flex items-baseline gap-2 mt-1.5">
-              <span className="text-sm sm:text-base font-extrabold text-pink-600">
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-sm sm:text-base font-extrabold text-[#dfba73]">
                 {p.price}
               </span>
               {p.originalPrice && (
-                <span className="text-xs text-stone-400 line-through">
+                <span className="text-xs text-stone-500 line-through">
                   {p.originalPrice}
                 </span>
               )}
@@ -418,14 +418,14 @@ export default function StyleAdvisorPage() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => handleTrackAffiliateClick(p.id, p.name, p.platform, p.link)}
-            className={`w-full flex items-center justify-center gap-1.5 py-2.5 px-4 text-white text-xs font-bold rounded-xl transition shadow-sm ${
+            className={`w-full flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-bold rounded-xl transition shadow-sm ${
               p.platform === "CunCute Store"
-                ? "bg-pink-600 hover:bg-pink-700"
+                ? "bg-pink-600 hover:bg-pink-700 text-white"
                 : p.platform === "Rakuten"
-                ? "bg-red-600 hover:bg-red-700"
+                ? "bg-red-600 hover:bg-red-700 text-white"
                 : p.platform === "Amazon"
-                ? "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black"
-                : "bg-stone-900 hover:bg-pink-600"
+                ? "bg-gradient-to-r from-amber-400 via-[#dfba73] to-amber-500 hover:brightness-110 text-stone-950 font-black shadow-[0_0_15px_rgba(223,186,115,0.3)]"
+                : "bg-stone-800 hover:bg-stone-700 text-white"
             }`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
@@ -434,7 +434,7 @@ export default function StyleAdvisorPage() {
                 ? "Shop at CunCute Store"
                 : p.platform === "Rakuten"
                 ? "Shop on Rakuten"
-                : "Shop on Amazon US"}
+                : t.styleAdvisor.shopOnAmazon}
             </span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
@@ -463,17 +463,17 @@ export default function StyleAdvisorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100/60 pb-20 font-sans">
+    <div className="min-h-screen bg-[#09090b] text-stone-100 pb-20 font-sans">
       {/* Top Toolbar Switcher (Wide | Mobile | Extension) */}
-      <div className="sticky top-0 z-30 bg-stone-900 text-stone-200 border-b border-stone-800 px-4 py-2.5 flex items-center justify-between shadow-md">
+      <div className="sticky top-0 z-30 bg-[#09090b]/90 backdrop-blur-md text-stone-200 border-b border-stone-800 px-4 py-2.5 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Switcher Viewport */}
-          <div className="flex items-center bg-stone-800 rounded-xl p-1 border border-stone-700">
+          <div className="flex items-center bg-stone-900 rounded-xl p-1 border border-stone-800">
             <button
               onClick={() => setViewMode("wide")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 viewMode === "wide"
-                  ? "bg-stone-700 text-white shadow"
+                  ? "bg-stone-800 text-[#dfba73] shadow"
                   : "text-stone-400 hover:text-white"
               }`}
               title="Full screen desktop view"
@@ -483,9 +483,9 @@ export default function StyleAdvisorPage() {
             </button>
             <button
               onClick={() => setViewMode("mobile")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 viewMode === "mobile"
-                  ? "bg-pink-600 text-white shadow"
+                  ? "bg-amber-500 text-stone-950 font-extrabold shadow"
                   : "text-stone-400 hover:text-white"
               }`}
               title="Mobile frame view"
@@ -500,13 +500,14 @@ export default function StyleAdvisorPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsWardrobeOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 shadow transition relative cursor-pointer"
-            title="Open Personalized Wardrobe"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-800 hover:border-[#dfba73]/40 shadow transition relative cursor-pointer"
+            title="Open Personalized Wardrobe (Tủ Đồ)"
+            aria-label="Tủ Đồ Wardrobe"
           >
-            <ShoppingBag className="w-3.5 h-3.5 text-pink-400" />
-            <span>Wardrobe</span>
+            <ShoppingBag className="w-3.5 h-3.5 text-[#dfba73]" />
+            <span>{t.styleAdvisor.wardrobe}</span>
             {wardrobeCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-pink-600 text-white shadow">
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 shadow">
                 {wardrobeCount}
               </span>
             )}
@@ -514,7 +515,7 @@ export default function StyleAdvisorPage() {
 
           <button
             onClick={() => setShowExtensionModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white shadow transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 shadow hover:brightness-110 transition cursor-pointer"
           >
             <Chrome className="w-3.5 h-3.5" />
             <span>Chrome Extension</span>
@@ -536,39 +537,39 @@ export default function StyleAdvisorPage() {
       <div
         className={`mx-auto pt-6 px-4 transition-all duration-300 ${
           viewMode === "mobile"
-            ? "max-w-[420px] my-6 bg-white rounded-[40px] border-8 border-stone-800 shadow-2xl p-4 sm:p-5 overflow-hidden"
+            ? "max-w-[420px] my-6 bg-stone-950 rounded-[40px] border-8 border-stone-800 shadow-2xl p-4 sm:p-5 overflow-hidden"
             : "max-w-4xl"
         }`}
       >
         {/* Banner Link to Chrome Extension (in Wide mode) */}
         {viewMode === "wide" && !isExtensionBannerDismissed && (
-          <div className="mb-6 bg-gradient-to-r from-pink-50 via-rose-50 to-amber-50 border border-pink-200/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-xs relative">
+          <div className="mb-6 bg-stone-900/80 border border-stone-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-xl relative backdrop-blur-md">
             <button
               onClick={() => setIsExtensionBannerDismissed(true)}
-              className="absolute top-2 right-2 p-1 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-black/5 transition cursor-pointer"
+              className="absolute top-2 right-2 p-1 text-stone-500 hover:text-stone-300 rounded-lg hover:bg-stone-800 transition cursor-pointer"
               title="Dismiss banner"
             >
               <X className="w-3.5 h-3.5" />
             </button>
             <div className="flex items-center gap-3 pr-6 sm:pr-0">
-              <div className="w-9 h-9 rounded-xl bg-pink-600 text-white flex items-center justify-center shadow-md shadow-pink-500/20 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 to-[#dfba73] text-stone-950 flex items-center justify-center shadow-md shrink-0">
                 <Chrome className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-pink-700 flex items-center gap-1.5">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#dfba73] flex items-center gap-1.5">
                   <span>Google Chrome Extension</span>
-                  <span className="px-1.5 py-0.2 rounded text-[9px] bg-pink-100 text-pink-800 font-extrabold">
+                  <span className="px-1.5 py-0.2 rounded text-[9px] bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/30">
                     NEW
                   </span>
                 </p>
-                <p className="text-xs text-stone-600">
+                <p className="text-xs text-stone-400">
                   Instantly receive outfit styling matches while browsing Amazon, Pinterest, Zara, ASOS...
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowExtensionModal(true)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl shadow transition shrink-0 cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-gradient-to-r from-amber-400 to-[#dfba73] hover:brightness-110 text-stone-950 rounded-xl shadow transition shrink-0 cursor-pointer"
             >
               <span>Get Chrome Extension</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -577,20 +578,20 @@ export default function StyleAdvisorPage() {
         )}
 
         {/* Header Title */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
-            Cun Style Advisor
+        <div className="text-center mb-8 space-y-2">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight font-cinzel">
+            <span className="gold-gradient-text">{t.styleAdvisor.title}</span>
           </h1>
-          <p className="text-stone-500 mt-1.5 text-xs sm:text-sm font-medium">
-            Search luxury fashion pieces OR upload an outfit photo for AI styling advice and direct shopping links
+          <p className="text-stone-400 text-xs sm:text-sm font-medium font-playfair italic max-w-xl mx-auto leading-relaxed">
+            {t.styleAdvisor.subtitle}
           </p>
         </div>
 
         {/* Card Form Main: Unified Omni-Search Bar + Upload Image + ALL Market + Filters */}
-        <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-4 sm:p-6 mb-6">
+        <div className="bg-stone-900/80 rounded-3xl shadow-2xl border border-stone-800/90 p-4 sm:p-6 mb-8 backdrop-blur-xl">
           {/* Main Search Bar with Inline Camera & Search Button */}
           <div className="relative flex items-center">
-            <Search className="w-5 h-5 text-stone-400 absolute left-4 pointer-events-none" />
+            <Search className="w-5 h-5 text-stone-500 absolute left-4 pointer-events-none" />
             <input
               type="text"
               id="style-advisor-keyword-input"
@@ -604,8 +605,8 @@ export default function StyleAdvisorPage() {
                   handleAnalyze();
                 }
               }}
-              placeholder="Search designer pieces or aesthetics (e.g. trench coat, cashmere, slip dress, tailored blazer...)"
-              className="w-full border-2 border-stone-200 rounded-2xl pl-12 pr-32 py-3.5 text-xs sm:text-sm bg-stone-50/70 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/15 outline-none transition font-medium text-stone-900 placeholder:text-stone-400 shadow-inner"
+              placeholder={t.styleAdvisor.searchPlaceholder}
+              className="w-full border border-stone-700 rounded-2xl pl-12 pr-32 py-3.5 text-xs sm:text-sm bg-stone-950/80 focus:bg-stone-950 focus:border-[#dfba73] focus:ring-4 focus:ring-[#dfba73]/15 outline-none transition font-medium text-stone-100 placeholder:text-stone-500 shadow-inner"
             />
 
             {/* Right Action Controls: Inline Camera + Submit */}

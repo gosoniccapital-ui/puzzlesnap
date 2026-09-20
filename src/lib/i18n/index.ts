@@ -3,20 +3,48 @@
 import { useState, useEffect, useCallback } from "react";
 import { en, type TranslationDictionary } from "./dictionaries/en";
 import { vi } from "./dictionaries/vi";
+import { ja } from "./dictionaries/ja";
+import { fr } from "./dictionaries/fr";
+import { de } from "./dictionaries/de";
+import { es } from "./dictionaries/es";
+import { zh } from "./dictionaries/zh";
 
-export type LanguageCode = "en" | "vi";
+export type LanguageCode = "en" | "vi" | "ja" | "fr" | "de" | "es" | "zh";
+
+export interface LanguageMeta {
+  code: LanguageCode;
+  name: string;
+  nativeName: string;
+  flag: string;
+}
+
+export const LANGUAGE_CONFIG: Record<LanguageCode, LanguageMeta> = {
+  en: { code: "en", name: "English", nativeName: "English", flag: "🇬🇧" },
+  vi: { code: "vi", name: "Vietnamese", nativeName: "Tiếng Việt", flag: "🇻🇳" },
+  ja: { code: "ja", name: "Japanese", nativeName: "日本語", flag: "🇯🇵" },
+  fr: { code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷" },
+  de: { code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪" },
+  es: { code: "es", name: "Spanish", nativeName: "Español", flag: "🇪🇸" },
+  zh: { code: "zh", name: "Chinese", nativeName: "简体中文", flag: "🇨🇳" },
+};
 
 export const DICTIONARIES: Record<LanguageCode, TranslationDictionary> = {
   en,
   vi,
+  ja,
+  fr,
+  de,
+  es,
+  zh,
 };
 
 export const DEFAULT_LANGUAGE: LanguageCode = "en";
-export const SUPPORTED_LANGUAGES: LanguageCode[] = ["en", "vi"];
+export const SUPPORTED_LANGUAGES: LanguageCode[] = ["en", "vi", "ja", "fr", "de", "es", "zh"];
 
 export function getTranslation(lang?: string | null): TranslationDictionary {
-  if (lang === "vi") return vi;
-  return en;
+  if (!lang) return en;
+  const normalized = lang.toLowerCase().slice(0, 2) as LanguageCode;
+  return DICTIONARIES[normalized] || en;
 }
 
 export function getCurrentLanguage(): LanguageCode {
@@ -25,15 +53,25 @@ export function getCurrentLanguage(): LanguageCode {
   try {
     // 1. Priority: localStorage preference
     const stored = localStorage.getItem("cunfashion_lang");
-    if (stored === "vi" || stored === "en") return stored;
+    if (stored && SUPPORTED_LANGUAGES.includes(stored as LanguageCode)) {
+      return stored as LanguageCode;
+    }
 
     // 2. Cookie preference
     const match = document.cookie.match(/(?:^|;\s*)cun_lang=([^;]+)/);
-    if (match && (match[1] === "vi" || match[1] === "en")) {
+    if (match && SUPPORTED_LANGUAGES.includes(match[1] as LanguageCode)) {
       return match[1] as LanguageCode;
     }
+
+    // 3. Browser navigator language detection
+    if (navigator?.language) {
+      const browserLang = navigator.language.slice(0, 2).toLowerCase() as LanguageCode;
+      if (SUPPORTED_LANGUAGES.includes(browserLang)) {
+        return browserLang;
+      }
+    }
   } catch {
-    // Fallback if localStorage or cookie access blocked
+    // Fallback if storage access is blocked
   }
 
   return DEFAULT_LANGUAGE;
@@ -59,7 +97,7 @@ export function useTranslation() {
 
     const handleLangChange = (e: Event) => {
       const custom = e as CustomEvent<{ lang: LanguageCode }>;
-      if (custom.detail?.lang) {
+      if (custom.detail?.lang && SUPPORTED_LANGUAGES.includes(custom.detail.lang)) {
         setLang(custom.detail.lang);
       }
     };
@@ -69,17 +107,23 @@ export function useTranslation() {
   }, []);
 
   const changeLanguage = useCallback((newLang: LanguageCode) => {
+    if (!SUPPORTED_LANGUAGES.includes(newLang)) return;
     setLang(newLang);
     setLanguagePreference(newLang);
   }, []);
 
   const t = DICTIONARIES[lang] || en;
+  const currentMeta = LANGUAGE_CONFIG[lang] || LANGUAGE_CONFIG.en;
 
   return {
     lang,
     t,
+    currentMeta,
+    languages: SUPPORTED_LANGUAGES.map((code) => LANGUAGE_CONFIG[code]),
     changeLanguage,
     isEnglish: lang === "en",
     isVietnamese: lang === "vi",
   };
 }
+
+export type { TranslationDictionary };

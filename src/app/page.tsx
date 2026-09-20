@@ -2,106 +2,137 @@
 
 import React from "react";
 import Link from "next/link";
-import { Play, Heart, Sparkles, Upload } from "lucide-react";
+import { Play, Heart, Sparkles, Upload, ArrowRight } from "lucide-react";
 import { PUZZLES_DATA, getDailyPuzzle, CATEGORIES_LIST } from "@/lib/data/puzzles-data";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Home() {
+  const { t } = useTranslation();
   const daily = getDailyPuzzle();
   const featuredList = PUZZLES_DATA.slice(1, 7);
+  const lookbookList = PUZZLES_DATA.filter((p) => p.categorySlug === "fashion-lookbook");
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-      {/* 1. Home Hero Section (2 Columns) */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-6 sm:p-10 rounded-3xl border border-stone-200 shadow-sm">
-        {/* Left Column: Hero Copy & CTA */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="space-y-3">
-            <h1 className="text-3xl sm:text-5xl font-black text-stone-900 tracking-tight leading-[1.15]">
-              Free Online Jigsaw Puzzles
-              <span className="block text-xl sm:text-2xl font-bold text-stone-500 mt-2">
-                From Our Library or Your Own Photos
-              </span>
-            </h1>
-            <p className="text-stone-600 text-sm sm:text-base leading-relaxed max-w-lg">
-              Play thousands of picture puzzles for free — or turn any photo into your own custom jigsaw puzzle in seconds.
-            </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16">
+      {/* 1. Haute Couture Hero Section (Asymmetric Variance 8) */}
+      <section className="relative overflow-hidden rounded-3xl border border-stone-800/80 bg-gradient-to-br from-stone-900/90 via-[#0d0d10] to-[#09090b] p-6 sm:p-12 shadow-2xl backdrop-blur-xl">
+        {/* Ambient Gold Halo Glow in Background */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#dfba73]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          {/* Left Column: Hero Editorial Copy & Action Bar */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-800/80 border border-stone-700/60 text-[#dfba73] text-xs font-semibold tracking-wider uppercase backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 fill-[#dfba73]" />
+              <span>Haute Couture Collection</span>
+            </div>
+
+            <div className="space-y-4">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] font-cinzel">
+                <span className="gold-gradient-text block">
+                  {t.home.heroTitle}
+                </span>
+                <span className="block text-xl sm:text-2xl lg:text-3xl font-normal text-stone-400 mt-2 font-playfair italic">
+                  {t.home.heroSubtitle}
+                </span>
+              </h1>
+              <p className="text-stone-300 text-sm sm:text-base leading-relaxed max-w-xl">
+                {t.home.heroDescription}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <Link
+                href={`/puzzle/${daily.slug}`}
+                className="inline-flex items-center gap-2.5 px-7 py-4 rounded-full bg-gradient-to-r from-amber-400 via-[#dfba73] to-amber-500 hover:brightness-110 text-stone-950 font-extrabold text-sm shadow-[0_0_25px_rgba(223,186,115,0.35)] hover:shadow-[0_0_35px_rgba(223,186,115,0.55)] transition-all transform hover:-translate-y-0.5 duration-200"
+              >
+                <span>{t.home.playToday}</span>
+                <Play className="w-4 h-4 fill-current" />
+              </Link>
+
+              <Link
+                href="/make-puzzle"
+                className="inline-flex items-center gap-2.5 px-7 py-4 rounded-full bg-stone-900/90 hover:bg-stone-800 text-stone-200 hover:text-white font-bold text-sm border border-stone-700 hover:border-[#dfba73]/60 transition-all duration-200 backdrop-blur-md shadow-md"
+              >
+                <Upload className="w-4 h-4 text-[#dfba73]" />
+                <span>{t.home.makeYourOwn}</span>
+              </Link>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          {/* Right Column: Daily Puzzle Showcase with Gold Bezel Frame */}
+          <div className="lg:col-span-6">
             <Link
               href={`/puzzle/${daily.slug}`}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[#ffb703] hover:bg-[#e0a102] text-stone-950 font-extrabold text-sm shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 duration-150"
+              className="group block relative rounded-2xl overflow-hidden border border-[#dfba73]/40 hover:border-[#dfba73] shadow-[0_10px_40px_rgba(0,0,0,0.8),0_0_30px_rgba(223,186,115,0.15)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.9),0_0_40px_rgba(223,186,115,0.35)] transition-all duration-300 bg-stone-950"
             >
-              <span>Play Today&apos;s Puzzle</span>
-              <Play className="w-4 h-4 fill-current" />
-            </Link>
+              {/* Image Container */}
+              <div className="relative aspect-[16/10] overflow-hidden bg-stone-950">
+                <img
+                  src={daily.image}
+                  alt={daily.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-95 group-hover:brightness-105"
+                />
+                {/* Jigsaw overlay grid */}
+                <div className="absolute inset-0 jigsaw-overlay pointer-events-none opacity-30 group-hover:opacity-40 transition" />
 
-            <Link
-              href="/make-puzzle"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white hover:bg-stone-50 text-stone-800 font-bold text-sm border-2 border-stone-300 hover:border-stone-400 transition"
-            >
-              <Upload className="w-4 h-4 text-stone-600" />
-              <span>Make Your Own</span>
-            </Link>
-          </div>
-        </div>
+                {/* Subtle vignette gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
 
-        {/* Right Column: Daily Puzzle Feature Card */}
-        <div className="lg:col-span-6">
-          <Link
-            href={`/puzzle/${daily.slug}`}
-            className="group block relative rounded-2xl overflow-hidden border-2 border-stone-200 hover:border-amber-500 shadow-md hover:shadow-xl transition duration-300 bg-stone-950"
-          >
-            {/* Image Container with Jigsaw Pattern */}
-            <div className="relative aspect-[16/10] overflow-hidden">
-              <img
-                src={daily.image}
-                alt={daily.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-              />
-              {/* Jigsaw grid overlay texture */}
-              <div className="absolute inset-0 jigsaw-overlay pointer-events-none opacity-40 group-hover:opacity-60 transition" />
+                {/* Daily Badge in Champagne Gold */}
+                <span className="absolute top-3.5 left-3.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-400 to-[#dfba73] text-stone-950 font-black text-xs rounded-full shadow-lg uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 fill-current" />
+                  {t.home.dailyBadge}
+                </span>
 
-              {/* Badge */}
-              <span className="absolute top-3 left-3 px-3 py-1 bg-[#ffb703] text-stone-950 font-black text-xs rounded-full shadow-md uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 fill-current" />
-                Daily Puzzle
-              </span>
-
-              {/* Center Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition">
-                <div className="w-14 h-14 rounded-full bg-white/90 group-hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-xl transform group-hover:scale-110 transition duration-200">
-                  <Play className="w-7 h-7 fill-current ml-0.5" />
+                {/* Hover Play Button Glow */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-[#dfba73] text-stone-950 flex items-center justify-center shadow-[0_0_25px_rgba(223,186,115,0.5)] transform group-hover:scale-110 transition duration-300">
+                    <Play className="w-8 h-8 fill-current ml-1 text-stone-950" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Meta bar */}
-            <div className="p-4 bg-white flex items-center justify-between border-t border-stone-100">
-              <h3 className="font-extrabold text-stone-900 text-base group-hover:text-amber-600 transition">
-                {daily.title}
-              </h3>
-              <div className="flex items-center gap-3 text-xs font-bold text-stone-500">
-                <span className="flex items-center gap-1">
-                  <Play className="w-3.5 h-3.5 text-stone-400 fill-current" />
-                  {daily.plays}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                  {daily.likes}
-                </span>
+              {/* Meta bar */}
+              <div className="p-4 sm:p-5 bg-stone-900/90 backdrop-blur-xl flex items-center justify-between border-t border-stone-800">
+                <div>
+                  <h3 className="font-extrabold text-stone-100 text-base sm:text-lg group-hover:text-[#dfba73] transition font-cinzel">
+                    {daily.title}
+                  </h3>
+                  <span className="text-xs text-stone-400 uppercase tracking-widest font-semibold mt-0.5 block">
+                    {daily.category}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3.5 text-xs font-bold text-stone-400">
+                  <span className="flex items-center gap-1.5">
+                    <Play className="w-3.5 h-3.5 text-[#dfba73] fill-current" />
+                    <span>{daily.plays} {t.home.plays}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
+                    <span>{daily.likes} {t.home.likes}</span>
+                  </span>
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* 2. Featured Puzzles Grid */}
+      {/* 2. Featured Puzzles Grid (Glassmorphic Luxury Cards) */}
       <section className="space-y-6">
-        <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-          <h2 className="text-2xl font-black text-stone-900 tracking-tight">Featured Puzzles</h2>
-          <Link href="/categories" className="text-xs font-bold text-amber-600 hover:text-amber-700">
-            View All →
+        <div className="flex items-center justify-between border-b border-stone-800/80 pb-4">
+          <div className="space-y-1">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-100 tracking-tight font-cinzel">
+              {t.home.featuredTitle}
+            </h2>
+          </div>
+          <Link
+            href="/categories"
+            className="text-xs font-bold text-[#dfba73] hover:text-amber-300 flex items-center gap-1 transition"
+          >
+            <span>{t.home.viewAll}</span>
           </Link>
         </div>
 
@@ -110,35 +141,35 @@ export default function Home() {
             <Link
               key={puzzle.slug}
               href={`/puzzle/${puzzle.slug}`}
-              className="group block rounded-xl overflow-hidden bg-white border border-stone-200 hover:border-amber-500 hover:shadow-lg transition duration-200 flex flex-col"
+              className="group block rounded-2xl overflow-hidden bg-stone-900/70 border border-stone-800 hover:border-[#dfba73]/60 hover:shadow-[0_0_25px_rgba(223,186,115,0.2)] transition-all duration-300 flex flex-col backdrop-blur-md"
             >
-              <div className="relative aspect-square overflow-hidden bg-stone-100">
+              <div className="relative aspect-square overflow-hidden bg-stone-950">
                 <img
                   src={puzzle.image}
                   alt={puzzle.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 brightness-95 group-hover:brightness-105"
                 />
-                <div className="absolute inset-0 jigsaw-overlay pointer-events-none opacity-30 group-hover:opacity-50 transition" />
+                <div className="absolute inset-0 jigsaw-overlay pointer-events-none opacity-20 group-hover:opacity-40 transition" />
 
                 {/* Hover Play Button */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/25 transition">
-                  <div className="w-10 h-10 rounded-full bg-amber-400 text-stone-950 flex items-center justify-center shadow-lg">
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition duration-200">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-400 to-[#dfba73] text-stone-950 flex items-center justify-center shadow-lg">
                     <Play className="w-5 h-5 fill-current ml-0.5" />
                   </div>
                 </div>
 
                 {/* Stats Pill in Corner */}
-                <div className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2 py-0.5 bg-black/60 backdrop-blur rounded-full text-[10px] font-bold text-white">
-                  <Play className="w-2.5 h-2.5 fill-current text-amber-400" />
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 bg-black/70 backdrop-blur-md rounded-full text-[10px] font-bold text-stone-200 border border-white/10">
+                  <Play className="w-2.5 h-2.5 fill-current text-[#dfba73]" />
                   <span>{puzzle.plays}</span>
                 </div>
               </div>
 
-              <div className="p-2.5 flex-1 flex flex-col justify-between">
-                <h4 className="text-xs font-bold text-stone-800 line-clamp-1 group-hover:text-amber-600 transition">
+              <div className="p-3 flex-1 flex flex-col justify-between space-y-1">
+                <h4 className="text-xs font-bold text-stone-200 line-clamp-1 group-hover:text-[#dfba73] transition">
                   {puzzle.title}
                 </h4>
-                <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mt-1">
+                <span className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider">
                   {puzzle.category}
                 </span>
               </div>
@@ -148,48 +179,49 @@ export default function Home() {
       </section>
 
       {/* 3. CunFashion Exclusive Lookbook Showcase */}
-      <section className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-stone-900 via-stone-850 to-stone-950 text-white border border-stone-800 shadow-xl space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
+      <section className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-[#121218] via-stone-900 to-[#09090b] border border-stone-800/90 shadow-2xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-800/90 pb-4">
           <div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-[#ffb703]">
-              <Sparkles className="w-3.5 h-3.5" />
-              CunFashion Originals
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[#dfba73]">
+              <Sparkles className="w-3.5 h-3.5 fill-current" />
+              {t.home.originalsBadge}
             </span>
-            <h2 className="text-2xl font-black text-white tracking-tight mt-0.5">
-              Haute Couture & Lookbook Collection
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-100 tracking-tight mt-1 font-cinzel">
+              {t.home.lookbookTitle}
             </h2>
           </div>
           <Link
             href="/categories/fashion-lookbook"
-            className="self-start sm:self-auto text-xs font-black text-stone-950 bg-[#ffb703] hover:bg-[#e0a102] px-4 py-2 rounded-full transition shadow-md"
+            className="self-start sm:self-auto inline-flex items-center gap-2 text-xs font-black text-stone-950 bg-gradient-to-r from-amber-400 via-[#dfba73] to-amber-500 hover:brightness-110 px-5 py-2.5 rounded-full transition shadow-md hover:shadow-[0_0_20px_rgba(223,186,115,0.4)]"
           >
-            Explore Lookbooks →
+            <span>{t.home.exploreLookbooks}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {PUZZLES_DATA.filter((p) => p.categorySlug === "fashion-lookbook").map((item) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+          {lookbookList.map((item) => (
             <Link
               key={item.id}
               href={`/puzzle/${item.slug}`}
-              className="group block rounded-2xl overflow-hidden bg-stone-900 border border-stone-800 hover:border-amber-400 transition duration-300"
+              className="group block rounded-2xl overflow-hidden bg-stone-900/80 border border-stone-800 hover:border-[#dfba73]/70 hover:shadow-[0_0_25px_rgba(223,186,115,0.25)] transition-all duration-300"
             >
-              <div className="relative aspect-3/4 overflow-hidden bg-stone-950">
+              <div className="relative aspect-[3/4] overflow-hidden bg-stone-950">
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <span className="absolute top-2.5 right-2.5 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-stone-950/80 text-amber-400 border border-stone-700">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                <span className="absolute top-3 right-3 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-black/80 text-[#dfba73] border border-[#dfba73]/30 backdrop-blur-md">
                   {item.difficulty}
                 </span>
-                <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                  <h4 className="text-xs font-bold text-white line-clamp-1 group-hover:text-amber-300 transition">
+                <div className="absolute bottom-3 left-3 right-3 space-y-0.5">
+                  <h4 className="text-xs sm:text-sm font-bold text-stone-100 line-clamp-1 group-hover:text-[#dfba73] transition">
                     {item.title}
                   </h4>
-                  <span className="text-[10px] text-stone-400 font-semibold">
-                    {item.plays.toLocaleString()} plays
+                  <span className="text-[10px] text-stone-400 font-medium block">
+                    {item.plays.toLocaleString()} {t.home.plays}
                   </span>
                 </div>
               </div>
@@ -198,21 +230,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. Browse Categories Grid */}
+      {/* 4. Curated Categories Grid */}
       <section className="space-y-6">
-        <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-          <h2 className="text-2xl font-black text-stone-900 tracking-tight">Popular Categories</h2>
-          <Link href="/categories" className="text-xs font-bold text-amber-600 hover:text-amber-700">
-            See all categories →
+        <div className="flex items-center justify-between border-b border-stone-800/80 pb-4">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-100 tracking-tight font-cinzel">
+            {t.home.categoriesTitle}
+          </h2>
+          <Link
+            href="/categories"
+            className="text-xs font-bold text-[#dfba73] hover:text-amber-300 transition"
+          >
+            {t.home.seeAllCategories}
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
           {CATEGORIES_LIST.map((cat) => (
             <Link
               key={cat.slug}
               href={`/categories/${cat.slug}`}
-              className="p-3.5 rounded-2xl bg-white hover:bg-amber-50 border border-stone-200 hover:border-amber-400 text-center font-bold text-xs text-stone-700 hover:text-amber-700 transition shadow-sm hover:shadow"
+              className="p-3.5 sm:p-4 rounded-2xl bg-stone-900/60 hover:bg-stone-800 border border-stone-800 hover:border-[#dfba73]/60 text-center font-bold text-xs text-stone-300 hover:text-[#dfba73] transition-all duration-200 shadow-sm hover:shadow-[0_0_15px_rgba(223,186,115,0.15)] backdrop-blur-md"
             >
               {cat.name}
             </Link>

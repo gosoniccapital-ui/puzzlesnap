@@ -1,29 +1,102 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300..900;1,6..12,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Nunito+Sans:ital,opsz,wght@0,6..12,300..900;1,6..12,300..900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #fbfaf7;
-  --foreground: #1c1917;
-  --surface: #ffffff;
-  --border-subtle: #e7e5e4;
-  --brand-yellow: #ffb703;
-  --brand-green: #2b9348;
+  --background: #09090b;
+  --foreground: #fafaf9;
+  --surface: #141210;
+  --surface-raised: #1c1a17;
+  --border-subtle: #292524;
+  --border-hairline: rgba(223, 186, 115, 0.18);
+  --brand-gold: #dfba73;
+  --brand-gold-light: #fef3c7;
+  --brand-gold-dark: #b45309;
+  --brand-rose: #f472b6;
+  --brand-yellow: #dfba73;
 }
 
 body {
   color: var(--foreground);
   background-color: var(--background);
-  font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  overflow-x: hidden;
+  font-family: 'Plus Jakarta Sans', 'Nunito Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: clip;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Haute Couture Typography Utilities */
+.font-display {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+}
+
+.font-editorial {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Haute Couture Glassmorphism & Gold Styling */
+.luxury-glass {
+  background: rgba(20, 18, 16, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(223, 186, 115, 0.18);
+}
+
+.luxury-glass-card {
+  background: rgba(28, 25, 23, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(223, 186, 115, 0.14);
+}
+
+.luxury-glass-card:hover {
+  border-color: rgba(223, 186, 115, 0.45);
+  box-shadow: 0 16px 36px -10px rgba(223, 186, 115, 0.15);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #fffbeb 0%, #dfba73 50%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-glow {
+  box-shadow: 0 0 25px -5px rgba(223, 186, 115, 0.22);
+}
+
+.gold-glow-hover:hover {
+  box-shadow: 0 0 35px -5px rgba(223, 186, 115, 0.35);
+}
+
+/* Mobile Safe Area Insets */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Mobile Touch Target Minimum (Apple HIG: 44x44px) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
 }
 
 /* Jigsaw grid overlay texture on cards */
 .jigsaw-overlay {
-  background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 1px, transparent 1px),
-                    linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle at 50% 50%, rgba(223, 186, 115, 0.1) 1px, transparent 1px),
+                    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 32px 32px;
 }

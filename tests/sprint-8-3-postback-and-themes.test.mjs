@@ -92,7 +92,7 @@ test("Filesystem & PWA Service Worker v11 Integrity", async (t) => {
   await t.test("sw.js is updated to cunfashion-cache-v11", () => {
     const swPath = path.resolve(process.cwd(), "public/sw.js");
     const content = fs.readFileSync(swPath, "utf-8");
-    assert.ok(/cunfashion-cache-v(11|12)/.test(content), "Service worker must have cache-v11 or v12");
+    assert.ok(/cunfashion-cache-v(11|12|13)/.test(content), "Service worker must have cache-v11, v12 or v13");
   });
 
   await t.test("Postback webhook route exists", () => {

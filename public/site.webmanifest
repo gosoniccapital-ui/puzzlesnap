@@ -1,11 +1,11 @@
 {
-  "name": "CunFashion - Free Online Jigsaw Puzzles",
+  "name": "CunFashion - Haute Couture & Artisanal Jigsaw Puzzles",
   "short_name": "CunFashion",
-  "description": "Play thousands of free online jigsaw puzzles or create your own with custom photos.",
+  "description": "Play thousands of curated luxury jigsaw puzzles or create your own custom puzzles with photos.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fbfaf7",
-  "theme_color": "#ffb703",
+  "background_color": "#09090b",
+  "theme_color": "#dfba73",
   "icons": [
     {
       "src": "/images/puzzle-icon-192.png",

@@ -38,6 +38,8 @@ Tất cả các agent làm việc trong repository này BẮT BUỘC phải đ�
 | **`vibe-git-manager`** | Quản lý phân nhánh Git, commit sạch, bảo vệ secret và lưu mốc Rollback Anchor an toàn. |
 | **`behavior-model-debugger`** | Audit trải nghiệm người dùng, truy vết va chạm tọa độ Canvas, ngắt quãng phím và trạng thái stateful. |
 | **`design-taste-frontend`** | Tiêu chuẩn thiết kế giao diện Anti-slop, chống giao diện AI rập khuôn, tối ưu typography và spacing. |
+| **`hallmark`** | Together AI Anti-Slop Design Engine: 21 themes, 57 slop-test gates, 4 verbs (build, audit, redesign, study). |
+| **`taste-redesign`** | Redesign chuyên sâu từ leonxlnx/taste-skill: 3 dials (variance, motion, density), luxury editorial transformation. |
 | **`puzzle-engine-architect`** | Kiến trúc toán học đường cong Bézier (tabs/blanks), Path2D clipping, Disjoint-Set Union và magnetic snap. |
 | **`codegraph`** | Hướng dẫn điều hướng biểu đồ mã nguồn, phân tích tác động (`impact`), truy vết `callers`/`callees`. |
 | **`tdd`** | Quy trình Test-Driven Development (Red -> Green -> Refactor) cho các hàm toán học và engine logic. |

@@ -107,6 +107,6 @@ test('PWA Service Worker v12 Integrity', async (t) => {
   await t.test('sw.js defines cunfashion-cache-v12', () => {
     const swPath = path.resolve(process.cwd(), 'public/sw.js');
     const content = fs.readFileSync(swPath, 'utf-8');
-    assert.ok(content.includes('cunfashion-cache-v12'), 'Must be upgraded to cache-v12');
+    assert.ok(content.includes('cunfashion-cache-v12') || content.includes('cunfashion-cache-v13'), 'Must be upgraded to cache-v12 or cache-v13');
   });
 });

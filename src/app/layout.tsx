@@ -27,12 +27,15 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffb703",
+  themeColor: "#09090b",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
 };
 
 import ConditionalFooter from "@/components/layout/ConditionalFooter";
+import PwaInstallBanner from "@/components/pwa/PwaInstallBanner";
 
 export default function RootLayout({
   children,
@@ -41,9 +44,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-[#fbfaf7] text-stone-900 antialiased selection:bg-[#ffb703] selection:text-stone-950">
+      <body className="min-h-screen flex flex-col bg-[#09090b] text-stone-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
         <TrackingPixels />
         <PwaRegister />
+        <PwaInstallBanner />
         <Navbar />
         <main className="flex-1">{children}</main>
         <ConditionalFooter />
