@@ -165,3 +165,48 @@ test("Sprint 11.1 Invariant #8: PlayerProfileModal has backdrop click-to-dismiss
     "Modal card must support dual-theme styling"
   );
 });
+
+test("Sprint 11.1 Invariant #9: Safe-Area & Overflow-X Invariants are strictly enforced in CSS", () => {
+  const cssPath = path.join(ROOT_DIR, "src", "app", "globals.css");
+  const cssContent = fs.readFileSync(cssPath, "utf-8");
+
+  assert.match(
+    cssContent,
+    /html\s*\{[\s\S]*?overflow-x:\s*hidden/,
+    "html must have overflow-x: hidden to prevent horizontal scroll"
+  );
+  assert.match(
+    cssContent,
+    /body\s*\{[\s\S]*?overflow-x:\s*hidden/,
+    "body must have overflow-x: hidden"
+  );
+  assert.match(
+    cssContent,
+    /env\(safe-area-inset-top/,
+    "CSS must respect iOS/Android safe-area-inset-top"
+  );
+  assert.match(
+    cssContent,
+    /env\(safe-area-inset-bottom/,
+    "CSS must respect iOS/Android safe-area-inset-bottom"
+  );
+});
+
+test("Sprint 11.1 Invariant #10: Minimum Touch Target is enforced on mobile interactive elements", () => {
+  const togglePath = path.join(ROOT_DIR, "src", "components", "theme", "ThemeToggle.tsx");
+  const navbarPath = path.join(ROOT_DIR, "src", "components", "layout", "Navbar.tsx");
+
+  const toggleContent = fs.readFileSync(togglePath, "utf-8");
+  const navbarContent = fs.readFileSync(navbarPath, "utf-8");
+
+  assert.match(
+    toggleContent,
+    /min-h-\[44px\]/,
+    "ThemeToggle button must enforce minimum 44px height"
+  );
+  assert.match(
+    navbarContent,
+    /min-h-\[44px\]/,
+    "Navbar action buttons must enforce minimum 44px height"
+  );
+});

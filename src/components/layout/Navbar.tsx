@@ -173,7 +173,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setShowLangMenu((prev) => !prev)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-stone-700 dark:text-stone-300 hover:text-amber-600 dark:hover:text-[#dfba73] bg-white dark:bg-[#161822] hover:bg-stone-50 dark:hover:bg-[#1f2230] border border-stone-200 dark:border-stone-800 hover:border-amber-400/40 rounded-full transition cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 min-h-[44px] px-3 py-2 text-xs font-bold text-stone-700 dark:text-stone-300 hover:text-amber-600 dark:hover:text-[#dfba73] bg-white dark:bg-[#161822] hover:bg-stone-50 dark:hover:bg-[#1f2230] border border-stone-200 dark:border-stone-800 hover:border-amber-400/40 rounded-full transition cursor-pointer shadow-xs"
               title={t.navbar.switchLanguage}
               aria-label="Select language"
               aria-expanded={showLangMenu}
@@ -223,7 +223,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-white dark:bg-[#161822] hover:bg-stone-50 dark:hover:bg-[#1f2230] border border-stone-200 dark:border-stone-800 rounded-full transition cursor-pointer shadow-xs"
+            className="flex items-center gap-2 min-h-[44px] px-3.5 py-2 text-xs font-medium text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 bg-white dark:bg-[#161822] hover:bg-stone-50 dark:hover:bg-[#1f2230] border border-stone-200 dark:border-stone-800 rounded-full transition cursor-pointer shadow-xs"
             title={t.navbar.profileTooltip}
           >
             <span
