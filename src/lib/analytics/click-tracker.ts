@@ -1,6 +1,17 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabaseAdmin = Boolean(supabaseUrl && (supabaseServiceKey || supabaseAnonKey))
+  ? createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey)
+  : null;
+
 /**
- * In-memory buffer and analytics engine for affiliate conversion tracking.
- * Provides fallback resilience if Supabase table is unreachable.
+ * Global Analytics & Conversion Engine with Dual-Layer Persistence:
+ * 1. Low-latency In-memory ring buffer (RAM) for 0ms dashboard reads.
+ * 2. Supabase PostgreSQL tables (affiliate_clicks, affiliate_conversions) for permanent persistence.
  */
 
 export interface ClickRecord {
@@ -54,7 +65,7 @@ const inMemoryClicks: ClickRecord[] = [
   {
     id: "init-clk-1",
     product_id: "amz-01",
-    product_name: "PRETTYGARDEN Cropped Trench Coat For Women Double Breasted",
+    product_name: "PRETTYGARDEN Cropped Trench Coat Double Breasted Outerwear",
     platform: "Amazon",
     affiliate_url: "https://www.amazon.com/s?k=women+cropped+trench+coat&tag=cuncute-20",
     keyword: "Trench Coat",
@@ -63,10 +74,10 @@ const inMemoryClicks: ClickRecord[] = [
   },
   {
     id: "init-clk-2",
-    product_id: "amz-02",
-    product_name: "Erocalli Women's Fall Suede Mid Calf Slouchy Boots Chunky Heel",
+    product_id: "amz-17",
+    product_name: "Erocalli Women's Suede Mid Calf Slouchy Fall Boots Chunky Heel",
     platform: "Amazon",
-    affiliate_url: "https://www.amazon.com/s?k=women+suede+ankle+boots&tag=cuncute-20",
+    affiliate_url: "https://www.amazon.com/s?k=women+suede+mid+calf+slouchy+boots&tag=cuncute-20",
     keyword: "Suede Boots",
     device_type: "Mobile",
     created_at: new Date(Date.now() - 3600000).toISOString()
@@ -77,7 +88,7 @@ const inMemoryClicks: ClickRecord[] = [
     product_name: "MICHAEL KORS Jet Set Large Saffiano Leather Crossbody",
     platform: "Rakuten",
     affiliate_url: "https://click.linksynergy.com/deeplink?id=cunfashion",
-    keyword: "Túi xách",
+    keyword: "Designer Bag",
     device_type: "Desktop",
     created_at: new Date(Date.now() - 1800000).toISOString()
   },
@@ -99,7 +110,7 @@ const inMemoryConversions: ConversionRecord[] = [
     click_id: "init-clk-1",
     order_id: "AMZ-ORD-88219",
     product_id: "amz-01",
-    product_name: "PRETTYGARDEN Cropped Trench Coat For Women Double Breasted",
+    product_name: "PRETTYGARDEN Cropped Trench Coat Double Breasted Outerwear",
     platform: "Amazon",
     amount: 59.99,
     commission: 4.2,
@@ -133,13 +144,31 @@ export function recordClick(click: Omit<ClickRecord, "id">): ClickRecord {
     inMemoryClicks.pop();
   }
 
+  // Dual-layer: Persist asynchronously to Supabase cloud table if configured
+  if (supabaseAdmin) {
+    Promise.resolve(
+      supabaseAdmin.from("affiliate_clicks").insert({
+        id: newRecord.id,
+        product_id: newRecord.product_id,
+        product_name: newRecord.product_name,
+        platform: newRecord.platform,
+        price: "",
+        target_url: newRecord.affiliate_url,
+        referrer: newRecord.keyword || "",
+        timestamp: newRecord.created_at
+      })
+    ).catch((err) => {
+      console.warn("Could not persist affiliate click to Supabase:", err);
+    });
+  }
+
   return newRecord;
 }
 
 export function recordConversion(
   conv: Omit<ConversionRecord, "id" | "created_at"> & { created_at?: string }
 ): ConversionRecord {
-  // If click_id is provided, try to match product name and id from inMemoryClicks
+  // If click_id is provided, match product name and id from inMemoryClicks
   let prodId = conv.product_id;
   let prodName = conv.product_name;
 
@@ -164,6 +193,27 @@ export function recordConversion(
     inMemoryConversions.pop();
   }
 
+  // Dual-layer: Persist asynchronously to Supabase cloud table if configured
+  if (supabaseAdmin) {
+    Promise.resolve(
+      supabaseAdmin.from("affiliate_conversions").insert({
+        id: newRecord.id,
+        click_id: newRecord.click_id || null,
+        order_id: newRecord.order_id,
+        platform: newRecord.platform,
+        product_id: newRecord.product_id || null,
+        product_name: newRecord.product_name || null,
+        amount: newRecord.amount,
+        commission: newRecord.commission,
+        currency: newRecord.currency || "USD",
+        status: newRecord.status,
+        created_at: newRecord.created_at
+      })
+    ).catch((err) => {
+      console.warn("Could not persist affiliate conversion to Supabase:", err);
+    });
+  }
+
   return newRecord;
 }
 
@@ -172,8 +222,6 @@ export function getAnalyticsSummary(): AnalyticsSummary {
     Amazon: 0,
     Rakuten: 0,
     "CunCute Store": 0,
-    Shopee: 0,
-    "TikTok Shop": 0,
     Other: 0
   };
 
@@ -304,8 +352,8 @@ export function generateConversionCsvString(records: ConversionRecord[]): string
     "Sàn Mua Sắm",
     "Mã Sản Phẩm",
     "Tên Sản Phẩm",
-    "Giá Trị Đơn Hàng",
-    "Hoa Hồng Nhận Được",
+    "Giá Trị Đơn Hàng ($)",
+    "Hoa Hồng Nhận Được ($)",
     "Tiền Tệ",
     "Trạng Thái"
   ];
@@ -326,11 +374,10 @@ export function generateConversionCsvString(records: ConversionRecord[]): string
       escapeCell(r.product_name || ""),
       escapeCell(r.amount),
       escapeCell(r.commission),
-      escapeCell(r.currency),
+      escapeCell(r.currency || "USD"),
       escapeCell(r.status)
     ].join(",")
   );
 
   return "\uFEFF" + [headers.map((h) => `"${h}"`).join(","), ...rows].join("\r\n");
 }
-

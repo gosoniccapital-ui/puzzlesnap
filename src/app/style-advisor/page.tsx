@@ -43,7 +43,7 @@ import {
 
 export default function StyleAdvisorPage() {
   const [viewMode, setViewMode] = useState<"wide" | "mobile">("wide");
-  const [market, setMarket] = useState<"ALL" | "FOURTHWALL" | "RAKUTEN" | "US" | "VN">("ALL");
+  const [market, setMarket] = useState<"ALL" | "FOURTHWALL" | "RAKUTEN" | "US">("ALL");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string>("");
   const [occasion, setOccasion] = useState("all");
@@ -98,16 +98,16 @@ export default function StyleAdvisorPage() {
   const resultRef = useRef<HTMLDivElement>(null);
 
 
-  const QUICK_COLORS = ["Hồng pastel", "Đen", "Be sữa", "Trắng", "Xanh pastel", "Nâu tây"];
+  const QUICK_COLORS = ["Pastel Pink", "Noir Black", "Oatmeal Beige", "Pure White", "Sky Blue", "Cognac Brown"];
   const QUICK_KEYWORDS = [
-    "Cardigan",
-    "Blazer",
     "Trench Coat",
-    "Váy dạ hội",
-    "Vớ cute",
-    "Hoodie",
-    "Quần ống rộng",
-    "Sneaker"
+    "Tailored Blazer",
+    "Cashmere Knit",
+    "Silk Slip Dress",
+    "Wide Leg Trousers",
+    "Suede Boots",
+    "Leather Bag",
+    "Evening Gown"
   ];
 
   // Tự động phân tích look mẫu ban đầu trên tất cả các sàn để khách vào trang là thấy ngay kết quả trực quan
@@ -434,9 +434,7 @@ export default function StyleAdvisorPage() {
                 ? "Mua tại CunCute Store"
                 : p.platform === "Rakuten"
                 ? "Mua trên Rakuten"
-                : p.platform === "Amazon"
-                ? "Xem trên Amazon US"
-                : "Xem trên Shopee / TikTok"}
+                : "Xem trên Amazon US"}
             </span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
@@ -564,7 +562,7 @@ export default function StyleAdvisorPage() {
                   </span>
                 </p>
                 <p className="text-xs text-stone-600">
-                  Tự động đề xuất set đồ phối hợp ngay khi bạn đang lướt Shopee, TikTok Shop, Pinterest, Zara...
+                  Tự động đề xuất set đồ phối hợp ngay khi bạn đang lướt Amazon, Pinterest, Zara, ASOS...
                 </p>
               </div>
             </div>
@@ -603,7 +601,7 @@ export default function StyleAdvisorPage() {
                   handleAnalyze();
                 }
               }}
-              placeholder="Gõ món đồ hoặc phong cách bạn muốn tìm (ví dụ: blazer, cardigan, hoodie, váy dự tiệc...)"
+              placeholder="Search designer pieces or aesthetics (e.g. trench coat, cashmere, slip dress, tailored blazer...)"
               className="w-full border-2 border-stone-200 rounded-2xl pl-12 pr-32 py-3.5 text-xs sm:text-sm bg-stone-50/70 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/15 outline-none transition font-medium text-stone-900 placeholder:text-stone-400 shadow-inner"
             />
 
@@ -720,19 +718,7 @@ export default function StyleAdvisorPage() {
                 }`}
                 title="Quét & tổng hợp sản phẩm trên tất cả các sàn (Khuyên dùng)"
               >
-                <span>🌐 Tất cả sàn (All)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMarket("RAKUTEN")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                  market === "RAKUTEN"
-                    ? "bg-red-600 text-white shadow-xs"
-                    : "text-stone-600 hover:text-stone-900"
-                }`}
-                title="Thời trang chính hãng qua Rakuten Advertising (Nike, Macy's, ASOS...)"
-              >
-                <span>👗 Rakuten Brands</span>
+                <span>🌐 Tất cả sàn (All Global)</span>
               </button>
               <button
                 type="button"
@@ -748,6 +734,18 @@ export default function StyleAdvisorPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setMarket("RAKUTEN")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  market === "RAKUTEN"
+                    ? "bg-red-600 text-white shadow-xs"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+                title="Thời trang chính hãng qua Rakuten Advertising (Nike, Macy's, ASOS...)"
+              >
+                <span>👗 Rakuten Brands</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setMarket("FOURTHWALL")}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   market === "FOURTHWALL"
@@ -757,17 +755,6 @@ export default function StyleAdvisorPage() {
                 title="Sản phẩm thời trang độc quyền từ CunCute Store (cute.cunfashion.com)"
               >
                 <span>🌟 Cun Cute Store</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMarket("VN")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                  market === "VN"
-                    ? "bg-white text-stone-900 shadow-xs border border-stone-200"
-                    : "text-stone-600 hover:text-stone-900"
-                }`}
-              >
-                <span>🇻🇳 Shopee/TikTok</span>
               </button>
             </div>
           </div>
@@ -958,7 +945,7 @@ export default function StyleAdvisorPage() {
                       >
                         <div className="flex items-center gap-2 truncate">
                           <span className="text-base">
-                            {link.platform === "Amazon" ? "📦" : link.platform === "Shopee" ? "🇻🇳" : link.platform === "Rakuten" ? "👗" : link.platform === "CunCute Store" ? "🌟" : "🎵"}
+                            {link.platform === "Amazon" ? "📦" : link.platform === "Rakuten" ? "👗" : "🌟"}
                           </span>
                           <div className="text-left truncate">
                             <div className="truncate font-bold">{link.label}</div>

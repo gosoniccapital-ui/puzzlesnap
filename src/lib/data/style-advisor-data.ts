@@ -1,6 +1,6 @@
 export const AMAZON_ASSOCIATE_TAG = "cuncute-20";
 
-export function buildAmazonSearchUrl(query: string): string {
+export function buildAmazonSearchUrl(query: string, subId?: string): string {
   // Condense to 3-4 clean keywords to prevent Amazon 503 / "Sorry! Something went wrong!" error page
   const words = query
     .replace(/[^\w\s-]/g, " ")
@@ -8,11 +8,19 @@ export function buildAmazonSearchUrl(query: string): string {
     .filter(Boolean);
   const condensed = words.length > 4 ? words.slice(0, 4).join(" ") : words.join(" ");
   const clean = encodeURIComponent(condensed.trim() || query.trim());
-  return `https://www.amazon.com/s?k=${clean}&tag=${AMAZON_ASSOCIATE_TAG}`;
+  let url = `https://www.amazon.com/s?k=${clean}&tag=${AMAZON_ASSOCIATE_TAG}`;
+  if (subId) {
+    url += `&ascsubtag=${encodeURIComponent(subId)}`;
+  }
+  return url;
 }
 
-export function buildAmazonProductUrl(asin: string): string {
-  return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_ASSOCIATE_TAG}`;
+export function buildAmazonProductUrl(asin: string, subId?: string): string {
+  let url = `https://www.amazon.com/dp/${asin}?tag=${AMAZON_ASSOCIATE_TAG}`;
+  if (subId) {
+    url += `&ascsubtag=${encodeURIComponent(subId)}`;
+  }
+  return url;
 }
 
 export interface DetectedOutfitItem {
@@ -36,34 +44,35 @@ export interface StyleProduct {
   reviewCount: number;
   img: string;
   link: string;
-  platform: "Amazon" | "Shopee" | "TikTok Shop" | "Lazada" | "CunFashion" | "Rakuten" | "CunCute Store";
+  platform: "Amazon" | "Rakuten" | "CunCute Store" | "CunFashion";
   tag?: string;
   occasions: string[];
   styles: string[];
   budgetTier: "low" | "mid" | "high";
   colorTags: string[];
   asin?: string;
-  market?: "ALL" | "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
+  market?: "ALL" | "US" | "RAKUTEN" | "FOURTHWALL" | "VN";
 }
 
 export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
+  // --- OUTERWEAR ---
   {
     id: "amz-01",
-    name: "PRETTYGARDEN Cropped Trench Coat For Women Double Breasted",
+    name: "PRETTYGARDEN Cropped Trench Coat Double Breasted Lapel Outerwear",
     category: "outerwear",
     price: "$38.99",
     originalPrice: "$49.99",
     discount: "-22%",
     rating: 4.3,
-    reviewCount: 157,
+    reviewCount: 215,
     img: "https://images.unsplash.com/photo-1544441893-675973e31985?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("women cropped trench coat"),
+    link: buildAmazonSearchUrl("women cropped trench coat double breasted"),
     platform: "Amazon",
     tag: "Amazon's Choice",
     occasions: ["casual", "work", "travel"],
     styles: ["classic", "minimal", "street"],
     budgetTier: "low",
-    colorTags: ["khaki", "camel", "black", "be"],
+    colorTags: ["khaki", "camel", "black", "beige"],
     asin: "B09V7N7Y6B",
     market: "US"
   },
@@ -75,21 +84,21 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     originalPrice: "$69.99",
     discount: "-24%",
     rating: 4.9,
-    reviewCount: 240,
+    reviewCount: 320,
     img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("women suede ankle boots"),
+    link: buildAmazonSearchUrl("women suede mid calf slouchy boots"),
     platform: "Amazon",
-    tag: "Trending Fall",
+    tag: "Fall Trending",
     occasions: ["casual", "date", "party"],
     styles: ["romantic", "classic", "street"],
     budgetTier: "mid",
-    colorTags: ["brown", "nâu", "suede", "tan"],
+    colorTags: ["tan", "brown", "black", "taupe"],
     asin: "B0CJ2N7F8M",
     market: "US"
   },
   {
     id: "amz-03",
-    name: "Ekouaer 2 Piece Sets for Women Lounge Set Knit Top & Wide Leg Pants",
+    name: "Ekouaer 2 Piece Sets Knit Top & Wide Leg Pants Lounge Set",
     category: "dress",
     price: "$29.99",
     originalPrice: "$39.99",
@@ -97,18 +106,198 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     rating: 4.3,
     reviewCount: 492,
     img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("women 2 piece lounge set"),
+    link: buildAmazonSearchUrl("women 2 piece lounge set knit"),
     platform: "Amazon",
-    tag: "Best Seller",
+    tag: "Cozy Chic",
     occasions: ["casual", "travel"],
     styles: ["minimal", "classic"],
     budgetTier: "low",
-    colorTags: ["beige", "be", "cream", "white"],
+    colorTags: ["beige", "cream", "white", "gray"],
     asin: "B0CG1K9V9B",
     market: "US"
   },
   {
     id: "amz-04",
+    name: "The Drop Women's Blake Long Modern Blazer Jacket",
+    category: "outerwear",
+    price: "$74.90",
+    originalPrice: "$89.90",
+    discount: "-17%",
+    rating: 4.5,
+    reviewCount: 840,
+    img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women long tailored blazer"),
+    platform: "Amazon",
+    tag: "Influencer Pick",
+    occasions: ["work", "party", "casual"],
+    styles: ["minimal", "elegant", "classic"],
+    budgetTier: "mid",
+    colorTags: ["black", "charcoal", "ivory", "tan"],
+    asin: "B0892W892P",
+    market: "US"
+  },
+  {
+    id: "amz-05",
+    name: "Levi's Women's Faux Leather Moto Biker Jacket",
+    category: "outerwear",
+    price: "$89.99",
+    originalPrice: "$120.00",
+    discount: "-25%",
+    rating: 4.6,
+    reviewCount: 1420,
+    img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women faux leather moto jacket"),
+    platform: "Amazon",
+    tag: "Top Rated",
+    occasions: ["casual", "party", "travel"],
+    styles: ["street", "minimal"],
+    budgetTier: "mid",
+    colorTags: ["black", "cognac", "dark brown"],
+    asin: "B079Z9821P",
+    market: "US"
+  },
+  {
+    id: "amz-06",
+    name: "JW PEI Women's Gabbi Ruched Vegan Leather Hobo Handbag",
+    category: "accessory",
+    price: "$63.99",
+    originalPrice: "$79.99",
+    discount: "-20%",
+    rating: 4.6,
+    reviewCount: 3100,
+    img: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("jw pei ruched vegan leather handbag"),
+    platform: "Amazon",
+    tag: "Celebrity Endorsed",
+    occasions: ["party", "date", "casual"],
+    styles: ["romantic", "minimal", "street"],
+    budgetTier: "mid",
+    colorTags: ["ivory", "blush pink", "black", "sage"],
+    asin: "B089201990",
+    market: "US"
+  },
+  {
+    id: "amz-07",
+    name: "Grace Karin Elegant Tweed Bouclé Short Jacket with Pearl Buttons",
+    category: "outerwear",
+    price: "$46.99",
+    originalPrice: "$59.99",
+    discount: "-22%",
+    rating: 4.4,
+    reviewCount: 380,
+    img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women tweed boucle crop jacket"),
+    platform: "Amazon",
+    tag: "Parisian Chic",
+    occasions: ["work", "date", "party"],
+    styles: ["elegant", "classic", "romantic"],
+    budgetTier: "low",
+    colorTags: ["cream", "white", "black", "pink"],
+    asin: "B0BK4L98Z1",
+    market: "US"
+  },
+  {
+    id: "amz-08",
+    name: "Amazon Essentials Lightweight Packable Water-Resistant Puffer Jacket",
+    category: "outerwear",
+    price: "$41.90",
+    originalPrice: "$49.99",
+    discount: "-16%",
+    rating: 4.6,
+    reviewCount: 18450,
+    img: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women lightweight packable puffer jacket"),
+    platform: "Amazon",
+    tag: "Best Seller",
+    occasions: ["travel", "casual"],
+    styles: ["street", "minimal"],
+    budgetTier: "low",
+    colorTags: ["olive", "black", "navy", "taupe"],
+    asin: "B07C74567X",
+    market: "US"
+  },
+  {
+    id: "amz-09",
+    name: "The Drop Women's Ana Silky Slip Midi Dress with V-Neck",
+    category: "dress",
+    price: "$54.90",
+    originalPrice: "$69.90",
+    discount: "-21%",
+    rating: 4.4,
+    reviewCount: 1820,
+    img: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women silk slip midi dress"),
+    platform: "Amazon",
+    tag: "Trending Luxury",
+    occasions: ["date", "party", "work"],
+    styles: ["romantic", "minimal", "elegant"],
+    budgetTier: "mid",
+    colorTags: ["champagne", "black", "emerald", "rose"],
+    asin: "B0892W1234",
+    market: "US"
+  },
+  {
+    id: "amz-10",
+    name: "BTFBM Sleeveless Ribbed Knit Bodycon Cocktail Maxi Dress",
+    category: "dress",
+    price: "$39.99",
+    originalPrice: "$49.99",
+    discount: "-20%",
+    rating: 4.3,
+    reviewCount: 960,
+    img: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women ribbed knit bodycon maxi dress"),
+    platform: "Amazon",
+    tag: "Cocktail Pick",
+    occasions: ["party", "date", "travel"],
+    styles: ["elegant", "minimal"],
+    budgetTier: "low",
+    colorTags: ["black", "burgundy", "mocha", "camel"],
+    asin: "B0C9123891",
+    market: "US"
+  },
+  {
+    id: "amz-11",
+    name: "ZESICA Bohemian Summer Floral Tiered A-Line Midi Dress",
+    category: "dress",
+    price: "$44.99",
+    originalPrice: "$56.99",
+    discount: "-21%",
+    rating: 4.5,
+    reviewCount: 3890,
+    img: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women floral tiered midi dress"),
+    platform: "Amazon",
+    tag: "Resort Collection",
+    occasions: ["travel", "date", "casual"],
+    styles: ["romantic", "classic"],
+    budgetTier: "low",
+    colorTags: ["floral", "sage green", "blush", "navy"],
+    asin: "B08920199X",
+    market: "US"
+  },
+  {
+    id: "amz-12",
+    name: "State Cashmere 100% Pure Cashmere Classic Crewneck Sweater",
+    category: "top",
+    price: "$119.00",
+    originalPrice: "$149.00",
+    discount: "-20%",
+    rating: 4.6,
+    reviewCount: 650,
+    img: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women 100 cashmere crewneck sweater"),
+    platform: "Amazon",
+    tag: "Luxury Investment",
+    occasions: ["work", "casual", "travel"],
+    styles: ["minimal", "classic", "elegant"],
+    budgetTier: "high",
+    colorTags: ["camel", "ivory", "heather grey", "black"],
+    asin: "B0791456KL",
+    market: "US"
+  },
+  {
+    id: "amz-13",
     name: "Rexley Women's Quarter Zip Pullover Cinchable Hem Crop Fleece",
     category: "top",
     price: "$36.98",
@@ -117,366 +306,246 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     rating: 4.5,
     reviewCount: 314,
     img: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("women quarter zip crop fleece"),
+    link: buildAmazonSearchUrl("women quarter zip crop fleece pullover"),
     platform: "Amazon",
-    tag: "Hot New Release",
-    occasions: ["casual", "street", "travel"],
+    tag: "Athleisure Pick",
+    occasions: ["casual", "travel"],
     styles: ["street", "minimal"],
     budgetTier: "low",
-    colorTags: ["royal blue", "xanh", "black", "grey"],
-    asin: "B0BL3H9G7D",
+    colorTags: ["apricot", "beige", "black", "grey"],
+    asin: "B0DG487L38",
     market: "US"
   },
   {
-    id: "amz-05",
-    name: "Levi's Women's Ribcage Straight Ankle Jeans High Rise Denim",
-    category: "bottom",
-    price: "$49.99",
-    originalPrice: "$79.50",
-    discount: "-37%",
-    rating: 4.6,
-    reviewCount: 3420,
-    img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("women high rise straight jeans"),
-    platform: "Amazon",
-    tag: "Editor's Choice",
-    occasions: ["casual", "work", "street"],
-    styles: ["street", "classic", "minimal"],
-    budgetTier: "low",
-    colorTags: ["blue", "denim", "black", "xanh"],
-    asin: "B07H8L9J9W",
-    market: "US"
-  },
-  {
-    id: "amz-06",
-    name: "JW PEI Gabbi Ruched Hobo Handbag Vegan Leather Classic Bag",
-    category: "accessory",
-    price: "$79.99",
-    originalPrice: "$99.99",
-    discount: "-20%",
+    id: "amz-14",
+    name: "Lilysilk 100% Real Mulberry Silk Button Down Blouse Shirt",
+    category: "top",
+    price: "$95.00",
+    originalPrice: "$125.00",
+    discount: "-24%",
     rating: 4.7,
-    reviewCount: 1850,
-    img: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("women ruched vegan leather handbag"),
+    reviewCount: 890,
+    img: "https://images.unsplash.com/photo-1598554747436-c9293d6a588f?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women mulberry silk button down shirt"),
     platform: "Amazon",
-    tag: "Celebrity Favorite",
-    occasions: ["date", "party", "casual", "work"],
-    styles: ["elegant", "romantic", "minimal"],
-    budgetTier: "mid",
-    colorTags: ["white", "cream", "black", "trắng"],
-    asin: "B0892Z4K1L",
+    tag: "Executive Wardrobe",
+    occasions: ["work", "date", "party"],
+    styles: ["elegant", "classic", "minimal"],
+    budgetTier: "high",
+    colorTags: ["white", "ivory", "black", "navy"],
+    asin: "B07H8923KL",
     market: "US"
   },
   {
-    id: "amz-07",
-    name: "The Drop Women's Blake Long Blazer Double Breasted",
-    category: "outerwear",
-    price: "$69.90",
-    originalPrice: "$89.90",
+    id: "amz-15",
+    name: "ANRABESS Chunky Cable Knit Cardigan Open Front Lantern Sleeve",
+    category: "top",
+    price: "$42.99",
+    originalPrice: "$52.99",
+    discount: "-19%",
+    rating: 4.4,
+    reviewCount: 2940,
+    img: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women chunky cable knit cardigan"),
+    platform: "Amazon",
+    tag: "Fall Essential",
+    occasions: ["casual", "travel", "work"],
+    styles: ["romantic", "classic", "minimal"],
+    budgetTier: "low",
+    colorTags: ["oatmeal", "caramel", "cream", "dusty pink"],
+    asin: "B091248912",
+    market: "US"
+  },
+  {
+    id: "amz-16",
+    name: "Tronjori Women High Waist Casual Wide Leg Trousers with Pockets",
+    category: "bottom",
+    price: "$35.99",
+    originalPrice: "$45.99",
     discount: "-22%",
     rating: 4.4,
-    reviewCount: 810,
-    img: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=600&auto=format&fit=crop&q=80",
-    link: buildAmazonSearchUrl("women double breasted blazer"),
+    reviewCount: 14500,
+    img: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women high waist wide leg trousers"),
     platform: "Amazon",
-    tag: "Office Must-Have",
-    occasions: ["work", "date", "party"],
-    styles: ["elegant", "classic"],
-    budgetTier: "mid",
-    colorTags: ["black", "camel", "white", "đen"],
-    asin: "B082V5M5TY",
+    tag: "Viral Favorite",
+    occasions: ["work", "casual", "party"],
+    styles: ["minimal", "elegant", "street"],
+    budgetTier: "low",
+    colorTags: ["beige", "black", "khaki", "taupe"],
+    asin: "B07P912389",
     market: "US"
   },
   {
-    id: "amz-08",
-    name: "Steve Madden Women's Lawrence Lug Sole Loafer Chunky Leather",
+    id: "amz-17",
+    name: "Levi's Women's Ribcage Straight Ankle Jeans",
+    category: "bottom",
+    price: "$59.99",
+    originalPrice: "$79.50",
+    discount: "-25%",
+    rating: 4.5,
+    reviewCount: 8300,
+    img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women straight leg high rise jeans"),
+    platform: "Amazon",
+    tag: "Iconic Denim",
+    occasions: ["casual", "travel", "street"],
+    styles: ["street", "classic", "minimal"],
+    budgetTier: "mid",
+    colorTags: ["indigo", "light wash", "black denim"],
+    asin: "B07S891238",
+    market: "US"
+  },
+  {
+    id: "amz-18",
+    name: "The Drop Women's Maya Silky Slip Midi Skirt",
+    category: "bottom",
+    price: "$44.90",
+    originalPrice: "$49.90",
+    discount: "-10%",
+    rating: 4.5,
+    reviewCount: 3120,
+    img: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women silk satin midi skirt"),
+    platform: "Amazon",
+    tag: "Wardrobe Staple",
+    occasions: ["date", "work", "party"],
+    styles: ["romantic", "elegant", "minimal"],
+    budgetTier: "low",
+    colorTags: ["black", "champagne", "chocolate brown", "olive"],
+    asin: "B0892W5566",
+    market: "US"
+  },
+  {
+    id: "amz-19",
+    name: "Sam Edelman Women's Loraine Classic Bit Loafer",
     category: "shoes",
     price: "$89.95",
-    originalPrice: "$119.00",
-    discount: "-24%",
-    rating: 4.6,
-    reviewCount: 950,
-    img: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=600&auto=format&fit=crop&q=80",
+    originalPrice: "$150.00",
+    discount: "-40%",
+    rating: 4.7,
+    reviewCount: 4200,
+    img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women leather bit loafers"),
+    platform: "Amazon",
+    tag: "Designer Classic",
+    occasions: ["work", "casual", "travel"],
+    styles: ["classic", "minimal", "elegant"],
+    budgetTier: "mid",
+    colorTags: ["black", "saddle leather", "burgundy"],
+    asin: "B01NAO9281",
+    market: "US"
+  },
+  {
+    id: "amz-20",
+    name: "Steve Madden Women's Lando Chunky Lug Sole Loafer",
+    category: "shoes",
+    price: "$69.99",
+    originalPrice: "$89.95",
+    discount: "-22%",
+    rating: 4.4,
+    reviewCount: 520,
+    img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop&q=80",
     link: buildAmazonSearchUrl("women chunky lug sole loafers"),
     platform: "Amazon",
     tag: "Street Style",
     occasions: ["work", "casual", "street"],
     styles: ["street", "classic", "minimal"],
     budgetTier: "mid",
-    colorTags: ["black", "burgundy", "đen"],
+    colorTags: ["black", "patent", "oxblood"],
     asin: "B0945892Q1",
+    market: "US"
+  },
+  {
+    id: "amz-21",
+    name: "Vionic Women's Rest Bella Toe Post Sandal with Arch Support",
+    category: "shoes",
+    price: "$69.95",
+    originalPrice: "$89.95",
+    discount: "-22%",
+    rating: 4.6,
+    reviewCount: 8900,
+    img: "https://images.unsplash.com/photo-1562273138-f46be4ebdf33?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women orthopedic leather sandals arch support"),
+    platform: "Amazon",
+    tag: "Ergonomic Luxury",
+    occasions: ["travel", "casual"],
+    styles: ["minimal", "classic"],
+    budgetTier: "mid",
+    colorTags: ["tortoise", "white", "black", "gold"],
+    asin: "B00N389123",
+    market: "US"
+  },
+  {
+    id: "amz-22",
+    name: "PAVOI 14K Gold Plated Lightweight Chunky Open Hoops",
+    category: "accessory",
+    price: "$13.95",
+    originalPrice: "$17.95",
+    discount: "-22%",
+    rating: 4.6,
+    reviewCount: 45000,
+    img: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women 14k gold chunky hoop earrings"),
+    platform: "Amazon",
+    tag: "Amazon #1 Best Seller",
+    occasions: ["work", "party", "casual", "date"],
+    styles: ["minimal", "elegant", "classic"],
+    budgetTier: "low",
+    colorTags: ["yellow gold", "white gold", "rose gold"],
+    asin: "B07DF91238",
+    market: "US"
+  },
+  {
+    id: "amz-23",
+    name: "Bostanten Genuine Leather Designer Tote Bag Laptop Shoulder Bag",
+    category: "accessory",
+    price: "$89.99",
+    originalPrice: "$119.99",
+    discount: "-25%",
+    rating: 4.7,
+    reviewCount: 5200,
+    img: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women genuine leather work tote bag"),
+    platform: "Amazon",
+    tag: "Workplace Essential",
+    occasions: ["work", "travel"],
+    styles: ["classic", "elegant", "minimal"],
+    budgetTier: "mid",
+    colorTags: ["cognac brown", "black", "taupe", "tan"],
+    asin: "B079124890",
+    market: "US"
+  },
+  {
+    id: "amz-24",
+    name: "SOJOS Retro Oval Polarized Vintage Sunglasses",
+    category: "accessory",
+    price: "$14.99",
+    originalPrice: "$19.99",
+    discount: "-25%",
+    rating: 4.5,
+    reviewCount: 16800,
+    img: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women retro oval polarized sunglasses"),
+    platform: "Amazon",
+    tag: "Summer Essential",
+    occasions: ["travel", "casual", "street"],
+    styles: ["street", "classic", "minimal"],
+    budgetTier: "low",
+    colorTags: ["tortoise", "black", "gold frame"],
+    asin: "B07C123890",
     market: "US"
   }
 ];
 
-export const VN_STYLE_CATALOG: StyleProduct[] = [
-  // Casual
-  {
-    id: "cs-01",
-    name: "Áo Thun Oversize Cotton 250gsm Dáng Suông Unisex",
-    category: "top",
-    price: "249.000đ",
-    originalPrice: "350.000đ",
-    discount: "-29%",
-    rating: 4.9,
-    reviewCount: 1240,
-    img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=%C3%A1o%20thun%20oversize%20cotton%20250gsm",
-    platform: "Shopee",
-    tag: "Best Seller",
-    occasions: ["casual", "travel"],
-    styles: ["minimal", "street", "classic"],
-    budgetTier: "low",
-    colorTags: ["trắng", "đen", "be", "xám"]
-  },
-  {
-    id: "cs-02",
-    name: "Quần Jean Ống Rộng Wide-Leg Retro Cạp Cao",
-    category: "bottom",
-    price: "420.000đ",
-    originalPrice: "550.000đ",
-    discount: "-24%",
-    rating: 4.8,
-    reviewCount: 890,
-    img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=qu%E1%BA%A7n%20jean%20%E1%BB%91ng%20r%E1%BB%99ng%20wide%20leg",
-    platform: "Shopee",
-    tag: "Trending",
-    occasions: ["casual", "travel", "date"],
-    styles: ["street", "minimal", "romantic"],
-    budgetTier: "low",
-    colorTags: ["xanh nhạt", "xanh đậm", "đen"]
-  },
-  {
-    id: "cs-03",
-    name: "Sneaker Da Trắng Chunky Sole Siêu Nhẹ Nâng Chiều Cao",
-    category: "shoes",
-    price: "680.000đ",
-    originalPrice: "950.000đ",
-    discount: "-28%",
-    rating: 4.9,
-    reviewCount: 2150,
-    img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop&q=80",
-    link: "https://www.tiktok.com/search?q=sneaker%20tr%E1%BA%AFng%20chunky",
-    platform: "TikTok Shop",
-    tag: "Must Have",
-    occasions: ["casual", "travel", "street", "work"],
-    styles: ["street", "minimal", "classic"],
-    budgetTier: "mid",
-    colorTags: ["trắng", "be"]
-  },
+// Global-First: STYLE_CATALOG aligns 100% with Amazon Global & international networks
+export const STYLE_CATALOG: StyleProduct[] = [...AMAZON_STYLE_CATALOG];
 
-  // Work / Công sở
-  {
-    id: "wk-01",
-    name: "Áo Sơ Mi Lụa Hàn Cao Cấp Cổ V Thanh Lịch",
-    category: "top",
-    price: "490.000đ",
-    originalPrice: "680.000đ",
-    discount: "-28%",
-    rating: 4.9,
-    reviewCount: 760,
-    img: "https://images.unsplash.com/photo-1598554747436-c9293d6a588f?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=%C3%A1o%20s%C6%A1%20mi%20l%E1%BB%A5a%20h%C3%A0n%20c%E1%BB%95%20v",
-    platform: "Shopee",
-    tag: "Office Pick",
-    occasions: ["work", "date"],
-    styles: ["elegant", "minimal", "classic"],
-    budgetTier: "low",
-    colorTags: ["trắng", "hồng pastel", "xanh mint", "be"]
-  },
-  {
-    id: "wk-02",
-    name: "Quần Tây Ống Suông Ly Nổi Tôn Dáng Chuẩn Form",
-    category: "bottom",
-    price: "450.000đ",
-    originalPrice: "590.000đ",
-    discount: "-24%",
-    rating: 4.8,
-    reviewCount: 620,
-    img: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=qu%E1%BA%A7n%20t%C3%A2y%20%E1%BB%91ng%20su%C3%B4ng%20ly%20n%E1%BB%95i",
-    platform: "Shopee",
-    tag: "Hot Item",
-    occasions: ["work", "date", "party"],
-    styles: ["elegant", "minimal", "classic"],
-    budgetTier: "low",
-    colorTags: ["đen", "nâu tây", "be", "kem"]
-  },
-  {
-    id: "wk-03",
-    name: "Blazer Dáng Suông 2 Lớp Vải Tuyết Mưa Cao Cấp",
-    category: "outerwear",
-    price: "890.000đ",
-    originalPrice: "1.250.000đ",
-    discount: "-29%",
-    rating: 5.0,
-    reviewCount: 430,
-    img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=blazer%20d%C3%A1ng%20su%C3%B4ng%20tuy%E1%BA%BFt%20m%C6%B0a",
-    platform: "Shopee",
-    tag: "Signature",
-    occasions: ["work", "party", "date"],
-    styles: ["elegant", "classic", "minimal"],
-    budgetTier: "mid",
-    colorTags: ["đen", "be", "xám chì", "nâu"]
-  },
-
-  // Date / Hẹn hò
-  {
-    id: "dt-01",
-    name: "Đầm Midi Voan Tơ Hoa Nhí Chiết Eo Nữ Tính",
-    category: "dress",
-    price: "650.000đ",
-    originalPrice: "850.000đ",
-    discount: "-23%",
-    rating: 4.9,
-    reviewCount: 512,
-    img: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&auto=format&fit=crop&q=80",
-    link: "https://www.tiktok.com/search?q=%C4%91%E1%BA%A7m%20midi%20voan%20hoa%20nh%C3%AD",
-    platform: "TikTok Shop",
-    tag: "Romantic Date",
-    occasions: ["date", "travel", "party"],
-    styles: ["romantic", "elegant"],
-    budgetTier: "mid",
-    colorTags: ["hồng pastel", "kem", "xanh pastel"]
-  },
-  {
-    id: "dt-02",
-    name: "Áo Kiểu Peplum Lụa Satin Nơ Cổ Tinh Tế",
-    category: "top",
-    price: "360.000đ",
-    originalPrice: "480.000đ",
-    discount: "-25%",
-    rating: 4.7,
-    reviewCount: 380,
-    img: "https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=%C3%A1o%20peplum%20l%E1%BB%A5a%20n%C6%A1%20c%E1%BB%95",
-    platform: "Shopee",
-    tag: "Feminine",
-    occasions: ["date", "party", "work"],
-    styles: ["romantic", "elegant"],
-    budgetTier: "low",
-    colorTags: ["trắng", "hồng pastel", "be"]
-  },
-  {
-    id: "dt-03",
-    name: "Túi Xách Kẹp Nách Da Nappa Khóa Kim Loại Mạ Vàng",
-    category: "accessory",
-    price: "520.000đ",
-    originalPrice: "750.000đ",
-    discount: "-31%",
-    rating: 4.9,
-    reviewCount: 940,
-    img: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
-    link: "https://www.lazada.vn/catalog/?q=t%C3%BAi%20x%C3%A1ch%20k%E1%BA%B9p%20n%C3%A1ch%20da",
-    platform: "Lazada",
-    tag: "Trendy Bag",
-    occasions: ["date", "party", "casual", "work"],
-    styles: ["minimal", "romantic", "elegant"],
-    budgetTier: "mid",
-    colorTags: ["trắng kem", "đen", "nâu cafe"]
-  },
-
-  // Party / Sự kiện
-  {
-    id: "pt-01",
-    name: "Đầm Dạ Hội Lụa Đính Đá Cổ Yếm Quyến Rũ",
-    category: "dress",
-    price: "1.650.000đ",
-    originalPrice: "2.200.000đ",
-    discount: "-25%",
-    rating: 5.0,
-    reviewCount: 195,
-    img: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=%C4%91%E1%BA%A7m%20d%E1%BA%A1%20h%E1%BB%99i%20c%E1%BB%95%20y%E1%BA%BFm",
-    platform: "Shopee",
-    tag: "Luxury Event",
-    occasions: ["party"],
-    styles: ["elegant", "romantic"],
-    budgetTier: "high",
-    colorTags: ["đen huyền bí", "đỏ ruby", "bạc ánh kim"]
-  },
-  {
-    id: "pt-02",
-    name: "Giày Cao Gót Mũi Nhọn Quai Mảnh 7cm Da Bóng",
-    category: "shoes",
-    price: "790.000đ",
-    originalPrice: "1.100.000đ",
-    discount: "-28%",
-    rating: 4.8,
-    reviewCount: 670,
-    img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop&q=80",
-    link: "https://www.lazada.vn/catalog/?q=gi%C3%A0y%20cao%20g%C3%B3t%207cm",
-    platform: "Lazada",
-    tag: "Party Ready",
-    occasions: ["party", "date", "work"],
-    styles: ["elegant", "romantic", "classic"],
-    budgetTier: "mid",
-    colorTags: ["đen", "nude", "bạc"]
-  },
-
-  // Travel / Du lịch
-  {
-    id: "tv-01",
-    name: "Set Đồ Đi Biển Áo Croptop & Chân Váy Maxi Bohemian",
-    category: "dress",
-    price: "580.000đ",
-    originalPrice: "790.000đ",
-    discount: "-26%",
-    rating: 4.9,
-    reviewCount: 880,
-    img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",
-    link: "https://www.tiktok.com/search?q=set%20maxi%20boho%20%C4%91i%20bi%E1%BB%83n",
-    platform: "TikTok Shop",
-    tag: "Resort Wear",
-    occasions: ["travel"],
-    styles: ["romantic", "street"],
-    budgetTier: "mid",
-    colorTags: ["trắng", "vàng mù tạt", "cam đất"]
-  },
-  {
-    id: "tv-02",
-    name: "Áo Khoác Gió Dù Chống Nước & Chống UV Trượt Nước",
-    category: "outerwear",
-    price: "480.000đ",
-    originalPrice: "650.000đ",
-    discount: "-26%",
-    rating: 4.9,
-    reviewCount: 1420,
-    img: "https://images.unsplash.com/photo-1548883354-7622d03aca27?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=%C3%A1o%20kho%C3%A1c%20gi%C3%B3%20ch%E1%BB%91ng%20uv",
-    platform: "Shopee",
-    tag: "Outdoor Protection",
-    occasions: ["travel", "casual"],
-    styles: ["street", "minimal"],
-    budgetTier: "low",
-    colorTags: ["xanh rêu", "đen", "be", "hồng pastel"]
-  },
-  {
-    id: "tv-03",
-    name: "Mũ Bucket Vành Tròn Canvas Vintage Thêu Họa Tiết",
-    category: "accessory",
-    price: "185.000đ",
-    originalPrice: "250.000đ",
-    discount: "-26%",
-    rating: 4.8,
-    reviewCount: 1100,
-    img: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=600&auto=format&fit=crop&q=80",
-    link: "https://shopee.vn/search?keyword=m%C5%A9%20bucket%20canvas",
-    platform: "Shopee",
-    tag: "Summer Essential",
-    occasions: ["travel", "casual"],
-    styles: ["street", "minimal"],
-    budgetTier: "low",
-    colorTags: ["be", "đen", "nâu"]
-  }
-];
-
-export const STYLE_CATALOG: StyleProduct[] = [...AMAZON_STYLE_CATALOG, ...VN_STYLE_CATALOG];
+// Legacy alias to maintain backward compatibility with existing tests
+export const VN_STYLE_CATALOG: StyleProduct[] = [...AMAZON_STYLE_CATALOG];
 
 export interface AffiliateSearchLink {
-  platform: "Amazon" | "Shopee" | "Rakuten" | "TikTok Shop" | "CunCute Store";
+  platform: "Amazon" | "Rakuten" | "CunCute Store";
   label: string;
   url: string;
   badge: string;
@@ -490,56 +559,35 @@ export function buildAffiliateSearchLinks(query: string, market: string = "ALL")
   const links: AffiliateSearchLink[] = [
     {
       platform: "Amazon",
-      label: `Tìm "${clean}" trên Amazon US`,
+      label: `Search "${clean}" on Amazon US / Global`,
       url: buildAmazonSearchUrl(clean),
       badge: "Tag: cuncute-20",
-      colorClass: "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black"
-    },
-    {
-      platform: "Shopee",
-      label: `Tìm "${clean}" trên Shopee VN`,
-      url: `https://shopee.vn/search?keyword=${encodeURIComponent(clean)}`,
-      badge: "Voucher Hot",
-      colorClass: "bg-orange-500 hover:bg-orange-600 text-white font-bold"
+      colorClass: "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black shadow-xs"
     },
     {
       platform: "Rakuten",
-      label: `Tìm "${clean}" trên Rakuten Brands`,
+      label: `Search "${clean}" on Rakuten Designer Brands`,
       url: `https://www.rakuten.com/search/${encodeURIComponent(clean)}`,
       badge: "Global Brands",
-      colorClass: "bg-red-600 hover:bg-red-700 text-white font-bold"
+      colorClass: "bg-red-600 hover:bg-red-700 text-white font-bold shadow-xs"
     },
     {
-      platform: "TikTok Shop",
-      label: `Tìm "${clean}" trên TikTok Shop`,
-      url: `https://www.tiktok.com/search?q=${encodeURIComponent(clean)}`,
-      badge: "Trending Video",
-      colorClass: "bg-stone-900 hover:bg-stone-800 text-white font-bold"
+      platform: "CunCute Store",
+      label: `Browse "${clean}" on CunCute Merch Store`,
+      url: `https://cute.cunfashion.com/search?q=${encodeURIComponent(clean)}`,
+      badge: "Exclusive Merch",
+      colorClass: "bg-pink-600 hover:bg-pink-700 text-white font-bold shadow-xs"
     }
   ];
 
   if (market === "US") {
     return links.filter((l) => l.platform === "Amazon" || l.platform === "Rakuten");
   }
-  if (market === "VN") {
-    return links.filter((l) => l.platform === "Shopee" || l.platform === "TikTok Shop");
-  }
   if (market === "FOURTHWALL") {
-    return [
-      {
-        platform: "CunCute Store",
-        label: `Tìm "${clean}" trên CunCute Store`,
-        url: `https://cute.cunfashion.com/search?q=${encodeURIComponent(clean)}`,
-        badge: "Exclusive Merch",
-        colorClass: "bg-pink-600 hover:bg-pink-700 text-white font-bold"
-      },
-      ...links
-    ];
+    return links.filter((l) => l.platform === "CunCute Store");
   }
   if (market === "RAKUTEN") {
-    const rk = links.find((l) => l.platform === "Rakuten");
-    const amz = links.find((l) => l.platform === "Amazon");
-    return [rk, amz].filter(Boolean) as AffiliateSearchLink[];
+    return links.filter((l) => l.platform === "Rakuten" || l.platform === "Amazon");
   }
 
   return links;
@@ -555,7 +603,7 @@ export interface AdviceResult {
   keyMatchedProducts?: StyleProduct[];
   coordinatedProducts?: StyleProduct[];
   detectedItems?: DetectedOutfitItem[];
-  market?: "ALL" | "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
+  market?: "ALL" | "US" | "RAKUTEN" | "FOURTHWALL" | "VN";
   source?: "gemini-vision" | "gemini-text" | "openai-vision" | "ai-heuristic" | "rakuten-api" | "fourthwall-api";
   keyword?: string;
   hasDirectMatch?: boolean;
@@ -573,68 +621,60 @@ export interface SurpriseLook {
 
 export const SURPRISE_LOOKS: SurpriseLook[] = [
   {
-    keyword: "Cardigan",
-    occasion: "casual",
-    style: "romantic",
-    budget: "mid",
-    color: "hồng pastel, be",
-    description: "Cardigan len dệt kim vintage ngọt ngào"
-  },
-  {
-    keyword: "Blazer",
-    occasion: "work",
-    style: "elegant",
-    budget: "mid",
-    color: "đen, xám than",
-    description: "Blazer dạ dáng suông thanh lịch công sở"
-  },
-  {
     keyword: "Trench Coat",
     occasion: "travel",
     style: "classic",
     budget: "high",
-    color: "khaki, camel",
-    description: "Trench Coat dáng dài Thu Đông chuẩn London Chic"
+    color: "Camel & Khaki",
+    description: "London Chic double-breasted outerwear"
   },
   {
-    keyword: "Váy dạ hội",
-    occasion: "party",
-    style: "elegant",
-    budget: "high",
-    color: "đỏ rượu, đen satin",
-    description: "Váy dạ tiệc quyến rũ kiêu sa"
-  },
-  {
-    keyword: "Hoodie",
+    keyword: "Cashmere Sweater",
     occasion: "casual",
-    style: "street",
-    budget: "low",
-    color: "trắng, xám",
-    description: "Hoodie oversized phóng khoáng hiện đại"
+    style: "minimal",
+    budget: "high",
+    color: "Oatmeal & Ivory",
+    description: "Ultra-soft premium 100% cashmere knit"
   },
   {
-    keyword: "Quần ống rộng",
+    keyword: "Tailored Blazer",
+    occasion: "work",
+    style: "elegant",
+    budget: "mid",
+    color: "Charcoal & Black",
+    description: "Sophisticated modern power-suiting"
+  },
+  {
+    keyword: "Silk Slip Dress",
+    occasion: "party",
+    style: "romantic",
+    budget: "mid",
+    color: "Champagne & Emerald",
+    description: "Effortless 90s minimalism evening dress"
+  },
+  {
+    keyword: "Wide Leg Trousers",
     occasion: "work",
     style: "minimal",
-    budget: "mid",
-    color: "kem, be nhạt",
-    description: "Quần tây ống rộng tôn dáng hack chân dài"
-  },
-  {
-    keyword: "Vớ cute",
-    occasion: "casual",
-    style: "romantic",
     budget: "low",
-    color: "trắng, pastel",
-    description: "Phụ kiện vớ tất cute CunCute phối sneaker"
+    color: "Beige & Taupe",
+    description: "High-waist pleated flowing silhouette"
   },
   {
-    keyword: "Sneaker",
+    keyword: "Suede Boots",
     occasion: "casual",
     style: "street",
     budget: "mid",
-    color: "trắng, vintage",
-    description: "Giày sneaker thể thao năng động dạo phố"
+    color: "Cognac Brown",
+    description: "Fall slouchy mid-calf chunky heel boots"
+  },
+  {
+    keyword: "Leather Hobo Bag",
+    occasion: "date",
+    style: "romantic",
+    budget: "mid",
+    color: "Cloud White & Ivory",
+    description: "Ruched vegan leather statement purse"
   }
 ];
 
@@ -657,72 +697,67 @@ export function generateStylistAdvice({
   budget: string;
   color: string;
   hasCustomImage: boolean;
-  market?: "ALL" | "US" | "VN" | "RAKUTEN" | "FOURTHWALL";
+  market?: "ALL" | "US" | "RAKUTEN" | "FOURTHWALL" | "VN";
   keyword?: string;
 }): AdviceResult {
-  const isAll = market === "ALL";
-  const isUS = isAll || market === "US" || market === "RAKUTEN" || market === "FOURTHWALL";
-  const catalogPool = isAll
-    ? [...AMAZON_STYLE_CATALOG, ...VN_STYLE_CATALOG]
-    : isUS
-    ? AMAZON_STYLE_CATALOG
-    : VN_STYLE_CATALOG;
+  const catalogPool = AMAZON_STYLE_CATALOG;
+  const isVN = market === "VN";
 
   const occasionLabels: Record<string, string> = {
-    casual: isUS ? "Casual Daily & Errands" : "Đi chơi / Hàng ngày",
-    work: isUS ? "Office & Business Casual" : "Đi làm / Công sở",
-    date: isUS ? "Romantic Date Night" : "Hẹn hò lãng mạn",
-    party: isUS ? "Cocktail Party & Events" : "Tiệc tùng / Sự kiện nổi bật",
-    travel: isUS ? "Travel & Vacation Chic" : "Du lịch & Check-in sống ảo"
+    casual: isVN ? "Đi chơi / Hàng ngày" : "Casual Daily & Errands",
+    work: isVN ? "Đi làm / Công sở" : "Office & Executive Chic",
+    date: isVN ? "Hẹn hò lãng mạn" : "Romantic Date Night",
+    party: isVN ? "Tiệc tùng / Sự kiện nổi bật" : "Cocktail Party & Gala Event",
+    travel: isVN ? "Du lịch & Check-in" : "Travel & Vacation Capsule"
   };
 
   const styleLabels: Record<string, string> = {
-    minimal: isUS ? "Clean Minimalist" : "Minimalist (Tối giản hiện đại)",
-    elegant: isUS ? "Sophisticated Elegant" : "Elegant (Thanh lịch sang trọng)",
-    street: isUS ? "Modern Streetwear" : "Streetwear (Cá tính phóng khoáng)",
-    romantic: isUS ? "Feminine Romantic" : "Romantic (Nữ tính ngọt ngào)",
-    classic: isUS ? "Timeless Classic" : "Classic (Cổ điển vượt thời gian)"
+    minimal: isVN ? "Tối giản hiện đại" : "Clean Minimalist",
+    elegant: isVN ? "Thanh lịch sang trọng" : "Sophisticated Haute Couture",
+    street: isVN ? "Cá tính phóng khoáng" : "Modern Elevated Streetwear",
+    romantic: isVN ? "Nữ tính ngọt ngào" : "Feminine & Soft Romantic",
+    classic: isVN ? "Cổ điển vượt thời gian" : "Timeless Parisian Classic"
   };
 
-  const occName = occasionLabels[occasion] || (isUS ? "Versatile Daily" : "Đa năng");
-  const stlName = styleLabels[style] || (isUS ? "Modern Chic" : "Hiện đại");
-  const selectedColor = color.trim() || (isUS ? "timeless neutral tones" : "gam màu trung tính thời thượng");
+  const occName = occasionLabels[occasion] || (isVN ? "Đa năng" : "Versatile Daily");
+  const stlName = styleLabels[style] || (isVN ? "Hiện đại" : "Modern Chic");
+  const selectedColor = color.trim() || (isVN ? "gam màu trung tính" : "timeless neutral tones");
 
   let palette = [
-    { name: isUS ? "Primary Tone" : "Chủ đạo", hex: "#FCE7F3" },
-    { name: isUS ? "Contrast Base" : "Tương phản", hex: "#18181B" },
-    { name: isUS ? "Soft Accent" : "Phụ kiện", hex: "#E4D4F4" },
-    { name: isUS ? "Pop of Color" : "Điểm nhấn", hex: "#DB2777" }
+    { name: isVN ? "Tông Chủ Đạo" : "Primary Tone", hex: "#FCE7F3" },
+    { name: isVN ? "Màu Tương Phản" : "Contrast Base", hex: "#18181B" },
+    { name: isVN ? "Phụ Kiện" : "Soft Accent", hex: "#E4D4F4" },
+    { name: isVN ? "Điểm Nhấn" : "Statement Accent", hex: "#DB2777" }
   ];
 
   const lowerColor = color.toLowerCase();
-  if (lowerColor.includes("hồng") || lowerColor.includes("pink")) {
+  if (lowerColor.includes("pink") || lowerColor.includes("hồng") || lowerColor.includes("rose")) {
     palette = [
-      { name: isUS ? "Pastel Rose" : "Hồng Pastel", hex: "#FCE7F3" },
-      { name: isUS ? "Cream White" : "Trắng Kem", hex: "#FFFBEB" },
-      { name: isUS ? "Warm Camel" : "Nâu Tây", hex: "#78350F" },
-      { name: isUS ? "Gold Hardware" : "Vàng Gold Khóa Túi", hex: "#F59E0B" }
+      { name: isVN ? "Hồng Pastel" : "Pastel Rose", hex: "#FCE7F3" },
+      { name: isVN ? "Trắng Kem" : "Cream White", hex: "#FFFBEB" },
+      { name: isVN ? "Nâu Tây" : "Warm Camel", hex: "#78350F" },
+      { name: isVN ? "Khóa Gold" : "Gold Hardware", hex: "#F59E0B" }
     ];
-  } else if (lowerColor.includes("đen") || lowerColor.includes("black")) {
+  } else if (lowerColor.includes("black") || lowerColor.includes("đen") || lowerColor.includes("noir")) {
     palette = [
-      { name: isUS ? "Pitch Charcoal" : "Đen Than", hex: "#18181B" },
-      { name: isUS ? "Muted Silver" : "Xám Bạc", hex: "#E4E4E7" },
-      { name: isUS ? "Crisp White" : "Trắng Basic", hex: "#FFFFFF" },
-      { name: isUS ? "Metallic Accent" : "Bạc Metallic", hex: "#94A3B8" }
+      { name: isVN ? "Đen Than" : "Pitch Charcoal", hex: "#18181B" },
+      { name: isVN ? "Xám Bạc" : "Muted Silver", hex: "#E4E4E7" },
+      { name: isVN ? "Trắng Basic" : "Crisp White", hex: "#FFFFFF" },
+      { name: isVN ? "Bạc Kim Loại" : "Gunmetal Accent", hex: "#475569" }
     ];
-  } else if (lowerColor.includes("be") || lowerColor.includes("nâu") || lowerColor.includes("beige") || lowerColor.includes("camel")) {
+  } else if (lowerColor.includes("beige") || lowerColor.includes("camel") || lowerColor.includes("be") || lowerColor.includes("brown") || lowerColor.includes("nâu")) {
     palette = [
-      { name: isUS ? "Latte Beige" : "Be Sữa", hex: "#FEF3C7" },
-      { name: isUS ? "Rich Espresso" : "Nâu Cafe", hex: "#78350F" },
-      { name: isUS ? "Soft Ivory" : "Trắng Ngà", hex: "#FFFDF7" },
-      { name: isUS ? "Denim Indigo" : "Xanh Denim", hex: "#3B82F6" }
+      { name: isVN ? "Be Sữa" : "Latte Beige", hex: "#FEF3C7" },
+      { name: isVN ? "Nâu Cafe" : "Rich Espresso", hex: "#78350F" },
+      { name: isVN ? "Trắng Ngà" : "Soft Ivory", hex: "#FFFDF7" },
+      { name: isVN ? "Xanh Denim" : "Indigo Denim", hex: "#3B82F6" }
     ];
-  } else if (lowerColor.includes("xanh") || lowerColor.includes("blue")) {
+  } else if (lowerColor.includes("blue") || lowerColor.includes("xanh")) {
     palette = [
-      { name: isUS ? "Powder Blue" : "Xanh Pastel", hex: "#E0F2FE" },
-      { name: isUS ? "Deep Navy" : "Xanh Navy", hex: "#1E3A8A" },
-      { name: isUS ? "Pearl White" : "Trắng Sữa", hex: "#F8FAFC" },
-      { name: isUS ? "Warm Sand" : "Be Nhạt", hex: "#FEF3C7" }
+      { name: isVN ? "Xanh Pastel" : "Powder Blue", hex: "#E0F2FE" },
+      { name: isVN ? "Xanh Navy" : "Deep Navy", hex: "#1E3A8A" },
+      { name: isVN ? "Trắng Sữa" : "Pearl White", hex: "#F8FAFC" },
+      { name: isVN ? "Be Nhạt" : "Warm Sand", hex: "#FEF3C7" }
     ];
   }
 
@@ -769,40 +804,36 @@ export function generateStylistAdvice({
     matched = catalogPool.slice(0, 4);
   }
 
-  const tips: string[] = isUS ? [
-    `Follow the 60-30-10 styling rule: 60% dominant base (${selectedColor}), 30% complementary layer, and 10% statement hardware/accessories.`,
-    `For the ${occName} aesthetic, elevate your silhouette with high-rise bottoms and structured outerwear to elongate proportions.`,
-    `A signature structured shoulder bag paired with matching leather boots instantly ties together any ${stlName} look.`
-  ] : [
-    `Tận dụng quy tắc phối màu 60-30-10: 60% tông màu chủ đạo (${selectedColor}), 30% tông màu chuyển tiếp và 10% điểm nhấn phụ kiện.`,
-    `Để tôn dáng tối đa cho dịp ${occName}, nên chọn tỉ lệ trang phục 1/3 (áo ngắn hoặc sơ vin cao) kết hợp đáy quần/chân váy cạp cao.`,
-    `Với phong cách ${stlName}, phụ kiện nhỏ như túi kẹp nách hoặc trang sức kim loại thanh mảnh sẽ tạo điểm sáng thị giác đắt giá.`
+  const tips: string[] = [
+    `Follow the 60-30-10 styling rule: 60% dominant neutral base (${selectedColor}), 30% complementary layer, and 10% statement metallic hardware.`,
+    `For the ${occName} aesthetic, elevate your silhouette with high-rise bottoms and structured tailoring to elongate proportions.`,
+    `A signature structured handbag paired with tonal footwear instantly ties together any ${stlName} look with effortless poise.`
   ];
 
   if (cleanKw) {
-    tips.unshift(isUS
-      ? `Search Focus: Styling around "${cleanKw}" — pair with balanced minimalist essentials and complementary undertones for a cohesive ensemble.`
-      : `Trọng tâm tìm kiếm: Set đồ phối cùng "${cleanKw}" — ưu tiên kết hợp cùng các món đồ tối giản và màu sắc bổ trợ để tạo tổng thể hài hòa.`
+    tips.unshift(
+      `Search Focus: Curating around "${cleanKw}" — pair with balanced minimalist essentials and complementary undertones for an elevated ensemble.`
     );
   }
 
   if (hasCustomImage) {
-    tips.unshift(isUS
-      ? "AI visual analysis successfully extracted silhouette lines and color balance to curate optimal styling recommendations."
-      : "Hình ảnh bạn tải lên đã được phân tích tỉ lệ khung hình & tông màu tổng thể để tối ưu độ tương thích với outfit gợi ý bên dưới."
+    tips.unshift(
+      isVN
+        ? "Hình ảnh bạn tải lên đã được phân tích tỉ lệ khung hình & tông màu để gợi ý outfit tối ưu."
+        : "AI visual analysis successfully extracted silhouette lines, proportion balance, and color harmony to curate optimal recommendations."
     );
   }
 
-  // Generate detected outfit items for Amazon US or when keyword matches fashion piece
+  // Generate detected outfit items for Amazon US
   let detectedItems: DetectedOutfitItem[] = [];
   if (hasDirectMatch || hasCustomImage || !cleanKw) {
-    detectedItems = isUS ? [
+    detectedItems = [
       {
         id: "det-1",
-        name: cleanKw ? cleanKw : "Cropped Trench Coat / Fall Jacket",
+        name: cleanKw ? cleanKw : "Cropped Trench Coat / Outerwear",
         category: "outerwear",
         color: "Khaki / Camel",
-        style: "Double-breasted casual",
+        style: "Double-breasted tailored",
         searchQuery: cleanKw ? cleanKw : "women cropped trench coat",
         amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "women cropped trench coat")
       },
@@ -817,40 +848,21 @@ export function generateStylistAdvice({
       },
       {
         id: "det-3",
-        name: "Knit 2-Piece Lounge Set",
+        name: "100% Cashmere Knit Sweater",
         category: "top",
-        color: "Beige / Cream",
-        style: "Wide-leg cozy chic",
-        searchQuery: "women 2 piece lounge set",
-        amazonUrl: buildAmazonSearchUrl("women 2 piece lounge set")
+        color: "Ivory / Cream",
+        style: "Classic crewneck luxury",
+        searchQuery: "women 100 cashmere sweater",
+        amazonUrl: buildAmazonSearchUrl("women 100 cashmere sweater")
       },
       {
         id: "det-4",
-        name: "Ruched Vegan Leather Hobo Bag",
+        name: "Ruched Vegan Leather Hobo Handbag",
         category: "accessory",
         color: "Ivory / Cloud White",
-        style: "Trendy minimalist purse",
+        style: "Minimalist designer purse",
         searchQuery: "women vegan leather handbag",
         amazonUrl: buildAmazonSearchUrl("women vegan leather handbag")
-      }
-    ] : [
-      {
-        id: "det-vn-1",
-        name: cleanKw ? cleanKw : "Áo Sơ Mi / Áo Kiểu Lụa",
-        category: "top",
-        color: "Trắng / Kem",
-        style: "Thanh lịch",
-        searchQuery: cleanKw ? cleanKw : "ao so mi nu thanh lich",
-        amazonUrl: buildAmazonSearchUrl(cleanKw ? cleanKw : "womens silk button down shirt")
-      },
-      {
-        id: "det-vn-2",
-        name: "Quần Ống Suông / Chân Váy",
-        category: "bottom",
-        color: "Đen / Be",
-        style: "Tôn dáng",
-        searchQuery: "quan tay ong suong cap cao",
-        amazonUrl: buildAmazonSearchUrl("womens high waisted wide leg trousers")
       }
     ];
   }
@@ -860,21 +872,21 @@ export function generateStylistAdvice({
 
   if (cleanKw) {
     if (hasDirectMatch) {
-      headline = isUS ? `Curated Styling for "${cleanKw}" • ${occName}` : `Gợi Ý Phối Đồ Với "${cleanKw}" • ${occName}`;
-      adviceText = isUS
-        ? `Based on your request for "${cleanKw}" and preference for "${selectedColor}", CunFashion AI Stylist has matched top-rated fashion essentials delivering flawless silhouette harmony and effortless all-day comfort.`
-        : `Dựa trên yêu cầu "${cleanKw}" và mong muốn với tông màu "${selectedColor}", stylist CunFashion khuyến nghị một set đồ hài hòa vừa tôn nét riêng, vừa đảm bảo sự thoải mái và chuẩn gu.`;
+      headline = isVN ? `Gợi Ý Phối Đồ Với "${cleanKw}" • ${occName}` : `Curated Ensemble for "${cleanKw}" • ${occName}`;
+      adviceText = isVN
+        ? `Dựa trên yêu cầu "${cleanKw}" và mong muốn tông màu "${selectedColor}", stylist CunFashion gợi ý các món đồ thời trang cao cấp.`
+        : `Based on your request for "${cleanKw}" and desired palette "${selectedColor}", CunFashion AI Stylist has curated top-rated luxury pieces delivering flawless silhouette balance and all-day comfort.`;
     } else {
-      headline = isUS ? `Direct Affiliate Search for "${cleanKw}" • Trending Picks` : `Tìm Kiếm Trực Tiếp "${cleanKw}" & Gợi Ý Thịnh Hành`;
-      adviceText = isUS
-        ? `We couldn't find an exact fashion match for "${cleanKw}" in our curated boutique. You can search directly on Amazon US (StoreID: cuncute-20), Shopee, or Rakuten using the quick links below. Meanwhile, explore our trending fashion essentials:`
-        : `Không tìm thấy sản phẩm thời trang có sẵn khớp chính xác với từ khóa "${cleanKw}". Bạn có thể bấm vào các liên kết tìm kiếm trực tiếp bên dưới trên Amazon US, Shopee hoặc Rakuten để nhận ưu đãi. Đồng thời, CunFashion gợi ý cho bạn những set đồ thịnh hành bán chạy nhất:`;
+      headline = isVN ? `Tìm Kiếm Trực Tiếp "${cleanKw}" • Gợi Ý Thịnh Hành` : `Affiliate Search for "${cleanKw}" • Trending Picks`;
+      adviceText = isVN
+        ? `Không tìm thấy món đồ khớp chính xác với "${cleanKw}". Bạn có thể tìm trực tiếp trên Amazon US hoặc Rakuten bên dưới:`
+        : `We couldn't find an exact fashion match for "${cleanKw}" in our boutique catalog. You can search directly on Amazon US (StoreID: cuncute-20) or Rakuten using the quick links below. Meanwhile, explore our curated best-sellers:`;
     }
   } else {
-    headline = isUS ? `Curated Look: ${occName} • ${stlName}` : `Gợi Ý Phối Đồ Cho Dịp ${occName} • Phong Cách ${stlName}`;
-    adviceText = isUS
-      ? `Based on your selected occasion "${occName}" and style "${stlName}", CunFashion AI Stylist has matched top-rated fashion essentials delivering flawless silhouette harmony.`
-      : `Dựa trên dịp "${occName}" và phong cách "${stlName}" cùng tông màu "${selectedColor}", stylist CunFashion khuyến nghị một set đồ hài hòa chuẩn gu.`;
+    headline = isVN ? `Gợi Ý Phối Đồ: ${occName} • ${stlName}` : `Curated Look: ${occName} • ${stlName}`;
+    adviceText = isVN
+      ? `Dựa trên dịp "${occName}" và phong cách "${stlName}" cùng tông màu "${selectedColor}", stylist CunFashion đã phối hợp các món đồ thanh lịch và sang trọng.`
+      : `Based on your selected occasion "${occName}" and style "${stlName}", CunFashion AI Stylist has matched top-rated designer essentials delivering effortless sophistication.`;
   }
 
   const searchLinks = cleanKw ? buildAffiliateSearchLinks(cleanKw, market) : undefined;
@@ -889,7 +901,7 @@ export function generateStylistAdvice({
     keyMatchedProducts,
     coordinatedProducts,
     detectedItems,
-    market: market || (isUS ? "US" : "VN"),
+    market: market || "US",
     source: "ai-heuristic",
     keyword: cleanKw || undefined,
     hasDirectMatch,

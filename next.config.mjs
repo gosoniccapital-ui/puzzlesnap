@@ -81,6 +81,14 @@ const nextConfig = {
         protocol: "https",
         hostname: "*.linksynergy.com",
       },
+      {
+        protocol: "https",
+        hostname: "images.amazon.com",
+      },
+      {
+        protocol: "https",
+        hostname: "ws-na.amazon-adsystem.com",
+      },
     ],
   },
   async headers() {

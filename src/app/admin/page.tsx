@@ -867,7 +867,7 @@ export default function AdminDashboardPage() {
                   <span>Bảng Điều Khiển Chuyển Đổi Affiliate (Conversion Dashboard)</span>
                 </h2>
                 <p className="text-xs text-stone-500 mt-1">
-                  Thống kê thời gian thực số lượt click vào các sàn liên kết (Amazon US StoreID cuncute-20, Rakuten, CunCute Merch, Shopee, TikTok Shop).
+                  Thống kê thời gian thực số lượt click vào các sàn liên kết quốc tế (Amazon US StoreID cuncute-20, Rakuten Brands, CunCute Merch Store USD).
                 </p>
               </div>
 
@@ -960,14 +960,12 @@ export default function AdminDashboardPage() {
               <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-bold uppercase tracking-wider text-stone-400">
-                    CunCute Merch & VN
+                    CunCute Merch Store
                   </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-900">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-pink-100 text-pink-900">
                     {analyticsData?.totalClicks
                       ? Math.round(
-                          (((analyticsData.platforms["CunCute Store"] || 0) +
-                            (analyticsData.platforms["Shopee"] || 0) +
-                            (analyticsData.platforms["TikTok Shop"] || 0)) /
+                          ((analyticsData.platforms["CunCute Store"] || 0) /
                             analyticsData.totalClicks) *
                             100
                         )
@@ -975,13 +973,11 @@ export default function AdminDashboardPage() {
                     %
                   </span>
                 </div>
-                <p className="text-3xl font-black text-emerald-600 mt-1">
-                  {(analyticsData?.platforms["CunCute Store"] || 0) +
-                    (analyticsData?.platforms["Shopee"] || 0) +
-                    (analyticsData?.platforms["TikTok Shop"] || 0)}
+                <p className="text-3xl font-black text-pink-600 mt-1">
+                  {analyticsData?.platforms["CunCute Store"] || 0}
                 </p>
                 <p className="text-[11px] text-stone-500 font-semibold mt-0.5">
-                  Shop trực tiếp & Shopee/TikTok
+                  Fourthwall Global USD
                 </p>
               </div>
             </div>

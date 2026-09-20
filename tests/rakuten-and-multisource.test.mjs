@@ -152,9 +152,9 @@ test('Style Advisor Data: Honest Affiliate Search handles uncatalogued terms lik
   assert.ok(amazonSearchLink.url.includes('tag=cuncute-20'), 'Amazon search link must include tag=cuncute-20');
   assert.ok(amazonSearchLink.url.includes('k=webroot'), 'Amazon search link must search for webroot');
 
-  const shopeeSearchLink = webrootAdvice.searchLinks.find(l => l.platform === 'Shopee');
-  assert.ok(shopeeSearchLink, 'Must provide Shopee search link');
-  assert.ok(shopeeSearchLink.url.includes('webroot'), 'Shopee search link must search for webroot');
+  const rakutenSearchLink = webrootAdvice.searchLinks.find(l => l.platform === 'Rakuten');
+  assert.ok(rakutenSearchLink, 'Must provide Rakuten search link');
+  assert.ok(rakutenSearchLink.url.includes('webroot'), 'Rakuten search link must search for webroot');
 
   // Verify all suggested products are real products from catalog (no "Check on Amazon" or "Best Deal" fake prices)
   assert.ok(webrootAdvice.suggestedProducts.length > 0, 'Should suggest real trending products');

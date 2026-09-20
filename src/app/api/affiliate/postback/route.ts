@@ -60,7 +60,7 @@ function verifyPostbackSecret(request: NextRequest): boolean {
 /**
  * Handle Affiliate Postback (GET / POST)
  * Works with networks that fire HTTP GET query params (HasOffers, Involve Asia, Ecomobi)
- * and webhook JSON payloads (Rakuten, TikTok Shop, Shopee Open API).
+ * and webhook JSON payloads (Amazon Associates, Rakuten, CJ Affiliate, Impact, HasOffers).
  */
 export async function GET(request: NextRequest) {
   try {
