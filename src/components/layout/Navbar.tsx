@@ -130,6 +130,9 @@ export default function Navbar() {
         <form onSubmit={handleSearchSubmit} className="hidden sm:flex flex-1 max-w-xs relative items-center">
           <input
             type="search"
+            id="navbar-search-input"
+            name="q"
+            aria-label="Search puzzles"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search puzzles..."

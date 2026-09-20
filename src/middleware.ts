@@ -28,7 +28,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Protection for Sensitive API Mutations
+  // 2. Protection for Sensitive Admin APIs
+  if (pathname.startsWith("/api/admin") && pathname !== "/api/admin/login") {
+    if (!isAuthenticated) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized: Valid admin session required to access admin APIs.",
+        },
+        { status: 401 }
+      );
+    }
+  }
+
+  // 3. Protection for Sensitive API Mutations
   // Block unauthorized POST/DELETE on /api/puzzles and DELETE on /api/scores
   const method = request.method.toUpperCase();
 
@@ -55,6 +68,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/api/admin/:path*",
     "/api/puzzles",
     "/api/scores",
   ],

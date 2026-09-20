@@ -593,6 +593,9 @@ export default function StyleAdvisorPage() {
             <Search className="w-5 h-5 text-stone-400 absolute left-4 pointer-events-none" />
             <input
               type="text"
+              id="style-advisor-keyword-input"
+              name="keyword"
+              aria-label="Search designer pieces or aesthetics"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={(e) => {
@@ -618,6 +621,9 @@ export default function StyleAdvisorPage() {
               </button>
               <input
                 type="file"
+                id="style-advisor-image-file"
+                name="outfitImage"
+                aria-label="Upload outfit photo"
                 ref={fileInputRef}
                 accept="image/*"
                 onChange={handleImageChange}
@@ -831,11 +837,14 @@ export default function StyleAdvisorPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
+                <label htmlFor="style-advisor-color-input" className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1">
                   Tông màu yêu thích
                 </label>
                 <input
                   type="text"
+                  id="style-advisor-color-input"
+                  name="color"
+                  aria-label="Tông màu yêu thích"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
                   placeholder="Để trống hoặc gõ màu..."

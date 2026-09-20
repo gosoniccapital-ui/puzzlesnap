@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { recordConversion } from "@/lib/analytics/click-tracker";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 // In-memory sliding-window rate limiter for postback webhook (max 120 calls / min per IP)
 const postbackRateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -128,14 +127,6 @@ export async function GET(request: NextRequest) {
       status
     });
 
-    if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase.from("affiliate_conversions").insert([conversion]);
-      } catch (err) {
-        console.warn("Supabase conversion sync skipped:", err);
-      }
-    }
-
     return NextResponse.json({
       success: true,
       message: "Postback conversion recorded successfully",
@@ -207,14 +198,6 @@ export async function POST(request: NextRequest) {
       currency,
       status
     });
-
-    if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase.from("affiliate_conversions").insert([conversion]);
-      } catch (err) {
-        console.warn("Supabase conversion sync skipped:", err);
-      }
-    }
 
     return NextResponse.json({
       success: true,

@@ -36,7 +36,7 @@ const securityHeaders = [
       "connect-src 'self' https: wss: https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://generativelanguage.googleapis.com https://vercel.live wss://ws-us3.pusher.com",
       "worker-src 'self' blob:",
       "frame-ancestors 'self'",
-      "frame-src 'self' https://vercel.live",
+      "frame-src 'self' https://vercel.live https://www.facebook.com https://*.facebook.com https://*.doubleclick.net",
     ].join("; "),
   },
 ];

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { recordClick } from "@/lib/analytics/click-tracker";
 
 // In-memory sliding window rate limiter: max 60 click logs / min per IP
@@ -69,18 +68,8 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString()
     };
 
-    // Store in memory ring buffer for instant analytics
+    // Dual-layer persistence: recordClick saves to in-memory ring buffer and Supabase PostgreSQL
     recordClick(clickPayload);
-
-    // If Supabase table exists, try persisting
-    if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase.from("affiliate_clicks").insert([clickPayload]);
-      } catch (err) {
-        // Table might not exist yet, log silently without failing user request
-        console.warn("Supabase click logging skipped:", err);
-      }
-    }
 
     return NextResponse.json({
       success: true,
