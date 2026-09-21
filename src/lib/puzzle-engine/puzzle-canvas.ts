@@ -3,6 +3,15 @@ import { generatePieceEdgesGrid, createPiecePath, CutStyle } from "./bezier-cutt
 import { Piece, Point, BoardBounds } from "./types";
 import { soundFx } from "./sound";
 
+export interface RemoteCursor {
+  id: string;
+  name: string;
+  color: string;
+  worldPos: Point;
+  activePieceId?: number | null;
+  lastSeen: number;
+}
+
 export interface EngineEvents {
   onProgress?: (placedCount: number, totalCount: number) => void;
   onVictory?: () => void;
@@ -10,6 +19,7 @@ export interface EngineEvents {
   onZoomChange?: (zoomScale: number) => void;
   onPieceMove?: (pieceId: number, currentPos: Point, rotation: number) => void;
   onPieceSnap?: (pieceId: number, currentPos: Point) => void;
+  onCursorMove?: (worldPos: Point, activePieceId?: number | null) => void;
 }
 
 export class PuzzleCanvasEngine {
@@ -53,6 +63,9 @@ export class PuzzleCanvasEngine {
   public showEdgesOnly: boolean = false;
   public enableRotation: boolean = false;
   public selectedPieceId: number | null = null;
+
+  // Multiplayer Co-Op Remote Cursors & Presence
+  public remoteCursors: Map<string, RemoteCursor> = new Map();
 
   private events: EngineEvents;
   private animationFrameId: number | null = null;
@@ -508,12 +521,55 @@ export class PuzzleCanvasEngine {
   }
 
   // ==========================================
+  // MULTIPLAYER CO-OP PRESENCE & CURSORS
+  // ==========================================
+  public updateRemoteCursor(
+    id: string,
+    name: string,
+    color: string,
+    worldPos: Point,
+    activePieceId?: number | null
+  ) {
+    this.remoteCursors.set(id, {
+      id,
+      name,
+      color,
+      worldPos,
+      activePieceId,
+      lastSeen: Date.now(),
+    });
+    this.requestRender();
+  }
+
+  public removeRemoteCursor(id: string) {
+    if (this.remoteCursors.delete(id)) {
+      this.requestRender();
+    }
+  }
+
+  public clearRemoteCursors() {
+    if (this.remoteCursors.size > 0) {
+      this.remoteCursors.clear();
+      this.requestRender();
+    }
+  }
+
+  private handleCanvasPointerHover = (e: PointerEvent) => {
+    // If a piece is actively being dragged, handlePointerMove already broadcasts cursor
+    if (this.activeGroup) return;
+    const screenPos = this.getPointerPos(e);
+    const worldPos = this.screenToWorld(screenPos);
+    this.events.onCursorMove?.(worldPos, null);
+  };
+
+  // ==========================================
   // EVENT HANDLING (Touch & Mouse via PointerEvents)
   // ==========================================
   private attachEvents() {
     this.canvas.style.touchAction = "none";
 
     this.canvas.addEventListener("pointerdown", this.handlePointerDown);
+    this.canvas.addEventListener("pointermove", this.handleCanvasPointerHover);
     window.addEventListener("pointermove", this.handlePointerMove);
     window.addEventListener("pointerup", this.handlePointerUp);
     window.addEventListener("pointercancel", this.handlePointerCancel);
@@ -525,6 +581,7 @@ export class PuzzleCanvasEngine {
 
   public destroy() {
     this.canvas.removeEventListener("pointerdown", this.handlePointerDown);
+    this.canvas.removeEventListener("pointermove", this.handleCanvasPointerHover);
     window.removeEventListener("pointermove", this.handlePointerMove);
     window.removeEventListener("pointerup", this.handlePointerUp);
     window.removeEventListener("pointercancel", this.handlePointerCancel);
@@ -783,6 +840,7 @@ export class PuzzleCanvasEngine {
         }
       });
 
+      this.events.onCursorMove?.(worldPos, this.activeGroup[0]);
       this.requestRender();
       return;
     }
@@ -797,6 +855,7 @@ export class PuzzleCanvasEngine {
         y: this.initialPanOffset.y + dy,
       };
 
+      this.events.onCursorMove?.(this.screenToWorld(screenPos), null);
       this.requestRender();
       return;
     }
@@ -1010,7 +1069,127 @@ export class PuzzleCanvasEngine {
       this.drawPiece(piece);
     }
 
+    // 4b. Draw Remote Teammate Halos on pieces they are actively dragging
+    this.drawRemotePieceHalos();
+
     this.ctx.restore();
+
+    // 5. Draw Remote Teammate Cursors in Screen Space (Crisp, device-independent scale)
+    this.drawRemoteCursors();
+  }
+
+  private drawRemotePieceHalos() {
+    if (this.remoteCursors.size === 0) return;
+
+    for (const remote of this.remoteCursors.values()) {
+      if (remote.activePieceId !== null && remote.activePieceId !== undefined) {
+        const piece = this.pieces.find((p) => p.id === remote.activePieceId);
+        if (piece && piece.path && !piece.isPlaced) {
+          this.ctx.save();
+          const cx = piece.currentPos.x + piece.width / 2;
+          const cy = piece.currentPos.y + piece.height / 2;
+          this.ctx.translate(cx, cy);
+          if (piece.rotation !== 0) {
+            this.ctx.rotate((piece.rotation * Math.PI) / 180);
+          }
+          this.ctx.translate(-piece.width / 2, -piece.height / 2);
+
+          // Glowing teammate halo
+          this.ctx.shadowColor = remote.color || "#dfba73";
+          this.ctx.shadowBlur = 12;
+          this.ctx.lineWidth = 3;
+          this.ctx.strokeStyle = remote.color || "#dfba73";
+          this.ctx.stroke(piece.path);
+          this.ctx.restore();
+        }
+      }
+    }
+  }
+
+  private drawRemoteCursors() {
+    if (this.remoteCursors.size === 0) return;
+
+    const now = Date.now();
+    const rect = this.canvas.getBoundingClientRect();
+
+    for (const [id, cursor] of this.remoteCursors.entries()) {
+      // Auto-prune stale cursors inactive for > 8 seconds
+      if (now - cursor.lastSeen > 8000) {
+        this.remoteCursors.delete(id);
+        continue;
+      }
+
+      const screenPos = this.worldToScreen(cursor.worldPos);
+
+      // Skip cursors that are far off the canvas viewport
+      if (
+        screenPos.x < -60 ||
+        screenPos.x > rect.width + 60 ||
+        screenPos.y < -60 ||
+        screenPos.y > rect.height + 60
+      ) {
+        continue;
+      }
+
+      this.ctx.save();
+      this.ctx.translate(screenPos.x, screenPos.y);
+
+      // A. Shadow for pointer
+      this.ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+      this.ctx.shadowBlur = 4;
+      this.ctx.shadowOffsetX = 1;
+      this.ctx.shadowOffsetY = 2;
+
+      // B. Custom Cursor SVG Polygon
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, 0);
+      this.ctx.lineTo(0, 16);
+      this.ctx.lineTo(4.5, 12);
+      this.ctx.lineTo(9.5, 18);
+      this.ctx.lineTo(12, 16.5);
+      this.ctx.lineTo(7, 10.5);
+      this.ctx.lineTo(13, 10.5);
+      this.ctx.closePath();
+
+      this.ctx.fillStyle = cursor.color || "#dfba73";
+      this.ctx.fill();
+
+      this.ctx.strokeStyle = "#ffffff";
+      this.ctx.lineWidth = 1.2;
+      this.ctx.stroke();
+
+      // C. Player Name Tag Pill
+      this.ctx.shadowColor = "transparent";
+      const name = cursor.name || "Teammate";
+      this.ctx.font = "bold 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      const textWidth = this.ctx.measureText(name).width;
+      const pillWidth = Math.max(textWidth + 14, 38);
+      const pillHeight = 20;
+      const pillX = 14;
+      const pillY = 10;
+
+      // Pill Background
+      this.ctx.fillStyle = cursor.color || "#dfba73";
+      this.ctx.beginPath();
+      if (typeof (this.ctx as any).roundRect === "function") {
+        (this.ctx as any).roundRect(pillX, pillY, pillWidth, pillHeight, 10);
+      } else {
+        this.ctx.rect(pillX, pillY, pillWidth, pillHeight);
+      }
+      this.ctx.fill();
+
+      // Pill border
+      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
+
+      // Pill text
+      this.ctx.fillStyle = "#ffffff";
+      this.ctx.textBaseline = "middle";
+      this.ctx.fillText(name, pillX + 7, pillY + pillHeight / 2);
+
+      this.ctx.restore();
+    }
   }
 
   private drawBoardBackground() {

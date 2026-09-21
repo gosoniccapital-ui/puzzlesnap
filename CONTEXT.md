@@ -152,3 +152,11 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
   - OpenGraph PNG Fallback: Configured `/images/brand/cunfashion-mark.png` (1200x630px) as explicit OpenGraph & Twitter fallback image for robust social scrapers.
   - Production Deployment: Verified live on `https://cunfashion.com/` (Deployment `dpl_ZC2g2URjZkZYXNsJRZ4g2Zi82cg4`, Rollback Anchor: `67bcae7`).
 
+- [x] Milestone 11.15 (Multiplayer Realtime Co-Op Presence & Remote Cursors):
+  - Remote Cursor Realtime Architecture: Defined `RemoteCursorEvent` payload schema and wired bidirectional synchronization via Supabase Realtime broadcast and local BroadcastChannel fallback.
+  - 60fps Canvas Screen-Space Rendering: Built `drawRemoteCursors()` in `puzzle-canvas.ts` translating World coordinates through Camera zoom/pan matrix into crisp device-independent Screen-Space pointers with custom player colors, white borders, and name tag pills.
+  - Remote Interaction Halo: Implemented `drawRemotePieceHalos()` to render an amber/colored glowing halo around pieces actively dragged by teammates.
+  - Throttled Broadcast & Auto-Pruning: Throttled pointer movements to max 22 updates/second (45ms interval) to protect network bandwidth, with automatic 8,000ms pruning of stale disconnected cursors and zero solo-mode overhead.
+  - Strict Invariant Suite: Authored `tests/sprint-11-6-realtime-coop-presence.test.mjs` verifying all 6 core invariants. 191/191 tests pass 100%, 26/26 routes build cleanly.
+
+

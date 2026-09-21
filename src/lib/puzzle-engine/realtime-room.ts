@@ -40,6 +40,15 @@ export interface PlacedPieceSnapshot {
   rotation: number;
 }
 
+export interface RemoteCursorEvent {
+  senderId: string;
+  senderName: string;
+  senderColor: string;
+  cursor: { x: number; y: number };
+  activePieceId?: number | null;
+  timestamp: number;
+}
+
 const PLAYER_COLORS = [
   "#f59e0b", // Amber
   "#3b82f6", // Blue
@@ -69,6 +78,7 @@ export class RealtimeRoomEngine {
   private onVictoryCallback?: (event: VictorySyncEvent) => void;
   private onBoardSyncCallback?: (pieces: PlacedPieceSnapshot[]) => void;
   private onRequestBoardSyncCallback?: () => void;
+  private onCursorSyncCallback?: (event: RemoteCursorEvent) => void;
 
   constructor(roomId: string, playerName: string, roomMeta?: RoomPuzzleMeta) {
     this.roomId = roomId;
@@ -117,7 +127,8 @@ export class RealtimeRoomEngine {
     onRoomMeta?: (meta: RoomPuzzleMeta) => void,
     onVictory?: (event: VictorySyncEvent) => void,
     onBoardSync?: (pieces: PlacedPieceSnapshot[]) => void,
-    onRequestBoardSync?: () => void
+    onRequestBoardSync?: () => void,
+    onCursorSync?: (event: RemoteCursorEvent) => void
   ) {
     this.onPlayerUpdateCallback = onPlayersChange;
     this.onPieceSyncCallback = onPieceSync;
@@ -126,6 +137,7 @@ export class RealtimeRoomEngine {
     this.onVictoryCallback = onVictory;
     this.onBoardSyncCallback = onBoardSync;
     this.onRequestBoardSyncCallback = onRequestBoardSync;
+    this.onCursorSyncCallback = onCursorSync;
 
     // 1. Local BroadcastChannel for zero-latency local tab communication
     if (typeof window !== "undefined" && window.BroadcastChannel) {
@@ -166,6 +178,10 @@ export class RealtimeRoomEngine {
           }
         } else if (type === "request_board_sync") {
           this.onRequestBoardSyncCallback?.();
+        } else if (type === "cursor_move") {
+          if (payload && payload.senderId !== this.localPlayerId) {
+            this.onCursorSyncCallback?.(payload);
+          }
         }
       };
 
@@ -262,6 +278,11 @@ export class RealtimeRoomEngine {
           .on("broadcast", { event: "request_board_sync" }, () => {
             this.onRequestBoardSyncCallback?.();
           })
+          .on("broadcast", { event: "cursor_move" }, ({ payload }) => {
+            if (payload && payload.senderId !== this.localPlayerId) {
+              this.onCursorSyncCallback?.(payload);
+            }
+          })
           .subscribe(async (status) => {
             if (status === "SUBSCRIBED") {
               this.isSubscribed = true;
@@ -288,28 +309,26 @@ export class RealtimeRoomEngine {
   }
 
   public broadcastCursor(cursor: { x: number; y: number }, activePieceId?: number | null) {
+    const payload: RemoteCursorEvent = {
+      senderId: this.localPlayerId,
+      senderName: this.localPlayerName,
+      senderColor: this.localColor,
+      cursor,
+      activePieceId,
+      timestamp: Date.now(),
+    };
+
     if (this.supabaseChannel?.send) {
       this.supabaseChannel.send({
         type: "broadcast",
         event: "cursor_move",
-        payload: {
-          senderId: this.localPlayerId,
-          cursor,
-          activePieceId,
-        },
+        payload,
       });
     }
     if (this.bc?.postMessage) {
       this.bc.postMessage({
-        type: "presence",
-        payload: {
-          id: this.localPlayerId,
-          name: this.localPlayerName,
-          color: this.localColor,
-          cursor,
-          activePieceId,
-          lastActive: Date.now(),
-        },
+        type: "cursor_move",
+        payload,
       });
     }
   }

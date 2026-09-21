@@ -13,7 +13,7 @@ import PuzzleVictoryModal from "./PuzzleVictoryModal";
 import PuzzlePreviewModal from "./PuzzlePreviewModal";
 import PuzzleZoomWidget from "./PuzzleZoomWidget";
 import PuzzleCoopModal from "./PuzzleCoopModal";
-import { RealtimeRoomEngine, RemotePlayer, VictorySyncEvent, PlacedPieceSnapshot } from "@/lib/puzzle-engine/realtime-room";
+import { RealtimeRoomEngine, RemotePlayer, VictorySyncEvent, PlacedPieceSnapshot, RemoteCursorEvent } from "@/lib/puzzle-engine/realtime-room";
 
 export type { LeaderboardItem };
 
@@ -109,6 +109,7 @@ export default function PuzzleGameBoard({
   const [coopToast, setCoopToast] = useState<string | null>(null);
   const [remoteVictory, setRemoteVictory] = useState<VictorySyncEvent | null>(null);
   const coopEngineRef = useRef<RealtimeRoomEngine | null>(null);
+  const lastCursorBroadcastRef = useRef<number>(0);
 
   // Load player name from localStorage and listen to profile changes
   useEffect(() => {
@@ -247,6 +248,15 @@ export default function PuzzleGameBoard({
           onPieceSnap: (pieceId, currentPos) => {
             if (coopEngineRef.current) {
               coopEngineRef.current.broadcastPieceSnap(pieceId, currentPos);
+            }
+          },
+          onCursorMove: (worldPos, activePieceId) => {
+            if (coopEngineRef.current) {
+              const now = Date.now();
+              if (now - lastCursorBroadcastRef.current >= 45) {
+                lastCursorBroadcastRef.current = now;
+                coopEngineRef.current.broadcastCursor(worldPos, activePieceId);
+              }
             }
           },
         },
@@ -393,6 +403,14 @@ export default function PuzzleGameBoard({
     coopEngine.connect(
       (updatedPlayers) => {
         setCoopPlayers([...updatedPlayers]);
+        if (engineRef.current) {
+          const activeIds = new Set(updatedPlayers.map((p) => p.id));
+          for (const cursorId of engineRef.current.remoteCursors.keys()) {
+            if (!activeIds.has(cursorId)) {
+              engineRef.current.removeRemoteCursor(cursorId);
+            }
+          }
+        }
       },
       (pieceEvent) => {
         if (engineRef.current) {
@@ -442,6 +460,18 @@ export default function PuzzleGameBoard({
             coopEngineRef.current.broadcastBoardSync(placed);
           }
         }
+      },
+      // onCursorSync: hiển thị con trỏ chuột realtime của đồng đội trên bàn cờ Canvas
+      (cursorEvent) => {
+        if (engineRef.current && cursorEvent.senderId !== coopEngine.localPlayerId) {
+          engineRef.current.updateRemoteCursor(
+            cursorEvent.senderId,
+            cursorEvent.senderName,
+            cursorEvent.senderColor,
+            cursorEvent.cursor,
+            cursorEvent.activePieceId
+          );
+        }
       }
     );
 
@@ -460,6 +490,7 @@ export default function PuzzleGameBoard({
       coopEngineRef.current.disconnect();
       coopEngineRef.current = null;
     }
+    engineRef.current?.clearRemoteCursors();
     setIsCoopConnected(false);
     setCoopRoomId("");
     setCoopPlayers([]);
