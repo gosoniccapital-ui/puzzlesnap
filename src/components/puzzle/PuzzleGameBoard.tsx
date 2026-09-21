@@ -179,9 +179,16 @@ export default function PuzzleGameBoard({
   secondsRef.current = seconds;
   moveCountRef.current = moveCount;
 
+  const progressStorageKey = `cun_puzzle_progress_${puzzleSlug}`;
+
   const handleVictory = useCallback(() => {
     setIsVictory(true);
     setScoreSubmitted(false);
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(progressStorageKey);
+      }
+    } catch {}
     confetti({
       particleCount: 150,
       spread: 80,
@@ -194,7 +201,7 @@ export default function PuzzleGameBoard({
         moveCountRef.current
       );
     }
-  }, []);
+  }, [progressStorageKey]);
 
   // Initialize Canvas Engine
   useEffect(() => {
@@ -250,6 +257,37 @@ export default function PuzzleGameBoard({
 
       engineRef.current = engine;
       engine.resize();
+
+      // Auto-restore saved progress from localStorage if available (F5 persistence)
+      try {
+        if (typeof window !== "undefined") {
+          const raw = localStorage.getItem(progressStorageKey);
+          if (raw) {
+            const saved = JSON.parse(raw);
+            if (
+              saved &&
+              saved.difficulty === difficulty &&
+              saved.cutStyle === cutStyle &&
+              Array.isArray(saved.pieces) &&
+              saved.pieces.length === engine.pieces.length
+            ) {
+              engine.importPieceStates(saved.pieces);
+              if (typeof saved.seconds === "number" && saved.seconds > 0) {
+                setSeconds(saved.seconds);
+                secondsRef.current = saved.seconds;
+              }
+              if (typeof saved.moveCount === "number" && saved.moveCount > 0) {
+                setMoveCount(saved.moveCount);
+                moveCountRef.current = saved.moveCount;
+              }
+              const placed = engine.pieces.filter((p) => p.isPlaced).length;
+              setPlacedCount(placed);
+            }
+          }
+        }
+      } catch {
+        // Non-blocking fallback
+      }
     };
 
     return () => {
@@ -259,7 +297,29 @@ export default function PuzzleGameBoard({
         engineRef.current = null;
       }
     };
-  }, [imageSrc, difficulty, handleVictory, cutStyle, isRotationEnabled]);
+  }, [imageSrc, difficulty, handleVictory, cutStyle, isRotationEnabled, progressStorageKey]);
+
+  // Auto-save game progress to localStorage (F5 / Refresh persistence)
+  useEffect(() => {
+    if (!engineRef.current || isVictory || (moveCount === 0 && placedCount === 0)) return;
+    try {
+      if (typeof window !== "undefined") {
+        const data = {
+          difficulty,
+          cutStyle,
+          isRotationEnabled,
+          seconds,
+          moveCount,
+          pieces: engineRef.current.exportPieceStates(),
+          updatedAt: Date.now(),
+        };
+        localStorage.setItem(progressStorageKey, JSON.stringify(data));
+      }
+    } catch {
+      // Ignore storage quota limits
+    }
+  }, [moveCount, placedCount, seconds, difficulty, cutStyle, isRotationEnabled, isVictory, progressStorageKey]);
+
 
   // Window & Orientation resize observer
   useEffect(() => {
@@ -451,9 +511,15 @@ export default function PuzzleGameBoard({
   // Action handlers
   const handleShuffle = () => {
     if (engineRef.current) {
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(progressStorageKey);
+        }
+      } catch {}
       engineRef.current.shuffle();
       setMoveCount(0);
       setPlacedCount(0);
+      setSeconds(0);
       setIsVictory(false);
       setScoreSubmitted(false);
       soundFx.playClick();
@@ -699,6 +765,7 @@ export default function PuzzleGameBoard({
         <PuzzleVictoryModal
           isOpen={isVictory}
           title={title}
+          slug={puzzleSlug}
           seconds={seconds}
           moveCount={moveCount}
           formatTime={formatTime}

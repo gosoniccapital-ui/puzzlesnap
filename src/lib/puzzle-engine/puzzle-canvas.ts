@@ -349,6 +349,52 @@ export class PuzzleCanvasEngine {
     }
   }
 
+  /**
+   * Serializes all piece positions, rotations, and placement states for auto-save
+   */
+  public exportPieceStates() {
+    return this.pieces.map((p) => ({
+      id: p.id,
+      x: Math.round(p.currentPos.x),
+      y: Math.round(p.currentPos.y),
+      rotation: p.rotation,
+      isPlaced: p.isPlaced,
+      zIndex: p.zIndex,
+    }));
+  }
+
+  /**
+   * Restores piece positions, rotations, and placement states from saved progress
+   */
+  public importPieceStates(
+    savedStates: Array<{ id: number; x: number; y: number; rotation: number; isPlaced: boolean; zIndex: number }>
+  ) {
+    if (!Array.isArray(savedStates) || savedStates.length === 0) return;
+    const stateMap = new Map<number, (typeof savedStates)[0]>();
+    savedStates.forEach((s) => stateMap.set(s.id, s));
+
+    let placedCount = 0;
+    this.pieces.forEach((piece) => {
+      const saved = stateMap.get(piece.id);
+      if (saved) {
+        piece.currentPos = { x: saved.x, y: saved.y };
+        piece.rotation = saved.rotation || 0;
+        piece.isPlaced = Boolean(saved.isPlaced);
+        piece.zIndex = saved.zIndex || 0;
+        if (piece.isPlaced) {
+          piece.currentPos = { ...piece.originalPos };
+          piece.rotation = 0;
+          piece.zIndex = 0;
+          placedCount++;
+        }
+      }
+    });
+
+    this.events.onProgress?.(placedCount, this.pieces.length);
+    this.requestRender();
+  }
+
+
   public toggleRotationMode(enabled?: boolean) {
     this.enableRotation = enabled !== undefined ? enabled : !this.enableRotation;
     if (!this.enableRotation) {

@@ -190,7 +190,7 @@ export default function Navbar() {
                     <Globe className="w-3 h-3 text-amber-500 dark:text-[#dfba73]" />
                     {t.navbar.switchLanguage}
                   </span>
-                  <span className="text-[9px] text-stone-400 dark:text-stone-500">7 Languages</span>
+                  <span className="text-[9px] text-stone-400 dark:text-stone-500">Global (6)</span>
                 </div>
                 <div className="py-1">
                   {languages.map((meta) => {

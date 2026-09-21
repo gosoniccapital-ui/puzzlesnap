@@ -12,7 +12,12 @@ import {
   ShoppingBag,
   ExternalLink,
   Tag,
+  Share2,
+  Facebook,
+  Twitter,
+  MessageCircle,
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export interface PuzzleVictoryModalProps {
   isOpen: boolean;
@@ -26,6 +31,7 @@ export interface PuzzleVictoryModalProps {
   isSubmittingScore: boolean;
   scoreSubmitted: boolean;
   onPlayAgain: () => void;
+  slug?: string;
   // E-Commerce Extensions (Sprint 6.2 & Sprint 7.5 Dual Rewards)
   voucherCode?: string;
   secondaryVoucherCode?: string;
@@ -50,6 +56,7 @@ export default function PuzzleVictoryModal({
   isSubmittingScore,
   scoreSubmitted,
   onPlayAgain,
+  slug,
   voucherCode,
   secondaryVoucherCode,
   discountPercent,
@@ -58,7 +65,10 @@ export default function PuzzleVictoryModal({
   productPriceSale,
   ctaText,
 }: PuzzleVictoryModalProps) {
+  const { t } = useTranslation();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
+  const [showShareGroup, setShowShareGroup] = useState(false);
 
   if (!isOpen) return null;
 
@@ -77,7 +87,7 @@ export default function PuzzleVictoryModal({
   )}&utm_content=${encodeURIComponent(secondaryVoucher)}`;
 
   const resolvedProductUrl = productUrl || defaultProductUrl;
-  const resolvedCtaText = ctaText || "Shop Cute Outfits";
+  const resolvedCtaText = ctaText || t.victory.shopCuteOutfits;
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -106,6 +116,45 @@ export default function PuzzleVictoryModal({
     copyToClipboard(primaryVoucher);
   };
 
+  const getShareUrl = () => {
+    if (typeof window !== "undefined") {
+      return slug ? `${window.location.origin}/puzzle/${slug}` : window.location.href;
+    }
+    return `https://cunfashion.com/puzzle/${slug || ""}`;
+  };
+
+  const shareText = `🏆 ${t.victory.title} I solved "${title}" in ${formatTime(seconds)} with ${moveCount} ${t.victory.moves} on CunFashion! Can you beat my record?`;
+
+  const handleShareVictory = async () => {
+    const shareUrl = getShareUrl();
+    if (typeof window !== "undefined" && navigator?.share) {
+      try {
+        await navigator.share({
+          title: `CunFashion Puzzle: ${title}`,
+          text: shareText,
+          url: shareUrl,
+        });
+        setShareFeedback("Shared successfully!");
+        setTimeout(() => setShareFeedback(null), 2500);
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+      }
+    }
+
+    // Fallback: Copy to clipboard and toggle quick share group
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      }
+      setShareFeedback("Score & Link copied to clipboard!");
+      setShowShareGroup(true);
+      setTimeout(() => setShareFeedback(null), 3000);
+    } catch {
+      setShowShareGroup(true);
+    }
+  };
+
   return (
     <div className="absolute inset-0 bg-stone-950/85 backdrop-blur-md flex flex-col items-center justify-center gap-4 z-30 p-4 sm:p-6 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
       {/* 1. Header & Completion Stats */}
@@ -115,13 +164,88 @@ export default function PuzzleVictoryModal({
         </div>
         <div>
           <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Congratulations!
+            {t.victory.title}
           </h3>
           <p className="text-stone-300 text-xs sm:text-sm mt-1">
-            You completed <strong className="text-amber-400">{title}</strong> in{" "}
-            <strong className="text-amber-400 font-mono">{formatTime(seconds)}</strong> with{" "}
-            <strong className="text-amber-400">{moveCount} moves</strong>!
+            {t.victory.subtitle}
           </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 w-full pt-1">
+          <div className="bg-stone-900/90 border border-stone-800 p-3 rounded-2xl shadow-inner">
+            <span className="text-[10px] uppercase font-bold text-stone-400 block tracking-wider">
+              {t.victory.time}
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono mt-0.5 block">
+              {formatTime(seconds)}
+            </span>
+          </div>
+          <div className="bg-stone-900/90 border border-stone-800 p-3 rounded-2xl shadow-inner">
+            <span className="text-[10px] uppercase font-bold text-stone-400 block tracking-wider">
+              {t.victory.moves}
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono mt-0.5 block">
+              {moveCount}
+            </span>
+          </div>
+        </div>
+
+        {/* 1-Click Share Victory Score Action */}
+        <div className="w-full pt-1 space-y-2">
+          <button
+            onClick={handleShareVictory}
+            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-[#dfba73] to-amber-400 hover:brightness-110 text-stone-950 font-black text-xs sm:text-sm shadow-md shadow-amber-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
+          >
+            <Share2 className="w-4 h-4 text-stone-950" />
+            <span>{t.victory.shareResult}</span>
+          </button>
+
+          {shareFeedback && (
+            <div className="text-[11px] font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-700/50 py-1.5 px-3 rounded-lg animate-in fade-in">
+              {shareFeedback}
+            </div>
+          )}
+
+          {showShareGroup && (
+            <div className="flex items-center justify-center gap-2 pt-1 animate-in fade-in">
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition cursor-pointer shadow-xs"
+                title="Share on Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(getShareUrl())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white border border-stone-700 transition cursor-pointer shadow-xs"
+                title="Share on X"
+              >
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + " " + getShareUrl())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition cursor-pointer shadow-xs"
+                title="Share on WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </a>
+              <a
+                href={`https://t.me/share/url?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white transition cursor-pointer shadow-xs"
+                title="Share on Telegram"
+              >
+                <Send className="w-4 h-4" />
+              </a>
+            </div>
+          )}
         </div>
       </div>
 

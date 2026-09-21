@@ -40,10 +40,13 @@ export const DICTIONARIES: Record<LanguageCode, TranslationDictionary> = {
 
 export const DEFAULT_LANGUAGE: LanguageCode = "en";
 export const SUPPORTED_LANGUAGES: LanguageCode[] = ["en", "vi", "ja", "fr", "de", "es", "zh"];
+// Active user-facing global languages (excluding Vietnamese as platform is 100% global-first)
+export const GLOBAL_LANGUAGES: LanguageCode[] = ["en", "ja", "fr", "de", "es", "zh"];
 
 export function getTranslation(lang?: string | null): TranslationDictionary {
   if (!lang) return en;
   const normalized = lang.toLowerCase().slice(0, 2) as LanguageCode;
+  if (normalized === "vi") return en; // Auto-fallback Vietnamese to English for 100% global audience
   return DICTIONARIES[normalized] || en;
 }
 
@@ -53,20 +56,31 @@ export function getCurrentLanguage(): LanguageCode {
   try {
     // 1. Priority: localStorage preference
     const stored = localStorage.getItem("cunfashion_lang");
-    if (stored && SUPPORTED_LANGUAGES.includes(stored as LanguageCode)) {
+    if (stored === "vi") {
+      // Migrate legacy Vietnamese preference to English
+      setLanguagePreference("en");
+      return "en";
+    }
+    if (stored && GLOBAL_LANGUAGES.includes(stored as LanguageCode)) {
       return stored as LanguageCode;
     }
 
     // 2. Cookie preference
     const match = document.cookie.match(/(?:^|;\s*)cun_lang=([^;]+)/);
-    if (match && SUPPORTED_LANGUAGES.includes(match[1] as LanguageCode)) {
-      return match[1] as LanguageCode;
+    if (match) {
+      if (match[1] === "vi") {
+        setLanguagePreference("en");
+        return "en";
+      }
+      if (GLOBAL_LANGUAGES.includes(match[1] as LanguageCode)) {
+        return match[1] as LanguageCode;
+      }
     }
 
     // 3. Browser navigator language detection
     if (navigator?.language) {
       const browserLang = navigator.language.slice(0, 2).toLowerCase() as LanguageCode;
-      if (SUPPORTED_LANGUAGES.includes(browserLang)) {
+      if (GLOBAL_LANGUAGES.includes(browserLang)) {
         return browserLang;
       }
     }
@@ -81,9 +95,10 @@ export function setLanguagePreference(lang: LanguageCode): void {
   if (typeof window === "undefined") return;
 
   try {
-    localStorage.setItem("cunfashion_lang", lang);
-    document.cookie = `cun_lang=${lang}; path=/; max-age=31536000; SameSite=Lax`;
-    window.dispatchEvent(new CustomEvent("cun_language_changed", { detail: { lang } }));
+    const targetLang = lang === "vi" ? "en" : lang;
+    localStorage.setItem("cunfashion_lang", targetLang);
+    document.cookie = `cun_lang=${targetLang}; path=/; max-age=31536000; SameSite=Lax`;
+    window.dispatchEvent(new CustomEvent("cun_language_changed", { detail: { lang: targetLang } }));
   } catch (err) {
     console.warn("Could not save language preference:", err);
   }
@@ -97,7 +112,7 @@ export function useTranslation() {
 
     const handleLangChange = (e: Event) => {
       const custom = e as CustomEvent<{ lang: LanguageCode }>;
-      if (custom.detail?.lang && SUPPORTED_LANGUAGES.includes(custom.detail.lang)) {
+      if (custom.detail?.lang && GLOBAL_LANGUAGES.includes(custom.detail.lang)) {
         setLang(custom.detail.lang);
       }
     };
@@ -107,7 +122,7 @@ export function useTranslation() {
   }, []);
 
   const changeLanguage = useCallback((newLang: LanguageCode) => {
-    if (!SUPPORTED_LANGUAGES.includes(newLang)) return;
+    if (!GLOBAL_LANGUAGES.includes(newLang)) return;
     setLang(newLang);
     setLanguagePreference(newLang);
   }, []);
@@ -119,10 +134,10 @@ export function useTranslation() {
     lang,
     t,
     currentMeta,
-    languages: SUPPORTED_LANGUAGES.map((code) => LANGUAGE_CONFIG[code]),
+    languages: GLOBAL_LANGUAGES.map((code) => LANGUAGE_CONFIG[code]),
     changeLanguage,
     isEnglish: lang === "en",
-    isVietnamese: lang === "vi",
+    isVietnamese: false,
   };
 }
 

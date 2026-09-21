@@ -2,6 +2,7 @@
 
 import React from "react";
 import { CutStyle } from "@/lib/puzzle-engine/bezier-cutter";
+import { useTranslation } from "@/lib/i18n";
 import {
   Play,
   Pause,
@@ -114,6 +115,8 @@ export default function PuzzleToolbar({
   coopPlayerCount,
   onOpenCoopModal,
 }: PuzzleToolbarProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-stone-50 border-b border-stone-200">
       {/* Left: Timer & Move Counters */}
@@ -121,7 +124,7 @@ export default function PuzzleToolbar({
         <button
           onClick={onTogglePause}
           className="p-2 rounded-xl bg-white hover:bg-stone-100 text-stone-700 border border-stone-200 transition shadow-2xs cursor-pointer"
-          title={isPaused ? "Resume Timer" : "Pause Timer"}
+          title={isPaused ? t.toolbar.resumeTimer : t.toolbar.pauseTimer}
         >
           {isPaused ? <Play className="w-4 h-4 text-emerald-600 fill-current" /> : <Pause className="w-4 h-4 text-amber-600" />}
         </button>
@@ -135,9 +138,9 @@ export default function PuzzleToolbar({
         </div>
 
         <div className="text-xs font-bold text-stone-500 hidden sm:block">
-          <span>Moves: <strong className="text-stone-800">{moveCount}</strong></span>
+          <span>{t.toolbar.moves}: <strong className="text-stone-800">{moveCount}</strong></span>
           <span className="mx-2">•</span>
-          <span>Pieces: <strong className="text-stone-800">{placedCount}/{totalCount}</strong></span>
+          <span>{t.toolbar.pieces}: <strong className="text-stone-800">{placedCount}/{totalCount}</strong></span>
         </div>
       </div>
 
@@ -148,9 +151,9 @@ export default function PuzzleToolbar({
           onChange={(e) => onCutStyleChange(e.target.value as CutStyle)}
           className="bg-white text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-amber-500 cursor-pointer shadow-2xs"
         >
-          <option value="classic">Classic Style</option>
-          <option value="hearts">Hearts Style</option>
-          <option value="star">Star Style</option>
+          <option value="classic">{t.toolbar.classicStyle}</option>
+          <option value="hearts">{t.toolbar.heartsStyle}</option>
+          <option value="star">{t.toolbar.starStyle}</option>
         </select>
 
         <select
@@ -158,11 +161,11 @@ export default function PuzzleToolbar({
           onChange={(e) => onDifficultyChange(e.target.value as any)}
           className="bg-white text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-amber-500 cursor-pointer shadow-2xs"
         >
-          <option value="easy">Easy (9 pcs)</option>
-          <option value="medium">Medium (16 pcs)</option>
-          <option value="hard">Hard (30 pcs)</option>
-          <option value="very-hard">Very Hard (40 pcs)</option>
-          <option value="supreme">Supreme (50 pcs)</option>
+          <option value="easy">{t.toolbar.easy}</option>
+          <option value="medium">{t.toolbar.medium}</option>
+          <option value="hard">{t.toolbar.hard}</option>
+          <option value="very-hard">{t.toolbar.veryHard}</option>
+          <option value="supreme">{t.toolbar.supreme}</option>
         </select>
       </div>
 
@@ -171,10 +174,10 @@ export default function PuzzleToolbar({
         <button
           onClick={onPreview}
           className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold border border-stone-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
-          title="Preview Photo"
+          title={t.toolbar.previewTooltip}
         >
           <Eye className="w-3.5 h-3.5 text-stone-500" />
-          <span className="hidden md:inline">Preview</span>
+          <span className="hidden md:inline">{t.toolbar.preview}</span>
         </button>
 
         {/* Guide Image on Board */}
@@ -185,10 +188,10 @@ export default function PuzzleToolbar({
               ? "bg-amber-500 text-stone-950 border-amber-500 font-extrabold"
               : "bg-white hover:bg-stone-100 text-stone-700 border-stone-200"
           }`}
-          title="Toggle background guide image on board"
+          title={t.toolbar.ghostTooltip}
         >
           <ImageIcon className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Ghost</span>
+          <span className="hidden md:inline">{t.toolbar.ghost}</span>
           <span className={`text-[9px] px-1 py-0.2 rounded font-black ${showGhost ? "bg-stone-950 text-amber-400" : "bg-stone-200 text-stone-600"}`}>
             {showGhost ? "ON" : "OFF"}
           </span>
@@ -197,10 +200,10 @@ export default function PuzzleToolbar({
         <button
           onClick={onArrange}
           className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold border border-stone-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
-          title="Arrange pieces to edges"
+          title={t.toolbar.arrangeTooltip}
         >
           <Grid className="w-3.5 h-3.5 text-stone-500" />
-          <span className="hidden md:inline">Arrange</span>
+          <span className="hidden md:inline">{t.toolbar.arrange}</span>
         </button>
 
         <button
@@ -210,10 +213,10 @@ export default function PuzzleToolbar({
               ? "bg-amber-500 text-stone-950 border-amber-500 font-extrabold"
               : "bg-white hover:bg-stone-100 text-stone-700 border-stone-200"
           }`}
-          title="Filter border pieces"
+          title={t.toolbar.edgesTooltip}
         >
           <Layers className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Edges</span>
+          <span className="hidden md:inline">{t.toolbar.edges}</span>
         </button>
 
         {/* Rotation Mode Toggle Button */}
@@ -224,10 +227,10 @@ export default function PuzzleToolbar({
               ? "bg-amber-500 text-stone-950 border-amber-500 font-extrabold"
               : "bg-white hover:bg-stone-100 text-stone-700 border-stone-200"
           }`}
-          title={isRotationEnabled ? "Piece Rotation Mode: ON (Click or press Space to rotate)" : "Enable Piece Rotation Mode"}
+          title={t.toolbar.rotationTooltip}
         >
           <RotateCw className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Rotate</span>
+          <span className="hidden md:inline">{t.toolbar.rotation}</span>
           <span className={`text-[9px] px-1 py-0.2 rounded font-black ${isRotationEnabled ? "bg-stone-950 text-amber-400" : "bg-stone-200 text-stone-600"}`}>
             {isRotationEnabled ? "ON" : "OFF"}
           </span>
@@ -238,7 +241,7 @@ export default function PuzzleToolbar({
           <button
             onClick={onRotatePiece}
             className="p-1.5 sm:px-2 sm:py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-black transition flex items-center gap-1 shadow-2xs cursor-pointer animate-in fade-in"
-            title="Rotate selected piece 90° (Shortcut: Space or Right-click)"
+            title={t.toolbar.rotateClockwiseTooltip}
           >
             <RotateCw className="w-3.5 h-3.5 text-amber-700" />
             <span>90°</span>
@@ -248,10 +251,10 @@ export default function PuzzleToolbar({
         <button
           onClick={onToggleFullscreen}
           className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold border border-stone-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
-          title="Toggle Fullscreen"
+          title={t.toolbar.fullscreen}
         >
-          {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-stone-500" /> : <Maximize className="w-3.5 h-3.5 text-stone-500" />}
-          <span className="hidden md:inline">Fullscreen</span>
+          {isFullscreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+          <span className="hidden md:inline">{t.toolbar.fullscreen}</span>
         </button>
 
         {/* Multiplayer Co-Op Button */}
@@ -263,11 +266,11 @@ export default function PuzzleToolbar({
                 ? "bg-emerald-500 text-stone-950 border-emerald-400 font-black shadow-emerald-500/20"
                 : "bg-amber-500 hover:bg-amber-400 text-stone-950 border-amber-400 font-extrabold shadow-amber-500/20"
             }`}
-            title="Play together with friends (Multiplayer Co-Op Room)"
+            title={t.toolbar.coopPlay}
           >
             <Users className="w-3.5 h-3.5" />
             <span className="hidden md:inline">
-              {isCoopConnected ? `Co-Op (${coopPlayerCount || 1})` : "Co-Op Play"}
+              {isCoopConnected ? `${t.toolbar.coopPlay} (${coopPlayerCount || 1})` : t.toolbar.coopPlay}
             </span>
             {isCoopConnected && (
               <span className="inline-block w-2 h-2 rounded-full bg-stone-950 animate-pulse" />
@@ -280,21 +283,21 @@ export default function PuzzleToolbar({
           <button
             onClick={onZoomOut}
             className="p-1 rounded text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer"
-            title="Zoom Out"
+            title={t.toolbar.zoomOut}
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onResetZoom}
             className="px-1.5 py-0.5 text-[11px] font-black text-stone-700 hover:text-stone-900 transition cursor-pointer"
-            title="Click to Reset Zoom (100%)"
+            title={t.toolbar.resetZoom}
           >
             {zoomPercent}%
           </button>
           <button
             onClick={onZoomIn}
             className="p-1 rounded text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer"
-            title="Zoom In"
+            title={t.toolbar.zoomIn}
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
@@ -305,13 +308,14 @@ export default function PuzzleToolbar({
           <button
             onClick={onToggleMoreMenu}
             className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-white hover:bg-stone-100 text-stone-700 text-xs font-bold border border-stone-200 transition flex items-center gap-1 shadow-2xs cursor-pointer"
+            title={t.toolbar.moreOptions}
           >
             <MoreHorizontal className="w-4 h-4 text-stone-500" />
             <ChevronDown className="w-3 h-3 text-stone-400" />
           </button>
 
           {showMoreMenu && (
-            <div className="absolute right-0 top-full mt-1.5 w-44 bg-white border border-stone-200 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in duration-100">
+            <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-stone-200 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in duration-100">
               <button
                 onClick={() => {
                   onToggleGhost();
@@ -319,7 +323,7 @@ export default function PuzzleToolbar({
                 }}
                 className="w-full text-left px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition flex items-center justify-between cursor-pointer"
               >
-                <span>Overlay Shadow</span>
+                <span>{t.toolbar.ghost}</span>
                 <span className="text-[10px] text-stone-400 font-bold">{showGhost ? "ON" : "OFF"}</span>
               </button>
 
@@ -330,7 +334,7 @@ export default function PuzzleToolbar({
                 }}
                 className="w-full text-left px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition flex items-center justify-between cursor-pointer"
               >
-                <span>Piece Rotation Mode</span>
+                <span>{t.toolbar.rotation}</span>
                 <span className={`text-[10px] font-bold ${isRotationEnabled ? "text-amber-600" : "text-stone-400"}`}>
                   {isRotationEnabled ? "ON" : "OFF"}
                 </span>
@@ -343,7 +347,7 @@ export default function PuzzleToolbar({
                 }}
                 className="w-full text-left px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition flex items-center justify-between cursor-pointer"
               >
-                <span>Sound Effects</span>
+                <span>{isMuted ? t.toolbar.soundOff : t.toolbar.soundOn}</span>
                 {isMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-600" />}
               </button>
 
@@ -355,7 +359,7 @@ export default function PuzzleToolbar({
                 className="w-full text-left px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition flex items-center gap-2 border-t border-stone-100 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-stone-400" />
-                <span>Restart / Shuffle</span>
+                <span>{t.toolbar.shuffle}</span>
               </button>
 
               <button
@@ -366,7 +370,7 @@ export default function PuzzleToolbar({
                 className="w-full text-left px-3.5 py-2 text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition flex items-center gap-2 cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Solve Puzzle</span>
+                <span>{t.toolbar.solve}</span>
               </button>
             </div>
           )}
