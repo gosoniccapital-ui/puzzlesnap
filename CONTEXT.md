@@ -136,3 +136,19 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
   - God Component Elimination: Decomposed the monolithic src/app/admin/page.tsx (1,750 lines) into a lean 144-line Smart Container and 10 focused atomic components in src/components/admin/ (AdminHeader, AdminMetricsRow, AdminTabsNav, AdminPuzzlesTab, AdminScoresTab, AdminHealthTab, AdminAnalyticsTab, AdminAddPuzzleModal, AdminEditPuzzleModal, useAdminDashboard).
   - Seamless Decoupling: Encapsulated puzzle CRUD, leaderboard score audits, real-time affiliate conversion analytics, and CSV exports into dedicated dumb UI tabs and custom hook.
   - Strict Verification: 176/176 automated tests pass 100%, Next.js 15 production build compiling cleanly across 26/26 routes with zero errors. Rollback Anchor: 77fe6fc.
+
+- [x] Milestone 11.12 (Player Profile Modal Portal & Progressive Google OAuth):
+  - Modal Clipping Elimination: Extracted PlayerProfileModal out of Navbar stacking context using `createPortal(modalContent, document.body)`, centered with `my-auto`, `max-h-[90vh]`, and `overflow-y-auto`.
+  - Lazy Auth Integration: Added non-intrusive "Continue with Google" OAuth sign-in option alongside anonymous nickname entry for cloud save, with 100% dictionary key parity across all 7 supported languages (`en`, `vi`, `ja`, `fr`, `de`, `es`, `zh`).
+
+- [x] Milestone 11.13 (Affiliate Funnel Bridge & Style Advisor Deep-Link):
+  - Haute Couture Victory Lookbook: Embedded Lookbook preview card with genuine image, discounted sale price ($49.99), struck-out original price, and VIP tag inside `PuzzleVictoryModal.tsx`.
+  - 1-Click Save to Wardrobe: Wired heart bookmark button directly to `useWardrobe()`, saving to localStorage `cunfashion_wardrobe_v1` and syncing to Supabase.
+  - Mix & Match Deep Link: Added Style Advisor CTA deep-linking to `/style-advisor?keyword=[Title]`, automatically parsing query param and auto-filling search bar on destination page.
+  - Test Invariant: Authored `tests/sprint-11-5-affiliate-funnel-integration.test.mjs` verifying all 3 invariants. 185/185 tests passing 100%.
+
+- [x] Milestone 11.14 (Mobile In-App Browser Zero-Overflow & OpenGraph Fallback):
+  - Zero Horizontal Overflow: Fixed mobile header overflow by hiding logo tagline (`hidden sm:flex`), making Player Profile Pill compact on mobile (avatar dot + Users icon, hiding text nickname on small screens), and tightening navbar right-side actions (`gap-1.5 sm:gap-2.5`). Body scroll width reduced from 468px to 412px (`hasHorizontalScroll: false`).
+  - OpenGraph PNG Fallback: Configured `/images/brand/cunfashion-mark.png` (1200x630px) as explicit OpenGraph & Twitter fallback image for robust social scrapers.
+  - Production Deployment: Verified live on `https://cunfashion.com/` (Deployment `dpl_ZC2g2URjZkZYXNsJRZ4g2Zi82cg4`, Rollback Anchor: `67bcae7`).
+
