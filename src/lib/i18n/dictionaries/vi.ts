@@ -172,6 +172,11 @@ export const vi: TranslationDictionary = {
     save: "Lưu Thay Đổi",
     saved: "Đã lưu!",
     defaultName: "Người chơi",
+    signInWithGoogle: "Tiếp tục với Google",
+    signOut: "Đăng xuất",
+    connectedAs: "Đã kết nối tài khoản",
+    cloudSyncBenefit: "Tùy chọn: Đăng nhập để đồng bộ điểm số và tủ đồ Lookbook trên mọi thiết bị.",
+    orConnect: "HOẶC ĐỒNG BỘ ĐÁM MÂY",
   },
   leaderboard: {
     title: "Bảng Xếp Hạng & Điểm Cao",

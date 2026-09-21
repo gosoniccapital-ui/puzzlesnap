@@ -172,6 +172,11 @@ export const ja: TranslationDictionary = {
     save: "変更を保存",
     saved: "保存しました！",
     defaultName: "プレイヤー",
+    signInWithGoogle: "Googleでログイン",
+    signOut: "ログアウト",
+    connectedAs: "ログイン中:",
+    cloudSyncBenefit: "任意: ログインすると、複数の端末でスコアやワードローブを同期できます。",
+    orConnect: "またはアカウント同期",
   },
   leaderboard: {
     title: "ランキング＆ハイスコア",

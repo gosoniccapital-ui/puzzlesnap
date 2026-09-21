@@ -171,6 +171,11 @@ export const en = {
     save: "Save Changes",
     saved: "Saved!",
     defaultName: "Player",
+    signInWithGoogle: "Continue with Google",
+    signOut: "Sign Out",
+    connectedAs: "Connected as",
+    cloudSyncBenefit: "Optional: Sign in to sync your high scores & lookbook across all your devices.",
+    orConnect: "OR CLOUD SYNC",
   },
   leaderboard: {
     title: "Leaderboard & High Scores",

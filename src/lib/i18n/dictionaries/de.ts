@@ -172,6 +172,11 @@ export const de: TranslationDictionary = {
     save: "Änderungen speichern",
     saved: "Gespeichert!",
     defaultName: "Spieler",
+    signInWithGoogle: "Mit Google fortfahren",
+    signOut: "Abmelden",
+    connectedAs: "Angemeldet als",
+    cloudSyncBenefit: "Optional: Melde dich an, um Highscores und Garderobe geräteübergreifend zu synchronisieren.",
+    orConnect: "ODER KONTO SYNCHRONISIEREN",
   },
   leaderboard: {
     title: "Bestenliste & Highscores",

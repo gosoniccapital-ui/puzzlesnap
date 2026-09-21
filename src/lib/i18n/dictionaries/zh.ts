@@ -172,6 +172,11 @@ export const zh: TranslationDictionary = {
     save: "保存更改",
     saved: "已保存！",
     defaultName: "玩家",
+    signInWithGoogle: "使用 Google 继续",
+    signOut: "退出登录",
+    connectedAs: "已连接账号：",
+    cloudSyncBenefit: "可选：登录以在所有设备间同步您的高分纪录与时尚穿搭衣橱。",
+    orConnect: "或同步云端账号",
   },
   leaderboard: {
     title: "排行榜与高分纪录",

@@ -172,6 +172,11 @@ export const es: TranslationDictionary = {
     save: "Guardar Cambios",
     saved: "¡Guardado!",
     defaultName: "Jugador",
+    signInWithGoogle: "Continuar con Google",
+    signOut: "Cerrar sesión",
+    connectedAs: "Conectado como",
+    cloudSyncBenefit: "Opcional: Inicia sesión para sincronizar tus puntuaciones y armario de moda en todos tus dispositivos.",
+    orConnect: "O SINCRONIZAR CUENTA",
   },
   leaderboard: {
     title: "Clasificación y Récords",
