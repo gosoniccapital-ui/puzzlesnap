@@ -155,10 +155,10 @@ test('Sprint 10 Invariants - Haute Couture Aesthetics & Design Tokens', async (t
     assert.equal(manifest.display, 'standalone', 'manifest display must be standalone');
   });
 
-  await t.test('Service Worker is bumped to cunfashion-cache-v13', () => {
+  await t.test('Service Worker is bumped to cunfashion-cache-v13 or v14', () => {
     assert.ok(fs.existsSync(swPath), 'sw.js must exist');
     const sw = fs.readFileSync(swPath, 'utf8');
 
-    assert.ok(sw.includes('cunfashion-cache-v13'), 'CACHE_NAME must be cunfashion-cache-v13');
+    assert.ok(/cunfashion-cache-v(13|14)/.test(sw), 'CACHE_NAME must be cunfashion-cache-v13 or v14');
   });
 });

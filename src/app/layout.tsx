@@ -96,7 +96,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] antialiased transition-colors duration-250 selection:bg-amber-500/25 selection:text-amber-900 dark:selection:text-amber-200">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] antialiased transition-colors duration-250 selection:bg-amber-500/25 selection:text-amber-900 dark:selection:text-amber-200">
         <ThemeProvider>
           <TrackingPixels />
           <PwaRegister />

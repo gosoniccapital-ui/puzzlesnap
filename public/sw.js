@@ -1,5 +1,5 @@
-// CunFashion PWA Service Worker v13.0.0 (Phase 10 Haute Couture Aesthetics, 7 Languages & Mobile Experience)
-const CACHE_NAME = 'cunfashion-cache-v13';
+// CunFashion PWA Service Worker v14.0.0 (Zero-Chunk-Conflict & Auto-Recovery)
+const CACHE_NAME = 'cunfashion-cache-v14';
 
 const STATIC_ASSETS = [
   '/',
@@ -35,6 +35,13 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Allow clients to trigger skipWaiting
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -44,26 +51,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Bỏ qua Next.js dev server, HMR, và API endpoints
+  // TUYỆT ĐỐI BỎ QUA Next.js chunks, static bundles, HMR, và API endpoints.
+  // Để browser native HTTP cache tự quản lý với immutable headers, tránh ChunkLoadError và ERR_CACHE_READ_FAILURE khi deploy mới.
   if (
-    url.pathname.startsWith('/_next/webpack-hmr') ||
+    url.pathname.startsWith('/_next/') ||
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/admin/api/')
   ) {
     return;
   }
 
-  // Static assets (hình ảnh, manifest, scripts, styles): Stale-While-Revalidate
+  // Static media assets & images: Stale-While-Revalidate
   if (
-    url.pathname.startsWith('/_next/static/') ||
     url.pathname.startsWith('/images/') ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.jpg') ||
     url.pathname.endsWith('.jpeg') ||
     url.pathname.endsWith('.svg') ||
-    url.pathname.endsWith('.webp') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.js')
+    url.pathname.endsWith('.webp')
   ) {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
