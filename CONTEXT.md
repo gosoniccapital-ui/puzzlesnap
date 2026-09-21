@@ -16,7 +16,7 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
-- **Rollback Anchor:** `2b1930d` trên nhánh `feature/fullstack-puzzle-foundation`.
+- **Rollback Anchor:** `8cd828e` trên nhánh `feature/fullstack-puzzle-foundation`.
 - **UI & UX Standard:** Tuân thủ `design-taste-frontend` (Anti-slop, tông màu Silk Alabaster Light default + Velvet Noir Dark mode, Champagne Gold Haute Couture `#dfba73`, typography rõ ràng).
 - **Core Puzzle Engine:**
   - `bezier-cutter.ts`: Tạo cạnh mấu lồi/lỗ khuyết Cubic Bézier mượt mà, đảm bảo bất biến đối xứng giữa 2 mảnh kề nhau.
