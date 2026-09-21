@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
           const prompt = `You are an elite personal fashion stylist and personal shopper for CunFashion, specializing in US & Global haute couture and chic styles.
 ${base64Data ? "Analyze this outfit image and the user's styling preferences:" : `The user is looking for a curated outfit matching the query: "${cleanKeyword}".\nStyling preferences:`}
 - Occasion: ${occasion}
-- Desired Style: ${style}
+- Desired Style: ${style}${style === "retro" ? " (Soft Retro / Quiet Vintage: Inspired by ModCloth 2025-2026 aesthetics filtered through CunFashion Quiet Luxury: feminine A-line Fit & Flare silhouettes, delicate subtle whimsical botanical prints, Gunne Sax romantic long-sleeve midi dresses in warm neutrals, comfortable inclusive fit, and playful calm accessories like silk scarves or Mary Janes)" : ""}
 - Preferred Color / Tone: ${color || "natural match"}${cleanKeyword ? `\n- User's specific target item / search focus: "${cleanKeyword}"` : ""}
 ${cleanKeyword ? `Special Instruction: Prioritize recommendations, layering, and styling advice centered on "${cleanKeyword}".` : ""}
 

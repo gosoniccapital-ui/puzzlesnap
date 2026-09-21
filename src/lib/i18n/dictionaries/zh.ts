@@ -145,6 +145,17 @@ export const zh: TranslationDictionary = {
     androidInstallBtn: "安装应用",
     closeBanner: "稍后",
   },
+  makePuzzle: {
+    shareTitle: "分享拼图",
+    shareSubtitle: "拥有此链接的任何人都可以立即玩此拼图",
+    sharableLink: "可分享的拼图链接",
+    linkCopiedNotice: "链接已复制到剪贴板！您可以通过微信、Messenger、Telegram等与朋友分享...",
+    joiningRoom: "正在加入房间",
+    syncingWithHost: "正在连接房主以同步拼图图片，请稍候...",
+    syncingRealtime: "实时同步中...",
+    createNewRoom: "创建新房间",
+    roomNotFound: "未找到房间拼图图片，房主可能已离开或链接无效。",
+  },
   footer: {
     brandTitle: "CunFashion — 艺术在线拼图",
     copyright: "© 2026 CunFashion. 保留所有权利。",

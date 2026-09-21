@@ -58,6 +58,120 @@ export interface StyleProduct {
   market?: "ALL" | "US" | "RAKUTEN" | "FOURTHWALL" | "VN";
 }
 
+/**
+ * Soft Retro / Quiet Vintage Fashion Catalog
+ * Inspired by ModCloth (2025-2026 Trend) re-imagined through CunFashion's Haute Couture lens:
+ * - Fit & Flare + Soft Silhouette (graceful feminine forms, relaxed waistlines)
+ * - Delicate Whimsical Prints (subtle ditsy florals, muted botanical textures, calm aesthetic)
+ * - Gunne Sax Romanticism (vintage long sleeves, delicate lace, romantic ruffle trims in warm neutrals)
+ * - Comfortable Inclusive Wearability
+ * - Playful Calm Accessories (silk scarves, retro Mary Janes)
+ * 
+ * All products strictly linked to Amazon US with StoreID cuncute-20.
+ */
+export const SOFT_RETRO_STYLE_CATALOG: StyleProduct[] = [
+  {
+    id: "amz-retro-01",
+    name: "Grace Karin 1950s Vintage A-Line Fit & Flare Sweetheart Tea Dress",
+    category: "dress",
+    price: "$39.99",
+    originalPrice: "$52.99",
+    discount: "-25%",
+    rating: 4.6,
+    reviewCount: 485,
+    img: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women vintage a-line tea dress fit flare floral"),
+    platform: "Amazon",
+    tag: "ModCloth Classic",
+    occasions: ["casual", "date", "party"],
+    styles: ["retro", "romantic", "classic"],
+    budgetTier: "low",
+    colorTags: ["dusty rose", "cream", "sage green", "navy"],
+    asin: "B01C5H8Q9A",
+    market: "US"
+  },
+  {
+    id: "amz-retro-02",
+    name: "R.Vivimos Bohemian Long Sleeve Floral Ruffle Gunne Sax Romantic Midi Dress",
+    category: "dress",
+    price: "$44.99",
+    originalPrice: "$58.00",
+    discount: "-22%",
+    rating: 4.5,
+    reviewCount: 362,
+    img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women bohemian floral long sleeve midi dress romantic ruffle"),
+    platform: "Amazon",
+    tag: "Quiet Vintage",
+    occasions: ["casual", "travel", "date"],
+    styles: ["retro", "romantic"],
+    budgetTier: "low",
+    colorTags: ["warm ivory", "caramel", "olive", "terracotta"],
+    asin: "B07H8N3K9P",
+    market: "US"
+  },
+  {
+    id: "amz-retro-03",
+    name: "Allegra K Peter Pan Collar Contrast Trim Whimsical Vintage Blouse",
+    category: "top",
+    price: "$31.99",
+    originalPrice: "$40.00",
+    discount: "-20%",
+    rating: 4.4,
+    reviewCount: 290,
+    img: "https://images.unsplash.com/photo-1551803091-e20673f15770?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women peter pan collar vintage blouse whimsical"),
+    platform: "Amazon",
+    tag: "Retro Chic",
+    occasions: ["work", "casual", "date"],
+    styles: ["retro", "classic", "minimal"],
+    budgetTier: "low",
+    colorTags: ["white", "black", "powder blue", "beige"],
+    asin: "B08K3D5X1Q",
+    market: "US"
+  },
+  {
+    id: "amz-retro-04",
+    name: "DREAM PAIRS Chunky Low Heel T-Strap Mary Jane Vintage Pumps",
+    category: "shoes",
+    price: "$42.99",
+    originalPrice: "$55.99",
+    discount: "-23%",
+    rating: 4.7,
+    reviewCount: 610,
+    img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women t-strap mary jane chunky heel vintage pumps"),
+    platform: "Amazon",
+    tag: "Heritage Walk",
+    occasions: ["work", "date", "casual"],
+    styles: ["retro", "classic"],
+    budgetTier: "low",
+    colorTags: ["burgundy", "black", "patent beige", "cognac"],
+    asin: "B09L7X4W2R",
+    market: "US"
+  },
+  {
+    id: "amz-retro-05",
+    name: "Corciova 100% Mulberry Silk Whimsical Botanical Print Neckerchief Scarf",
+    category: "accessory",
+    price: "$21.99",
+    originalPrice: "$28.00",
+    discount: "-21%",
+    rating: 4.8,
+    reviewCount: 420,
+    img: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=600&auto=format&fit=crop&q=80",
+    link: buildAmazonSearchUrl("women 100 mulberry silk whimsical floral neckerchief scarf"),
+    platform: "Amazon",
+    tag: "Calm Accessory",
+    occasions: ["casual", "work", "travel"],
+    styles: ["retro", "romantic", "elegant"],
+    budgetTier: "low",
+    colorTags: ["champagne gold", "sage", "rose", "ivory"],
+    asin: "B08F9N1K5C",
+    market: "US"
+  }
+];
+
 export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
   // --- OUTERWEAR ---
   {
@@ -539,7 +653,8 @@ export const AMAZON_STYLE_CATALOG: StyleProduct[] = [
     colorTags: ["tortoise", "black", "gold frame"],
     asin: "B07C123890",
     market: "US"
-  }
+  },
+  ...SOFT_RETRO_STYLE_CATALOG
 ];
 
 // Global-First: STYLE_CATALOG aligns 100% with Amazon Global & international networks
@@ -720,7 +835,8 @@ export function generateStylistAdvice({
     elegant: isVN ? "Thanh lịch sang trọng" : "Sophisticated Haute Couture",
     street: isVN ? "Cá tính phóng khoáng" : "Modern Elevated Streetwear",
     romantic: isVN ? "Nữ tính ngọt ngào" : "Feminine & Soft Romantic",
-    classic: isVN ? "Cổ điển vượt thời gian" : "Timeless Parisian Classic"
+    classic: isVN ? "Cổ điển vượt thời gian" : "Timeless Parisian Classic",
+    retro: isVN ? "Cổ điển nữ tính / Quiet Vintage" : "Soft Retro & Quiet Vintage"
   };
 
   const occName = occasionLabels[occasion] || (isVN ? "Đa năng" : "Versatile Daily");

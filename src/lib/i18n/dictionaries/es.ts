@@ -145,6 +145,17 @@ export const es: TranslationDictionary = {
     androidInstallBtn: "Instalar App",
     closeBanner: "Más tarde",
   },
+  makePuzzle: {
+    shareTitle: "Comparte tu rompecabezas",
+    shareSubtitle: "Cualquiera con este enlace puede jugar este rompecabezas de inmediato",
+    sharableLink: "Enlace para compartir rompecabezas",
+    linkCopiedNotice: "¡Enlace copiado al portapapeles! Compártelo con tus amigos a través de WhatsApp, Messenger, Telegram...",
+    joiningRoom: "Uniéndose a la sala",
+    syncingWithHost: "Conectando con el anfitrión para sincronizar la imagen del rompecabezas. Por favor espere...",
+    syncingRealtime: "Sincronizando en tiempo real...",
+    createNewRoom: "Crear nueva sala",
+    roomNotFound: "No se encontró la imagen del rompecabezas en la sala. Es posible que el anfitrión se haya ido o el enlace no sea válido.",
+  },
   footer: {
     brandTitle: "CunFashion — Rompecabezas Artísticos en Línea",
     copyright: "© 2026 CunFashion. Todos los derechos reservados.",

@@ -144,6 +144,17 @@ export const en = {
     androidInstallBtn: "Install App",
     closeBanner: "Dismiss",
   },
+  makePuzzle: {
+    shareTitle: "Share Your Puzzle",
+    shareSubtitle: "Anyone with this link can play this puzzle immediately",
+    sharableLink: "Sharable Puzzle Link",
+    linkCopiedNotice: "Link copied to clipboard! Share it with your friends via WhatsApp, Messenger, Telegram...",
+    joiningRoom: "Joining Room",
+    syncingWithHost: "Connecting to Host to synchronize puzzle image. Please wait a moment...",
+    syncingRealtime: "Syncing Realtime...",
+    createNewRoom: "Create New Room",
+    roomNotFound: "Puzzle image not found from room. The host may have left or the link is invalid.",
+  },
   footer: {
     brandTitle: "CunFashion — Artisanal Online Jigsaw Puzzles",
     copyright: "© 2026 CunFashion. All rights reserved.",

@@ -145,6 +145,17 @@ export const ja: TranslationDictionary = {
     androidInstallBtn: "アプリをインストール",
     closeBanner: "あとで",
   },
+  makePuzzle: {
+    shareTitle: "パズルを共有する",
+    shareSubtitle: "このリンクを持つ人は誰でもすぐにこのパズルをプレイできます",
+    sharableLink: "共有可能なパズルリンク",
+    linkCopiedNotice: "リンクがクリップボードにコピーされました！LINE、Messenger、Telegramなどで友達と共有できます...",
+    joiningRoom: "ルームに参加中",
+    syncingWithHost: "ホストと接続してパズル画像を同期しています。少々お待ちください...",
+    syncingRealtime: "リアルタイム同期中...",
+    createNewRoom: "新しいルームを作成",
+    roomNotFound: "ルームからパズル画像が見つかりません。ホストが退出したか、リンクが無効です。",
+  },
   footer: {
     brandTitle: "CunFashion — 芸術的オンラインジグソーパズル",
     copyright: "© 2026 CunFashion. All rights reserved.",

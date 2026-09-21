@@ -101,6 +101,7 @@ export default function StyleAdvisorPage() {
   const QUICK_COLORS = ["Pastel Pink", "Noir Black", "Oatmeal Beige", "Pure White", "Sky Blue", "Cognac Brown"];
   const QUICK_KEYWORDS = [
     "Trench Coat",
+    "Soft Retro",
     "Tailored Blazer",
     "Cashmere Knit",
     "Silk Slip Dress",
@@ -812,6 +813,7 @@ export default function StyleAdvisorPage() {
                   className="w-full border border-stone-300 dark:border-stone-700 rounded-xl px-2.5 py-2 text-xs bg-white dark:bg-stone-900 focus:border-[#dfba73] outline-none transition font-medium text-stone-800 dark:text-stone-200"
                 >
                   <option value="all">All Styles</option>
+                  <option value="retro">Soft Retro / Quiet Vintage</option>
                   <option value="elegant">Elegant / Haute</option>
                   <option value="minimal">Minimal / Chic</option>
                   <option value="street">Streetwear</option>

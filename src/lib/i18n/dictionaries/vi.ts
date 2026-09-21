@@ -145,6 +145,17 @@ export const vi: TranslationDictionary = {
     androidInstallBtn: "Cài Đặt Ứng Dụng",
     closeBanner: "Để sau",
   },
+  makePuzzle: {
+    shareTitle: "Chia Sẻ Câu Đố",
+    shareSubtitle: "Bất kỳ ai có liên kết này đều có thể chơi ngay lập tức",
+    sharableLink: "Liên Kết Câu Đố Chia Sẻ",
+    linkCopiedNotice: "Liên kết đã được sao chép vào bộ nhớ tạm! Bạn có thể dán gửi ngay cho bạn bè qua Zalo, Messenger, Telegram...",
+    joiningRoom: "Đang Tham Gia Phòng",
+    syncingWithHost: "Hệ thống đang kết nối trực tiếp với Chủ phòng để đồng bộ hình ảnh câu đố ghép chung. Xin vui lòng chờ giây lát...",
+    syncingRealtime: "Đang đồng bộ Realtime...",
+    createNewRoom: "Tạo Phòng Mới",
+    roomNotFound: "Không tìm thấy hình ảnh câu đố từ phòng. Chủ phòng có thể đã rời đi hoặc link chia sẻ bị thiếu thông tin câu đố.",
+  },
   footer: {
     brandTitle: "CunFashion — Nghệ Thuật Ghép Hình Trực Tuyến",
     copyright: "© 2026 CunFashion. Bảo lưu mọi quyền.",

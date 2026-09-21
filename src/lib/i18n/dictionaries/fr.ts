@@ -145,6 +145,17 @@ export const fr: TranslationDictionary = {
     androidInstallBtn: "Installer l'App",
     closeBanner: "Plus tard",
   },
+  makePuzzle: {
+    shareTitle: "Partagez votre puzzle",
+    shareSubtitle: "Toute personne disposant de ce lien peut jouer immédiatement à ce puzzle",
+    sharableLink: "Lien de puzzle partageable",
+    linkCopiedNotice: "Lien copié dans le presse-papiers ! Partagez-le avec vos amis via WhatsApp, Messenger, Telegram...",
+    joiningRoom: "Connexion à la salle",
+    syncingWithHost: "Connexion à l'hôte pour synchroniser l'image du puzzle. Veuillez patienter...",
+    syncingRealtime: "Synchronisation en direct...",
+    createNewRoom: "Créer une nouvelle salle",
+    roomNotFound: "Image du puzzle introuvable. L'hôte est peut-être parti ou le lien est invalide.",
+  },
   footer: {
     brandTitle: "CunFashion — Puzzles d'Art en Ligne",
     copyright: "© 2026 CunFashion. Tous droits réservés.",
