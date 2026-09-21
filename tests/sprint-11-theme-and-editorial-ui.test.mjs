@@ -112,7 +112,10 @@ test("Sprint 11.1 Invariant #6: Style Advisor and Home pages are free of hardcod
   const homePath = path.join(ROOT_DIR, "src", "app", "page.tsx");
 
   const advisorContent = fs.readFileSync(advisorPath, "utf-8");
-  const homeContent = fs.readFileSync(homePath, "utf-8");
+  const heroPath = path.join(ROOT_DIR, "src", "components", "home", "HomeHeroSection.tsx");
+  const homeContent = fs.existsSync(heroPath)
+    ? fs.readFileSync(heroPath, "utf-8")
+    : fs.readFileSync(homePath, "utf-8");
 
   // Root container in StyleAdvisor must use bg-[var(--background)] instead of bg-[#09090b]
   assert.match(
