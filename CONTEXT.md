@@ -105,3 +105,8 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
   - Production DB Sanitization (Supabase): Scanned all tables (`categories`, `puzzles`, `users`, `puzzle_progress`), purged test user `E2E Real Test` (`e2e-1789030381@gmail.com`) and test custom puzzle `Live Probe Room Test` along with its storage asset `custom-puzzles/pz-mu70rhi1-3vk2v.png`. Zero test/dummy data remains.
   - Console Clean-Up: Silenced `console.log` in `PwaRegister.tsx` to ensure zero runtime noise in production.
   - Git Hygiene & Shield: Reinforced `.gitignore` with `test-results/`, `playwright-report/`, `coverage/`, `.nyc_output/`, and `*.log`. Working tree 100% clean. Rollback Anchor: `9f4297c`.
+- [x] Milestone 11.6 (Mobile Responsive Standardization & PWA Invariant Hardening):
+  - Safe-Area Invariant: Implemented dynamic bottom safe-area insets (`env(safe-area-inset-bottom)`) across `PwaInstallBanner`, `ConditionalFooter`, and modal sheets to eliminate navigation/home-indicator overlaps.
+  - Zero Horizontal Overflow: Enforced `overflow-x: hidden` and `max-w-full` across `html`, `body`, and `main` layout tree.
+  - 48x48px Touch Target Standard: Upgraded `.touch-target` to 48x48px and enforced minimum 48px hit-box across `ThemeToggle`, `Navbar` controls, `SocialLinks`, and PWA install buttons.
+  - Chrome DevTools Mobile Emulation: Verified 100% responsive and zero horizontal scroll on iPhone 15 Pro (390x844px) and Samsung Galaxy S22 (412x915px) with screenshot proof. 176/176 tests passing 100%. Rollback Anchor: `b8843e1`.
