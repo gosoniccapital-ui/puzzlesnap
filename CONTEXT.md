@@ -116,3 +116,9 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
   - ChunkLoadError Auto-Recovery: Added global error listener in `PwaRegister.tsx` to automatically purge stale client cache and reload transparently without crashing.
   - Hydration Shield: Added `suppressHydrationWarning` on `<body>` in `layout.tsx` to insulate against browser extensions.
   - Mechanical Verification: Verified zero console errors on `/puzzle/majestic-mountain-lion` with Chrome DevTools MCP. All 176/176 tests passing 100%. Rollback Anchor: `8ee0ef6`.
+- [x] Milestone 11.8 (Frontend Implementation Protocol: Atomic Architecture & 4-State Engine):
+  - Component Architecture: Decomposed the Home page God Component (`src/app/page.tsx`, 262 lines) into 8 focused atomic Dumb UI components (`< 95 lines/file`) in `src/components/home/` (`HomeHeroSection`, `DailyPuzzleCard`, `FeaturedPuzzlesGrid`, `LookbookShowcase`, `CategoryPillList`, `HomeSkeleton`, `HomeErrorState`, `HomeEmptyState`).
+  - Smart Container & State Hook: Created `useHomeData.ts` to manage loading, error, empty, and ready states with auto-recovery and `retry()` function. Reduced `src/app/page.tsx` to a clean 68-line Smart Container.
+  - 4 Mandatory UI States: Implemented layout-preserving Shimmer Skeleton (`Loading`), elegant error card with Retry CTA (`Error`), guidance prompt with first-action Create Puzzle CTA (`Empty`), and Haute Couture layout (`Data Ready`).
+  - Mobile & Accessibility Verification: Verified 0px horizontal overflow, >= 48px touch targets, and 0 console errors using Chrome DevTools MCP mobile emulation (412x915px). All 176/176 tests pass 100%, production build compiles cleanly in 17s across all 26 routes. Rollback Anchor: `0fc2d75`.
+
