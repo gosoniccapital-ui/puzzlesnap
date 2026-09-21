@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { User, Sparkles, X, Check } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
@@ -25,11 +26,13 @@ export default function PlayerProfileModal({
   onSaved,
 }: PlayerProfileModalProps) {
   const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
   const [nickname, setNickname] = useState("");
   const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0].hex);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== "undefined") {
       const savedName =
         localStorage.getItem("cunfashion_player_name") ||
@@ -54,7 +57,7 @@ export default function PlayerProfileModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,16 +82,16 @@ export default function PlayerProfileModal({
     }, 600);
   };
 
-  return (
+  const modalContent = (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-black/50 dark:bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 cursor-pointer"
+      className="fixed inset-0 z-[100] bg-black/50 dark:bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150 cursor-pointer"
       role="dialog"
       aria-modal="true"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-[#161822] border border-stone-200 dark:border-stone-800 rounded-3xl p-6 max-w-md w-full space-y-6 shadow-2xl cursor-default transition-colors duration-200"
+        className="bg-white dark:bg-[#161822] border border-stone-200 dark:border-stone-800 rounded-3xl p-6 max-w-md w-full my-auto max-h-[90vh] overflow-y-auto space-y-6 shadow-2xl cursor-default transition-colors duration-200"
       >
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -196,4 +199,6 @@ export default function PlayerProfileModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
