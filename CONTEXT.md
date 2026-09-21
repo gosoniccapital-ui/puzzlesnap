@@ -110,3 +110,9 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
   - Zero Horizontal Overflow: Enforced `overflow-x: hidden` and `max-w-full` across `html`, `body`, and `main` layout tree.
   - 48x48px Touch Target Standard: Upgraded `.touch-target` to 48x48px and enforced minimum 48px hit-box across `ThemeToggle`, `Navbar` controls, `SocialLinks`, and PWA install buttons.
   - Chrome DevTools Mobile Emulation: Verified 100% responsive and zero horizontal scroll on iPhone 15 Pro (390x844px) and Samsung Galaxy S22 (412x915px) with screenshot proof. 176/176 tests passing 100%. Rollback Anchor: `b8843e1`.
+- [x] Milestone 11.7 (Surgical Bug Fix: Service Worker Chunk Conflict & Extension Hydration Shield):
+  - Root Cause Diagnostics: Diagnosed browser console errors `Uncaught ChunkLoadError: Loading chunk 825 failed`, `ERR_CACHE_READ_FAILURE`, and React Minified Error #418 caused by Service Worker intercepting `_next/static/` chunks after deployment and browser extensions injecting scripts into DOM.
+  - Surgical Fix: Bypassed `_next/` completely in `public/sw.js` (delegating to native browser HTTP immutable caching), bumped SW to `cunfashion-cache-v14` with automated cache purge.
+  - ChunkLoadError Auto-Recovery: Added global error listener in `PwaRegister.tsx` to automatically purge stale client cache and reload transparently without crashing.
+  - Hydration Shield: Added `suppressHydrationWarning` on `<body>` in `layout.tsx` to insulate against browser extensions.
+  - Mechanical Verification: Verified zero console errors on `/puzzle/majestic-mountain-lion` with Chrome DevTools MCP. All 176/176 tests passing 100%. Rollback Anchor: `8ee0ef6`.
