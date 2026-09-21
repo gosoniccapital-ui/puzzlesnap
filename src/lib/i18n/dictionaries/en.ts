@@ -160,6 +160,33 @@ export const en = {
     copyright: "© 2026 CunFashion. All rights reserved.",
     adminAccess: "Admin Access",
   },
+  profile: {
+    title: "Player Profile",
+    subtitle: "Your identity in leaderboards and co-op rooms",
+    nicknameLabel: "Display Nickname:",
+    nicknamePlaceholder: "e.g., Alex, Sophia, Hawk...",
+    nicknameHelper: "This name will be saved in your browser and visible to others in Multiplayer Co-Op rooms.",
+    colorLabel: "Player Badge Color:",
+    cancel: "Cancel",
+    save: "Save Changes",
+    saved: "Saved!",
+    defaultName: "Player",
+  },
+  leaderboard: {
+    title: "Leaderboard & High Scores",
+    pieces: "Pieces",
+    hint: "Lower score is better (Time + Moves)",
+    loading: "Loading leaderboard rankings...",
+    empty: "No high scores recorded yet for this piece count. Be the first to solve it and claim rank #1!",
+    rank: "Rank",
+    player: "Player",
+    time: "Time",
+    moves: "Moves",
+    score: "Score",
+  },
+  preview: {
+    close: "Close Preview",
+  },
 };
 
 export type TranslationDictionary = typeof en;

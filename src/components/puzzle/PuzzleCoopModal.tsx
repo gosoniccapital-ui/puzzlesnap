@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Users, Copy, Check, Sparkles, X, Share2 } from "lucide-react";
 import { RemotePlayer } from "@/lib/puzzle-engine/realtime-room";
+import { useTranslation } from "@/lib/i18n";
 
 interface PuzzleCoopModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export default function PuzzleCoopModal({
   onConnectRoom,
   onLeaveRoom,
 }: PuzzleCoopModalProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [customRoomInput, setCustomRoomInput] = useState("");
 
@@ -52,8 +54,8 @@ export default function PuzzleCoopModal({
               <Users className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Multiplayer Co-Op Room</h3>
-              <p className="text-xs text-stone-400">Solve puzzles together in real time (2 - 8 players)</p>
+              <h3 className="text-base font-bold text-white">{t.coop.title}</h3>
+              <p className="text-xs text-stone-400">{t.coop.subtitle}</p>
             </div>
           </div>
           <button
@@ -71,19 +73,19 @@ export default function PuzzleCoopModal({
             <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs font-bold text-emerald-300">In Room: <strong>{roomId}</strong></span>
+                <span className="text-xs font-bold text-emerald-300">{t.coop.roomCode}: <strong>{roomId}</strong></span>
               </div>
               <button
                 onClick={onLeaveRoom}
                 className="text-[11px] font-bold text-rose-400 hover:text-rose-300 px-2.5 py-1 rounded-lg bg-rose-500/10 transition cursor-pointer"
               >
-                Leave Room
+                {t.coop.leaveRoom}
               </button>
             </div>
 
             {/* Invite Link */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-stone-300">Invite Friends Link:</label>
+              <label className="text-xs font-semibold text-stone-300">{t.coop.copyInviteLink}:</label>
               <div className="flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-xl p-2">
                 <input
                   type="text"
@@ -96,7 +98,7 @@ export default function PuzzleCoopModal({
                   className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-black transition flex items-center gap-1 cursor-pointer shrink-0"
                 >
                   {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? "Copied!" : "Copy Link"}</span>
+                  <span>{copied ? t.coop.inviteCopied : t.coop.copyInviteLink}</span>
                 </button>
               </div>
             </div>
@@ -104,7 +106,7 @@ export default function PuzzleCoopModal({
             {/* Connected Players List */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-stone-400">
-                <span className="font-semibold">Players in Room ({players.length + 1}):</span>
+                <span className="font-semibold">{t.coop.connectedPlayers} ({players.length + 1}):</span>
                 <span className="text-[10px] text-amber-400">Live Sync</span>
               </div>
               <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
@@ -112,9 +114,9 @@ export default function PuzzleCoopModal({
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-stone-950 border border-stone-800 text-xs">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                    <span className="font-bold text-stone-200">{localPlayerName} (You)</span>
+                    <span className="font-bold text-stone-200">{localPlayerName} ({t.coop.you})</span>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300">Host</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300">{t.coop.host}</span>
                 </div>
                 {/* Remote Players */}
                 {players.map((p) => (

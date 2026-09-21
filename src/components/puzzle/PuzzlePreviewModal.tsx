@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import React from "react";
+import { useTranslation } from "@/lib/i18n";
 
 export interface PuzzlePreviewModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ export default function PuzzlePreviewModal({
   title,
   imageSrc,
 }: PuzzlePreviewModalProps) {
+  const { t } = useTranslation();
+
   if (!isOpen) return null;
 
   return (
@@ -36,7 +39,7 @@ export default function PuzzlePreviewModal({
           onClick={onClose}
           className="mt-4 px-6 py-2 rounded-full bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition cursor-pointer"
         >
-          Close Preview
+          {t.preview.close}
         </button>
       </div>
     </div>

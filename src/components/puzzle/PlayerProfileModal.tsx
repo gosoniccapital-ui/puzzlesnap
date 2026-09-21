@@ -24,7 +24,7 @@ export default function PlayerProfileModal({
   onClose,
   onSaved,
 }: PlayerProfileModalProps) {
-  const { isVietnamese } = useTranslation();
+  const { t } = useTranslation();
   const [nickname, setNickname] = useState("");
   const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0].hex);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -58,8 +58,8 @@ export default function PlayerProfileModal({
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = nickname.trim().replace(/<[^>]*>/g, "").substring(0, 25);
-    const finalName = clean || (isVietnamese ? "Người chơi" : "Player");
+    const clean = nickname.trim().slice(0, 25);
+    const finalName = clean || t.profile.defaultName;
 
     if (typeof window !== "undefined") {
       localStorage.setItem("cunfashion_player_name", finalName);
@@ -101,10 +101,10 @@ export default function PlayerProfileModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-stone-900 dark:text-white font-cinzel">
-                {isVietnamese ? "Hồ Sơ Người Chơi" : "Player Profile"}
+                {t.profile.title}
               </h3>
               <p className="text-xs text-stone-500 dark:text-stone-400">
-                {isVietnamese ? "Danh tính tham gia ghép hình & rủ bạn bè" : "Your identity in leaderboards and co-op rooms"}
+                {t.profile.subtitle}
               </p>
             </div>
           </div>
@@ -121,7 +121,7 @@ export default function PlayerProfileModal({
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-              {isVietnamese ? "Tên Nickname hiển thị:" : "Display Nickname:"}
+              {t.profile.nicknameLabel}
             </label>
             <input
               type="text"
@@ -129,20 +129,18 @@ export default function PlayerProfileModal({
               maxLength={25}
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              placeholder={isVietnamese ? "Ví dụ: Minh Tuấn, Sunny, Hero..." : "e.g., Alex, Sophia, Hawk..."}
+              placeholder={t.profile.nicknamePlaceholder}
               className="w-full bg-stone-50 dark:bg-[#0c0d12] text-stone-900 dark:text-stone-100 text-sm font-semibold px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-800 outline-none focus:border-amber-500 transition"
             />
             <p className="text-[11px] text-stone-500 dark:text-stone-400">
-              {isVietnamese
-                ? "Tên này sẽ tự động xuất hiện trên Bảng Xếp Hạng và khi bạn rủ bạn bè vào phòng Co-Op."
-                : "This name appears on the leaderboard and in multiplayer Co-Op games."}
+              {t.profile.nicknameHelper}
             </p>
           </div>
 
           {/* Color Palette */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-              {isVietnamese ? "Màu sắc đại diện trong phòng:" : "Player Badge Color:"}
+              {t.profile.colorLabel}
             </label>
             <div className="flex items-center gap-2.5 pt-1">
               {PLAYER_COLORS.map((col) => {
@@ -169,9 +167,7 @@ export default function PlayerProfileModal({
           <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-200/90 leading-relaxed">
             <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <span>
-              {isVietnamese
-                ? "Không cần đăng ký phức tạp! Danh tính được lưu tự động trên trình duyệt để bạn sẵn sàng chơi ngay và mời bạn bè bất cứ lúc nào."
-                : "Zero friction! Your profile is saved locally so you are always ready to play and invite friends without complicated sign-ups."}
+              {t.profile.nicknameHelper}
             </span>
           </div>
 
@@ -182,7 +178,7 @@ export default function PlayerProfileModal({
               onClick={onClose}
               className="flex-1 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold transition cursor-pointer"
             >
-              {isVietnamese ? "Hủy" : "Cancel"}
+              {t.profile.cancel}
             </button>
             <button
               type="submit"
@@ -193,7 +189,7 @@ export default function PlayerProfileModal({
               }`}
             >
               {savedSuccess ? <Check className="w-4 h-4 stroke-[3]" /> : null}
-              <span>{savedSuccess ? (isVietnamese ? "Đã lưu!" : "Saved!") : (isVietnamese ? "Lưu Thay Đổi" : "Save Changes")}</span>
+              <span>{savedSuccess ? t.profile.saved : t.profile.save}</span>
             </button>
           </div>
         </form>
