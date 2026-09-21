@@ -97,6 +97,9 @@ export const en = {
     copyCode: "Copy Code",
     copiedCode: "Copied!",
     shopCuteOutfits: "Shop Cute Outfits →",
+    styleAdvisorMatch: "Mix & Match in Style Advisor",
+    saveToWardrobe: "Save to Wardrobe",
+    savedToWardrobe: "Saved to Wardrobe!",
   },
   styleAdvisor: {
     title: "AI Visual Fashion Stylist",

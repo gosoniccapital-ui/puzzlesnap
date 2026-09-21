@@ -68,7 +68,7 @@ export default function StyleAdvisorPage() {
     trackAffiliateClick,
   } = useStyleAdvisor();
 
-  // Detect shared wardrobe query param (?wardrobe=id1,id2)
+  // Detect shared wardrobe query param (?wardrobe=id1,id2) and deep-linked keyword (?keyword=...)
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -80,8 +80,13 @@ export default function StyleAdvisorPage() {
           setSharedWardrobeItems(items);
         }
       }
+
+      const keywordParam = params.get("keyword");
+      if (keywordParam) {
+        setKeyword(keywordParam);
+      }
     } catch (e) {
-      console.error("Failed to parse wardrobe query param:", e);
+      console.error("Failed to parse query params:", e);
     }
   }, []);
 

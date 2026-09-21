@@ -98,6 +98,9 @@ export const vi: TranslationDictionary = {
     copyCode: "Sao Chép Mã",
     copiedCode: "Đã Chép!",
     shopCuteOutfits: "Mua Đồ Xinh Ngay →",
+    styleAdvisorMatch: "Phối Đồ Cùng Style Advisor",
+    saveToWardrobe: "Lưu Vào Tủ Đồ",
+    savedToWardrobe: "Đã Lưu Vào Tủ Đồ!",
   },
   styleAdvisor: {
     title: "Chuyên Gia Phối Đồ AI",

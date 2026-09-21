@@ -98,6 +98,9 @@ export const zh: TranslationDictionary = {
     copyCode: "复制券码",
     copiedCode: "复制成功！",
     shopCuteOutfits: "探索时尚美衣 →",
+    styleAdvisorMatch: "在 AI 造型师中智能搭配",
+    saveToWardrobe: "存入试衣间",
+    savedToWardrobe: "已存入试衣间！",
   },
   styleAdvisor: {
     title: "AI 视觉时尚造型师",

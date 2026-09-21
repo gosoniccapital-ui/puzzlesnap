@@ -98,6 +98,9 @@ export const de: TranslationDictionary = {
     copyCode: "Code kopieren",
     copiedCode: "Kopiert!",
     shopCuteOutfits: "Stilvolle Mode Entdecken →",
+    styleAdvisorMatch: "Mit Style Advisor kombinieren",
+    saveToWardrobe: "In Garderobe speichern",
+    savedToWardrobe: "In Garderobe gespeichert!",
   },
   styleAdvisor: {
     title: "KI-Modeberater & Stylist",

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   CheckCircle2,
   RotateCcw,
@@ -16,8 +17,11 @@ import {
   Facebook,
   Twitter,
   MessageCircle,
+  Heart,
+  Compass,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useWardrobe } from "@/lib/hooks/useWardrobe";
 
 export interface PuzzleVictoryModalProps {
   isOpen: boolean;
@@ -63,12 +67,37 @@ export default function PuzzleVictoryModal({
   productUrl,
   productPriceOriginal,
   productPriceSale,
+  imageSrc,
   ctaText,
 }: PuzzleVictoryModalProps) {
   const { t } = useTranslation();
+  const { saveItem, isSaved, removeItem } = useWardrobe();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
   const [showShareGroup, setShowShareGroup] = useState(false);
+
+  const wardrobeId = `puz-${slug || title.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+  const isLookSaved = isSaved(wardrobeId);
+
+  const handleToggleWardrobe = () => {
+    if (isLookSaved) {
+      removeItem(wardrobeId);
+    } else {
+      saveItem({
+        id: wardrobeId,
+        name: title,
+        price: productPriceSale || "$49.99",
+        originalPrice: productPriceOriginal || "$59.99",
+        discount: discountPercent ? `${discountPercent}% OFF` : "VIP",
+        img: imageSrc || "https://images.unsplash.com/photo-1490481651871-ab68de25d43d",
+        link: productUrl || "https://cunfashion.com",
+        platform: "Amazon",
+        category: "Fashion",
+        closetCategory: "party",
+        savedAt: new Date().toISOString(),
+      });
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -262,6 +291,56 @@ export default function PuzzleVictoryModal({
           </span>
         </div>
 
+        {/* Featured Lookbook Item & Quick Wardrobe Save */}
+        {imageSrc ? (
+          <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-stone-950/80 border border-stone-800">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <img
+                src={imageSrc}
+                alt={title}
+                className="w-12 h-12 rounded-lg object-cover border border-amber-500/30 shrink-0"
+              />
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-stone-200 block truncate">
+                  {title}
+                </span>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  {productPriceSale && (
+                    <span className="text-xs font-black text-amber-400">
+                      {productPriceSale}
+                    </span>
+                  )}
+                  {productPriceOriginal && (
+                    <span className="text-[10px] text-stone-500 line-through">
+                      {productPriceOriginal}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleWardrobe}
+              className={`p-2 rounded-xl transition flex items-center gap-1 text-xs font-bold shrink-0 cursor-pointer ${
+                isLookSaved
+                  ? "bg-rose-500/20 border border-rose-500/40 text-rose-300"
+                  : "bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700"
+              }`}
+              title={isLookSaved ? t.victory.savedToWardrobe : t.victory.saveToWardrobe}
+            >
+              <Heart
+                className={`w-4 h-4 transition ${
+                  isLookSaved ? "fill-rose-500 text-rose-500" : "text-stone-400"
+                }`}
+              />
+              <span className="text-[11px] hidden sm:inline">
+                {isLookSaved ? t.victory.savedToWardrobe : t.victory.saveToWardrobe}
+              </span>
+            </button>
+          </div>
+        ) : null}
+
         {/* Dual Voucher Cards List */}
         <div className="space-y-2.5">
           {/* Voucher 1: Lookbook Special Reward */}
@@ -343,35 +422,27 @@ export default function PuzzleVictoryModal({
           </div>
         </div>
 
-        {/* Pricing (Optional) & "Shop Cute Outfits" Action */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
-          {productPriceSale ? (
-            <div className="text-left w-full sm:w-auto">
-              <span className="text-[10px] text-stone-400 block">Lookbook Price:</span>
-              <div className="flex items-baseline gap-1.5">
-                {productPriceOriginal && (
-                  <span className="text-xs text-stone-500 line-through">
-                    {productPriceOriginal}
-                  </span>
-                )}
-                <span className="text-sm font-black text-amber-400">
-                  {productPriceSale}
-                </span>
-              </div>
-            </div>
-          ) : null}
-
+        {/* Dual Actions: Shop on Amazon & Style Advisor Bridge */}
+        <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
           <a
             href={resolvedProductUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleCtaClick}
-            className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition cursor-pointer"
+            className="w-full sm:flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition cursor-pointer"
           >
             <ShoppingBag className="w-4 h-4 text-stone-950" />
             <span>{resolvedCtaText}</span>
             <ExternalLink className="w-3 h-3 text-stone-950 opacity-75" />
           </a>
+
+          <Link
+            href={`/style-advisor?keyword=${encodeURIComponent(title)}`}
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 border border-stone-700 text-amber-300 font-bold text-xs transition cursor-pointer"
+          >
+            <Compass className="w-3.5 h-3.5 text-amber-400" />
+            <span>{t.victory.styleAdvisorMatch}</span>
+          </Link>
         </div>
       </div>
 

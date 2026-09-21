@@ -98,6 +98,9 @@ export const ja: TranslationDictionary = {
     copyCode: "コードをコピー",
     copiedCode: "コピー完了！",
     shopCuteOutfits: "人気アイテムを見る →",
+    styleAdvisorMatch: "AIスタイリストでコーデを探す",
+    saveToWardrobe: "ワードローブに保存",
+    savedToWardrobe: "ワードローブに保存しました！",
   },
   styleAdvisor: {
     title: "AIファッションスタイリスト",
