@@ -132,3 +132,7 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 
 
 
+- [x] Milestone 11.11 (Admin Dashboard Modularization: Atomic UI & Clean Seams):
+  - God Component Elimination: Decomposed the monolithic src/app/admin/page.tsx (1,750 lines) into a lean 144-line Smart Container and 10 focused atomic components in src/components/admin/ (AdminHeader, AdminMetricsRow, AdminTabsNav, AdminPuzzlesTab, AdminScoresTab, AdminHealthTab, AdminAnalyticsTab, AdminAddPuzzleModal, AdminEditPuzzleModal, useAdminDashboard).
+  - Seamless Decoupling: Encapsulated puzzle CRUD, leaderboard score audits, real-time affiliate conversion analytics, and CSV exports into dedicated dumb UI tabs and custom hook.
+  - Strict Verification: 176/176 automated tests pass 100%, Next.js 15 production build compiling cleanly across 26/26 routes with zero errors. Rollback Anchor: 77fe6fc.
