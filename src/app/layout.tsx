@@ -102,7 +102,7 @@ export default function RootLayout({
           <PwaRegister />
           <PwaInstallBanner />
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 w-full max-w-full overflow-x-hidden">{children}</main>
           <ConditionalFooter />
         </ThemeProvider>
       </body>

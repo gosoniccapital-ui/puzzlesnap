@@ -84,7 +84,7 @@ export default function PwaInstallBanner() {
   if (isStandalone || isDismissed) return null;
 
   return (
-    <aside aria-label="Install CunFashion App" className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-40 animate-in slide-in-from-bottom-5 duration-300">
+    <aside aria-label="Install CunFashion App" className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-40 animate-in slide-in-from-bottom-5 duration-300">
       <div className="luxury-glass p-4 rounded-2xl shadow-2xl border border-amber-500/30 text-stone-100 flex flex-col gap-3 relative overflow-hidden bg-stone-950/90">
         {/* Glow accent */}
         <div className="absolute -top-12 -right-12 w-28 h-28 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
@@ -113,8 +113,9 @@ export default function PwaInstallBanner() {
 
           <button
             onClick={handleDismiss}
-            className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition cursor-pointer"
+            className="min-w-[48px] min-h-[48px] flex items-center justify-center text-stone-400 hover:text-white rounded-xl hover:bg-stone-850 transition cursor-pointer -mr-2 -mt-2"
             title="Dismiss"
+            aria-label="Dismiss banner"
           >
             <X className="w-4 h-4" />
           </button>
@@ -123,7 +124,7 @@ export default function PwaInstallBanner() {
         {/* Action Row */}
         <div className="flex items-center gap-2 pt-1">
           {isIos ? (
-            <div className="flex-1 py-2 px-3 rounded-xl bg-stone-900 border border-stone-800 text-[11px] text-stone-300 flex items-center justify-center gap-1.5 font-medium">
+            <div className="flex-1 min-h-[48px] py-2 px-3 rounded-xl bg-stone-900 border border-stone-800 text-[11px] text-stone-300 flex items-center justify-center gap-1.5 font-medium">
               <span>Tap</span>
               <Share2 className="w-3.5 h-3.5 text-amber-400" />
               <span>Share ➜ &apos;Add to Home Screen&apos;</span>
@@ -131,16 +132,16 @@ export default function PwaInstallBanner() {
           ) : (
             <button
               onClick={handleInstallClick}
-              className="flex-1 py-2 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:opacity-95 text-stone-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition cursor-pointer"
+              className="flex-1 min-h-[48px] py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:opacity-95 text-stone-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-4 h-4" />
               <span>Install App Free</span>
             </button>
           )}
 
           <button
             onClick={handleDismiss}
-            className="py-2 px-3 rounded-xl bg-stone-900 hover:bg-stone-850 text-stone-400 hover:text-stone-200 text-xs font-semibold border border-stone-800 transition cursor-pointer"
+            className="min-h-[48px] py-2.5 px-3.5 rounded-xl bg-stone-900 hover:bg-stone-850 text-stone-400 hover:text-stone-200 text-xs font-semibold border border-stone-800 transition cursor-pointer"
           >
             Not Now
           </button>

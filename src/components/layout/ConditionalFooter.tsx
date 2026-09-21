@@ -14,7 +14,7 @@ export default function ConditionalFooter() {
   }
 
   return (
-    <footer className="border-t border-stone-200/80 dark:border-stone-800/80 bg-[#faf9f6]/90 dark:bg-[#09090b]/90 backdrop-blur-xl py-8 text-center text-xs text-stone-500 dark:text-stone-400 transition-colors">
+    <footer className="border-t border-stone-200/80 dark:border-stone-800/80 bg-[#faf9f6]/90 dark:bg-[#09090b]/90 backdrop-blur-xl pt-8 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] text-center text-xs text-stone-500 dark:text-stone-400 transition-colors">
       <div className="max-w-7xl mx-auto px-4 flex flex-col items-center space-y-4">
         <div className="flex flex-col sm:flex-row items-center justify-between w-full border-b border-stone-200/60 dark:border-stone-800/60 pb-6 gap-4">
           <div className="text-center sm:text-left">

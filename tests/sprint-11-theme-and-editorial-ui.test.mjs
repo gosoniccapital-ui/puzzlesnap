@@ -201,12 +201,12 @@ test("Sprint 11.1 Invariant #10: Minimum Touch Target is enforced on mobile inte
 
   assert.match(
     toggleContent,
-    /min-h-\[44px\]/,
-    "ThemeToggle button must enforce minimum 44px height"
+    /min-h-\[(?:44|48)px\]/,
+    "ThemeToggle button must enforce minimum 44px or 48px height"
   );
   assert.match(
     navbarContent,
-    /min-h-\[44px\]/,
-    "Navbar action buttons must enforce minimum 44px height"
+    /min-h-\[(?:44|48)px\]/,
+    "Navbar action buttons must enforce minimum 44px or 48px height"
   );
 });

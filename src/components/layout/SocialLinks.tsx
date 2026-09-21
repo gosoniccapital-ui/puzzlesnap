@@ -19,19 +19,19 @@ export default function SocialLinks({
   size = "md",
 }: SocialLinksProps) {
   const iconSizeClasses = {
-    sm: "w-7 h-7 text-xs",
-    md: "w-8 h-8 text-sm",
+    sm: "w-8 h-8 text-xs",
+    md: "w-9 h-9 text-sm",
     lg: "w-10 h-10 text-base",
   }[size];
 
   const svgSizes = {
-    sm: "w-3.5 h-3.5",
-    md: "w-4 h-4",
+    sm: "w-4 h-4",
+    md: "w-4.5 h-4.5",
     lg: "w-5 h-5",
   }[size];
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-2 ${className}`}>
       {CUNFASHION_SOCIAL_CHANNELS.map((item) => (
         <a
           key={item.name}
@@ -40,7 +40,7 @@ export default function SocialLinks({
           rel="noopener noreferrer"
           aria-label={item.label}
           title={item.label}
-          className={`group relative inline-flex items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 hover:text-[#dfba73] dark:hover:text-[#dfba73] hover:border-[#dfba73]/60 dark:hover:border-[#dfba73]/60 transition-all duration-200 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 ${iconSizeClasses}`}
+          className={`group relative inline-flex items-center justify-center min-w-[48px] min-h-[48px] rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 hover:text-[#dfba73] dark:hover:text-[#dfba73] hover:border-[#dfba73]/60 dark:hover:border-[#dfba73]/60 transition-all duration-200 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 cursor-pointer touch-target`}
         >
           {item.icon === "facebook" && (
             <svg
