@@ -12,6 +12,7 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - [x] Milestone 6.2: Gamified E-Commerce Funnel (Haute Couture Victory Voucher Card, 1-click clipboard copy, Shop The Look CTA, admin e-commerce controls, XSS & URL sanitization, 25/25 automated tests pass 100%).
 - [x] Milestone 11.1 (Light Theme Default & Production Live Sync): Enforce Silk Alabaster & Warm Ivory Light Theme default, remove public admin link, fix player modal backdrop & ESC dismissal, eliminate favicon conflict, production deploy to cunfashion.com (Commit `cca150d`, Vercel `dpl_CKGJECytqtXMn1dSkzSByHLjfxjc`, 154/154 tests pass 100%).
 - [x] Milestone 11.2 (Amazon Affiliate Monetization Engine & Lookbook Funnel): Standardize dynamic Amazon tracking tag (`cuncute-20` / `tungcute-20`), eliminate legacy VND prices across datasets/admin placeholders, wire direct Amazon ASIN lookbook links with variant tags (`th=1&psc=1`), 161/161 automated tests pass 100%, 26/26 static routes generated. Commit: `2b1930d`.
+- [x] Milestone 11.3 (Git Hygiene, Clean ESM Type, SPEC & GOAL Automation): Dọn sạch 100% untracked verification images qua .gitignore, chuẩn hoá `"type": "module"` triệt tiêu hoàn toàn Node.js typeless warnings, tự động sinh chuẩn hoá SPEC.md và GOAL.md theo chuẩn harness-engineering. 161/161 automated tests pass 100% không warning, 26/26 static routes build sạch.
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
