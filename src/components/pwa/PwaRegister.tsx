@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 
@@ -12,8 +12,8 @@ export default function PwaRegister() {
       window.addEventListener("load", () => {
         navigator.serviceWorker
           .register("/sw.js", { scope: "/" })
-          .then((registration) => {
-            console.log("[PWA] Service Worker registered successfully with scope:", registration.scope);
+          .then(() => {
+            // Service worker registered silently in production
           })
           .catch((error) => {
             console.warn("[PWA] Service Worker registration failed:", error);

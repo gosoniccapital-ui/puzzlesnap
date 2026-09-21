@@ -89,4 +89,8 @@ Thumbs.db
 # ==========================================
 cunfashion_*.png
 preview_*.html
-
+test-results/
+playwright-report/
+coverage/
+.nyc_output/
+*.log
