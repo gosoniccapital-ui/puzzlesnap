@@ -81,11 +81,11 @@ test('Style Advisor Data: generateStylistAdvice supports FOURTHWALL and RAKUTEN 
 
 test('Fourthwall Client: fetchFourthwallProducts filters by query correctly', async () => {
   if (process.env.FOURTHWALL_UNAME && process.env.FOURTHWALL_UPASS) {
-    const cardigans = await fetchFourthwallProducts(5, 'cardigan');
-    assert.ok(Array.isArray(cardigans));
-    assert.ok(cardigans.length > 0);
-    const hasCardigan = cardigans.some(p => p.name.toLowerCase().includes('cardigan'));
-    assert.ok(hasCardigan, 'Should prioritize items matching query keyword');
+    const hoodies = await fetchFourthwallProducts(5, 'hoodie');
+    assert.ok(Array.isArray(hoodies));
+    assert.ok(hoodies.length > 0);
+    const hasHoodie = hoodies.some(p => p.name.toLowerCase().includes('hoodie'));
+    assert.ok(hasHoodie, 'Should prioritize items matching query keyword');
   }
 });
 

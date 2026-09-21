@@ -78,7 +78,7 @@ export default function Logo({
           Cun<span className="text-pink-600 group-hover:text-pink-500 transition">Fashion</span>
         </span>
         {showTagline && (
-          <span className="text-[10px] font-bold text-stone-500 tracking-wider uppercase leading-tight mt-1 flex items-center gap-1.5">
+          <span className="hidden sm:flex text-[10px] font-bold text-stone-500 tracking-wider uppercase leading-tight mt-1 items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />
             Haute Couture Puzzles
           </span>

@@ -27,10 +27,16 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/brand/logo-animated.webp",
+        url: "/images/brand/cunfashion-mark.png",
         width: 1200,
         height: 630,
         alt: "CunFashion Haute Couture & Interactive Puzzles",
+      },
+      {
+        url: "/images/brand/logo-animated.webp",
+        width: 1200,
+        height: 630,
+        alt: "CunFashion Animated Logo",
       },
     ],
   },
@@ -38,7 +44,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CunFashion — Free Online Jigsaw Puzzles & Haute Couture",
     description: "Play free online jigsaw puzzles and discover AI outfit recommendations on CunFashion.",
-    images: ["/images/brand/logo-animated.webp"],
+    images: ["/images/brand/cunfashion-mark.png"],
   },
   appleWebApp: {
     capable: true,
