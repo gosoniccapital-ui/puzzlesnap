@@ -48,6 +48,8 @@ function sanitizeText(val: unknown): string {
   return val.replace(/<[^>]*>?/gm, "").trim();
 }
 
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -74,21 +76,63 @@ export async function GET(request: NextRequest) {
         .maybeSingle();
 
       if (!error && data) {
-        const diffMap: Record<number, string> = { 9: "easy", 16: "medium", 30: "hard", 40: "very-hard", 50: "supreme" };
+        const diffMap: Record<number, string> = { 9: "easy", 16: "medium", 25: "hard", 30: "hard", 36: "very-hard", 40: "very-hard", 50: "supreme" };
         const diff = typeof data.difficulty === "number" ? (diffMap[data.difficulty] || "medium") : (data.difficulty || "medium");
+        const record: CustomPuzzleRecord = {
+          id: data.description || id,
+          title: data.title,
+          image: data.image_url,
+          difficulty: diff,
+          createdAt: new Date(data.created_at).getTime(),
+        };
+        customPuzzlesStore.set(id, record);
         return NextResponse.json({
           success: true,
-          data: {
-            id: data.description || id,
-            title: data.title,
-            image: data.image_url,
-            difficulty: diff,
-            createdAt: new Date(data.created_at).getTime(),
-          },
+          data: record,
         });
       }
-    } catch {
-      // Fallback
+
+      // Storage Fallback: If not found in DB table, inspect Supabase Storage bucket puzzle-images
+      const { data: listFiles } = await client.storage
+        .from("puzzle-images")
+        .list("custom-puzzles", { search: id, limit: 5 });
+
+      const matchedFile = listFiles?.find((f) => f.name.startsWith(id));
+      if (matchedFile) {
+        const { data: publicData } = client.storage
+          .from("puzzle-images")
+          .getPublicUrl(`custom-puzzles/${matchedFile.name}`);
+
+        if (publicData?.publicUrl) {
+          const fallbackUrl = publicData.publicUrl;
+          // Auto-heal by inserting into DB table
+          await client.from("puzzles").insert({
+            title: "Custom Puzzle",
+            description: id,
+            image_url: fallbackUrl,
+            source: "user",
+            width: 800,
+            height: 600,
+            difficulty: 16,
+            is_public: true,
+          });
+
+          const restoredRecord: CustomPuzzleRecord = {
+            id,
+            title: "Custom Puzzle",
+            image: fallbackUrl,
+            difficulty: "medium",
+            createdAt: matchedFile.created_at ? new Date(matchedFile.created_at).getTime() : Date.now(),
+          };
+          customPuzzlesStore.set(id, restoredRecord);
+          return NextResponse.json({
+            success: true,
+            data: restoredRecord,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Storage fallback check failed:", err);
     }
   }
 
@@ -197,21 +241,37 @@ export async function POST(request: NextRequest) {
         const diffNumMap: Record<string, number> = {
           easy: 9,
           medium: 16,
-          hard: 30,
-          "very-hard": 40,
+          hard: 25,
+          "very-hard": 36,
           supreme: 50,
         };
 
-        await client.from("puzzles").insert({
+        const targetDiff = diffNumMap[cleanDifficulty] || 16;
+        const { error: insertErr } = await client.from("puzzles").insert({
           title: cleanTitle,
           description: id,
           image_url: finalImageUrl,
           source: "user",
           width: 800,
           height: 600,
-          difficulty: diffNumMap[cleanDifficulty] || 16,
+          difficulty: targetDiff,
           is_public: true,
         });
+
+        if (insertErr) {
+          console.warn("Primary insert failed with diff", targetDiff, insertErr.message);
+          // Fallback with safe baseline difficulty 16
+          await client.from("puzzles").insert({
+            title: cleanTitle,
+            description: id,
+            image_url: finalImageUrl,
+            source: "user",
+            width: 800,
+            height: 600,
+            difficulty: 16,
+            is_public: true,
+          });
+        }
       } catch (err) {
         console.warn("Could not sync custom puzzle to Supabase DB:", err);
       }

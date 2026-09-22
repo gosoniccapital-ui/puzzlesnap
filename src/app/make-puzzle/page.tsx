@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { Sparkles, Users, Loader2, Check, Share2 } from "lucide-react";
+import { Sparkles, Users, Loader2, Check, Share2, AlertCircle } from "lucide-react";
 import PuzzleGameBoard from "@/components/puzzle/PuzzleGameBoard";
 import { useTranslation } from "@/lib/i18n";
 
@@ -9,6 +9,7 @@ import { MakePuzzleDropzone } from "@/components/make-puzzle/MakePuzzleDropzone"
 import { MakePuzzlePreview } from "@/components/make-puzzle/MakePuzzlePreview";
 import { MakePuzzleShareModal } from "@/components/make-puzzle/MakePuzzleShareModal";
 import { MakePuzzleConnecting } from "@/components/make-puzzle/MakePuzzleConnecting";
+import { MakePuzzleHistory } from "@/components/make-puzzle/MakePuzzleHistory";
 import { useMakePuzzle } from "@/components/make-puzzle/useMakePuzzle";
 
 function MakePuzzleContent() {
@@ -32,12 +33,34 @@ function MakePuzzleContent() {
     setShowShareModal,
     customPuzzleId,
     isConnectingRoom,
+    isResolvingPuzzle,
+    sharedPuzzleError,
+    setSharedPuzzleError,
     roomSyncError,
     setRoomSyncError,
     handleFileSelect,
+    handlePlayExisting,
     handleCreateShareLink,
     roomId,
   } = useMakePuzzle(t.makePuzzle?.roomNotFound || "Puzzle image not found from room. The host may have left or the link is invalid.");
+
+  if (isResolvingPuzzle) {
+    return (
+      <div className="max-w-md mx-auto my-28 px-4 text-center space-y-6">
+        <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/60 text-[#dfba73] flex items-center justify-center mx-auto shadow-md">
+          <Loader2 className="w-8 h-8 animate-spin text-[#dfba73]" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-stone-100 font-cinzel tracking-tight">
+            Loading Shared Puzzle Art...
+          </h2>
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 max-w-sm mx-auto">
+            Retrieving the artwork and slicing pieces for your game board.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isPlaying && selectedImage) {
     return (
@@ -110,6 +133,22 @@ function MakePuzzleContent() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-10 transition-colors duration-300">
+      {sharedPuzzleError && (
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-4 text-xs text-rose-900 dark:text-rose-200">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span>{sharedPuzzleError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSharedPuzzleError(null)}
+            className="touch-target px-3 py-1.5 rounded-xl bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-700 text-stone-900 dark:text-stone-100 font-bold text-[11px] cursor-pointer shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {roomSyncError && (
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4 text-xs text-amber-900 dark:text-amber-200">
           <div className="flex items-center gap-2">
@@ -158,6 +197,9 @@ function MakePuzzleContent() {
           />
         )}
       </div>
+
+      {/* User's Recent Puzzle Creations */}
+      <MakePuzzleHistory onSelectPuzzle={handlePlayExisting} />
     </div>
   );
 }

@@ -1,8 +1,10 @@
-"use client";
-
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { RealtimeRoomEngine, RoomPuzzleMeta } from "@/lib/puzzle-engine/realtime-room";
+import {
+  SavedCustomPuzzle,
+  saveMyCustomPuzzle,
+} from "@/lib/puzzle-engine/local-puzzle-history";
 
 export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image not found from room.") {
   const searchParams = useSearchParams();
@@ -18,6 +20,8 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
   const [showShareModal, setShowShareModal] = useState(false);
   const [customPuzzleId, setCustomPuzzleId] = useState<string | null>(null);
   const [isConnectingRoom, setIsConnectingRoom] = useState(false);
+  const [isResolvingPuzzle, setIsResolvingPuzzle] = useState<boolean>(() => Boolean(searchParams.get("id")));
+  const [sharedPuzzleError, setSharedPuzzleError] = useState<string | null>(null);
   const [roomSyncError, setRoomSyncError] = useState<string | null>(null);
 
   const autoSavedRef = useRef(false);
@@ -33,6 +37,8 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
     let cleanupFn: (() => void) | undefined;
 
     if (idParam) {
+      setIsResolvingPuzzle(true);
+      setSharedPuzzleError(null);
       setCustomPuzzleId(idParam);
       fetch("/api/custom-puzzles?id=" + encodeURIComponent(idParam))
         .then((res) => res.json())
@@ -42,12 +48,25 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
             setPuzzleTitle(json.data.title || "Shared Puzzle");
             if (json.data.difficulty) setDifficulty(json.data.difficulty as any);
             setIsPlaying(true);
-          } else if (roomParam) {
-            cleanupFn = connectAndSyncFromHost(roomParam);
+            setIsResolvingPuzzle(false);
+            // Save to local creations history
+            saveMyCustomPuzzle({
+              id: json.data.id || idParam,
+              title: json.data.title || "Shared Puzzle",
+              image: json.data.image,
+              difficulty: json.data.difficulty || "medium",
+              createdAt: json.data.createdAt || Date.now(),
+            });
+          } else {
+            setIsResolvingPuzzle(false);
+            setSharedPuzzleError(json.error || "Shared puzzle not found or link has expired.");
+            if (roomParam) cleanupFn = connectAndSyncFromHost(roomParam);
           }
         })
         .catch((err) => {
           console.error("Failed to load shared puzzle:", err);
+          setIsResolvingPuzzle(false);
+          setSharedPuzzleError("Failed to connect or load shared puzzle.");
           if (roomParam) cleanupFn = connectAndSyncFromHost(roomParam);
         });
     } else if (imgParam) {
@@ -120,6 +139,7 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
   useEffect(() => {
     if (!isPlaying || !selectedImage || customPuzzleId || autoSavedRef.current) return;
     autoSavedRef.current = true;
+    setIsUploading(true);
 
     fetch("/api/custom-puzzles", {
       method: "POST",
@@ -132,12 +152,21 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
     })
       .then((res) => res.json())
       .then((data) => {
+        setIsUploading(false);
         if (data.success && data.data?.id) {
           setCustomPuzzleId(data.data.id);
-          if (data.data.image && data.data.image.startsWith("http")) {
-            setSelectedImage(data.data.image);
+          const finalImg = data.data.image || selectedImage;
+          if (finalImg && finalImg.startsWith("http")) {
+            setSelectedImage(finalImg);
             setIsCloudStored(true);
           }
+          saveMyCustomPuzzle({
+            id: data.data.id,
+            title: puzzleTitle,
+            image: finalImg,
+            difficulty,
+            createdAt: Date.now(),
+          });
           if (typeof window !== "undefined") {
             const url = new URL(window.location.href);
             url.searchParams.set("id", data.data.id);
@@ -145,7 +174,10 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
           }
         }
       })
-      .catch((err) => console.warn("Auto-persist custom puzzle failed:", err));
+      .catch((err) => {
+        setIsUploading(false);
+        console.warn("Auto-persist custom puzzle failed:", err);
+      });
   }, [isPlaying, selectedImage, customPuzzleId, puzzleTitle, difficulty]);
 
   const handleFileSelect = (file: File) => {
@@ -153,6 +185,7 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
     setPuzzleTitle(cleanName);
     setIsCloudStored(false);
     setCustomPuzzleId(null);
+    setSharedPuzzleError(null);
     autoSavedRef.current = false;
 
     const reader = new FileReader();
@@ -162,6 +195,24 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handlePlayExisting = (puzzle: SavedCustomPuzzle) => {
+    setSelectedImage(puzzle.image);
+    setPuzzleTitle(puzzle.title);
+    if (["easy", "medium", "hard"].includes(puzzle.difficulty)) {
+      setDifficulty(puzzle.difficulty as any);
+    }
+    setCustomPuzzleId(puzzle.id);
+    setIsCloudStored(puzzle.image.startsWith("http"));
+    setSharedPuzzleError(null);
+    autoSavedRef.current = true;
+    setIsPlaying(true);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("id", puzzle.id);
+      window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`);
+    }
   };
 
   const handleCreateShareLink = async () => {
@@ -208,10 +259,18 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
       const data = await res.json();
       if (data.success && data.data?.id) {
         setCustomPuzzleId(data.data.id);
-        if (data.data.image && data.data.image.startsWith("http")) {
-          setSelectedImage(data.data.image);
+        const finalImg = data.data.image || selectedImage;
+        if (finalImg && finalImg.startsWith("http")) {
+          setSelectedImage(finalImg);
           setIsCloudStored(true);
         }
+        saveMyCustomPuzzle({
+          id: data.data.id,
+          title: puzzleTitle,
+          image: finalImg,
+          difficulty,
+          createdAt: Date.now(),
+        });
         url.searchParams.set("id", data.data.id);
         const urlWithId = `${url.origin}${url.pathname}?${url.searchParams.toString()}`;
         setShareUrl(urlWithId);
@@ -246,9 +305,13 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
     setShowShareModal,
     customPuzzleId,
     isConnectingRoom,
+    isResolvingPuzzle,
+    sharedPuzzleError,
+    setSharedPuzzleError,
     roomSyncError,
     setRoomSyncError,
     handleFileSelect,
+    handlePlayExisting,
     handleCreateShareLink,
     roomId: searchParams.get("room") || "",
   };

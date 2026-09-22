@@ -13,10 +13,11 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - [x] Milestone 11.1 (Light Theme Default & Production Live Sync): Enforce Silk Alabaster & Warm Ivory Light Theme default, remove public admin link, fix player modal backdrop & ESC dismissal, eliminate favicon conflict, production deploy to cunfashion.com (Commit `cca150d`, Vercel `dpl_CKGJECytqtXMn1dSkzSByHLjfxjc`, 154/154 tests pass 100%).
 - [x] Milestone 11.2 (Amazon Affiliate Monetization Engine & Lookbook Funnel): Standardize dynamic Amazon tracking tag (`cuncute-20` / `tungcute-20`), eliminate legacy VND prices across datasets/admin placeholders, wire direct Amazon ASIN lookbook links with variant tags (`th=1&psc=1`), 161/161 automated tests pass 100%, 26/26 static routes generated. Commit: `2b1930d`.
 - [x] Milestone 11.3 (Git Hygiene, Clean ESM Type, SPEC & GOAL Automation): Dọn sạch 100% untracked verification images qua .gitignore, chuẩn hoá `"type": "module"` triệt tiêu hoàn toàn Node.js typeless warnings, tự động sinh chuẩn hoá SPEC.md và GOAL.md theo chuẩn harness-engineering. 161/161 automated tests pass 100% không warning, 26/26 static routes build sạch.
+- [x] Milestone 11.4 (Custom Puzzle Fix, Storage Fallback, UX Loading & Local History): Fix check constraint difficulty 30->25/36 with fallback 16, Supabase Storage auto-healing fallback in GET /api/custom-puzzles, added silk resolving loader + error alert in make-puzzle, created local puzzle history store & MakePuzzleHistory component.
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
-- **Rollback Anchor:** `67bcae7` trên nhánh `feature/fullstack-puzzle-foundation`.
+- **Rollback Anchor:** `1f1626e` trên nhánh `feature/fullstack-puzzle-foundation`.
 - **UI & UX Standard:** Tuân thủ `design-taste-frontend` (Anti-slop, tông màu Silk Alabaster Light default + Velvet Noir Dark mode, Champagne Gold Haute Couture `#dfba73`, typography rõ ràng).
 - **Core Puzzle Engine:**
   - `bezier-cutter.ts`: Tạo cạnh mấu lồi/lỗ khuyết Cubic Bézier mượt mà, đảm bảo bất biến đối xứng giữa 2 mảnh kề nhau.
