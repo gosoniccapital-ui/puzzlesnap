@@ -56,10 +56,12 @@ export function MakePuzzlePreview({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">
+          <label htmlFor="puzzle-title-input" className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">
             Puzzle Title
           </label>
           <input
+            id="puzzle-title-input"
+            name="puzzleTitle"
             type="text"
             value={puzzleTitle}
             onChange={(e) => onTitleChange(e.target.value)}
