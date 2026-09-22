@@ -160,4 +160,12 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
   - Throttled Broadcast & Auto-Pruning: Throttled pointer movements to max 22 updates/second (45ms interval) to protect network bandwidth, with automatic 8,000ms pruning of stale disconnected cursors and zero solo-mode overhead.
   - Strict Invariant Suite: Authored `tests/sprint-11-6-realtime-coop-presence.test.mjs` verifying all 6 core invariants. 191/191 tests pass 100%, 26/26 routes build cleanly.
 
+- [x] Milestone 11.16 (PWA UX Collision, Make-Puzzle Nav Freeze, Amazon Policy Compliance & Autonomous Git Gate):
+  - PWA Banner Collision & Contrast Hardening: Suppressed banner on `/puzzle/*` and `/make-puzzle` to prevent hit-test canvas interference, restricted to mobile devices, replaced luxury-glass with high-contrast WCAG AAA palette (`bg-stone-950/95 border-amber-500/40 text-stone-100`).
+  - Make Puzzle Navigation Freeze Fix: Keyed `MakePuzzleWrapper` by active search params (`${id}_${room}_${img}`) and added comprehensive state reset in `useMakePuzzle.ts` on route transition without params to unmount/remount clean customizer state.
+  - Amazon Associates Policy Compliance: Deactivated associate tracking tags across Style Advisor and Wardrobe lookbook links (`AMAZON_ASSOCIATE_TAG = ""`), ensuring clean compliant URLs to avoid Amazon ban.
+  - Self-Contained Resilient Catalog: Embedded local fallback catalog in `amazon-live-client.ts`, eliminating ESM dynamic cross-import runtime failures.
+  - Strict Invariant Suite: 195/195 tests pass 100%, `npx tsc --noEmit` exit code 0, 26/26 routes compile cleanly.
+  - Autonomous Git Push: Committed cleanly and pushed branch `feature/ux-hardening-and-amazon-compliance` (Commit `1eb94b3`) to GitHub via authenticated PAT token.
+
 
