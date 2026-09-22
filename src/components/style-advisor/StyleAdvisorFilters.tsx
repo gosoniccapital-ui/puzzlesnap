@@ -44,7 +44,7 @@ export function StyleAdvisorFilters({
             className="touch-target w-full bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-xl px-3 py-2.5 text-xs text-stone-900 dark:text-stone-100 font-semibold focus:outline-none focus:border-[#dfba73]"
           >
             <option value="ALL">🌐 All Platforms (Amazon, Rakuten, CunCute)</option>
-            <option value="US">📦 Amazon US (StoreID cuncute-20)</option>
+            <option value="US">📦 Amazon US & Global</option>
             <option value="RAKUTEN">👗 Rakuten Global Brands</option>
             <option value="FOURTHWALL">🌟 Cun Cute Store Official</option>
           </select>

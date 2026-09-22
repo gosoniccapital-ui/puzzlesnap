@@ -4,7 +4,7 @@ import { generateStyleAdvisorSchema } from "@/lib/seo/json-ld";
 export const metadata: Metadata = {
   title: "AI Style Advisor & Haute Couture Lookbook — CunFashion",
   description:
-    "Get personalized AI outfit recommendations, discover curated luxury fashion from Amazon US / Global (cuncute-20), Rakuten designer brands, and Fourthwall CunCute boutique.",
+    "Get personalized AI outfit recommendations, discover curated luxury fashion from Amazon US & Global, Rakuten designer brands, and Fourthwall CunCute boutique.",
   alternates: {
     canonical: "https://cunfashion.com/style-advisor",
   },

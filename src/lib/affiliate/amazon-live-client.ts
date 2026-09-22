@@ -1,11 +1,14 @@
-import type { StyleProduct } from "../data/style-advisor-data.ts";
+import type { StyleProduct } from "../data/style-advisor-data";
 
-export const AMAZON_ASSOCIATE_TAG = "cuncute-20";
+export const AMAZON_ASSOCIATE_TAG = "";
 
 export function buildAmazonProductUrl(asin: string, subId?: string): string {
-  let url = `https://www.amazon.com/dp/${asin}?tag=${AMAZON_ASSOCIATE_TAG}`;
-  if (subId) {
-    url += `&ascsubtag=${encodeURIComponent(subId)}`;
+  let url = `https://www.amazon.com/dp/${asin}`;
+  if (AMAZON_ASSOCIATE_TAG) {
+    url += `?tag=${AMAZON_ASSOCIATE_TAG}`;
+    if (subId) {
+      url += `&ascsubtag=${encodeURIComponent(subId)}`;
+    }
   }
   return url;
 }
@@ -251,6 +254,16 @@ export async function searchAmazonLiveProducts(
   // Tier 2: RapidAPI (Failover)
   if (results.length === 0) {
     results = await searchRapidApiAmazon(cleanTerm, limit);
+  }
+
+  // Tier 3: Curated Catalog Fallback (When third-party API quotas/credits are exhausted)
+  if (results.length === 0) {
+    const { AMAZON_STYLE_CATALOG } = await import("../data/style-advisor-data");
+    const terms = cleanTerm.toLowerCase().split(/\s+/).filter(Boolean);
+    const matched = AMAZON_STYLE_CATALOG.filter((p) =>
+      terms.some((t) => p.name.toLowerCase().includes(t) || p.category.toLowerCase().includes(t))
+    );
+    results = (matched.length > 0 ? matched : AMAZON_STYLE_CATALOG).slice(0, limit);
   }
 
   if (results.length > 0) {

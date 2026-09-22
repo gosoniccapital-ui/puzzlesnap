@@ -326,7 +326,7 @@ Return ONLY a valid, raw JSON object (no markdown, no backticks, no markdown cod
 
             const adviceText = hasDirectMatch
               ? (parsed.adviceText || "Tailored outfit recommendations curated by CunFashion AI.")
-              : `We couldn't find an exact fashion match for "${cleanKeyword}" in our boutique catalog. You can search directly on Amazon US (StoreID: cuncute-20) or Rakuten using the quick links below. Meanwhile, explore our trending essentials:`;
+              : `We couldn't find an exact fashion match for "${cleanKeyword}" in our boutique catalog. You can search directly on Amazon US or Rakuten using the quick links below. Meanwhile, explore our trending essentials:`;
 
             const result: AdviceResult = {
               headline,

@@ -25,28 +25,24 @@ test('Global-First Amazon Catalog & SubID Invariants', async (t) => {
     assert.ok(categories.has('accessory'), 'Must have accessories');
   });
 
-  await t.test('All Amazon products have valid USD prices, ASIN and cuncute-20 affiliate tag', () => {
+  await t.test('All Amazon products have valid USD prices, ASIN and clean compliant links', () => {
     for (const item of AMAZON_STYLE_CATALOG) {
       assert.ok(item.price.startsWith('$'), `Price must be in USD for ${item.id}: ${item.price}`);
-      assert.ok(item.link.includes('tag=cuncute-20'), `Must have tag cuncute-20 for ${item.id}`);
+      assert.ok(!item.link.includes('tag='), `Must not have tag for ${item.id}`);
       assert.ok(item.asin && item.asin.length >= 8, `Must have valid ASIN for ${item.id}`);
       assert.ok(item.img.startsWith('https://'), `Must have secure image CDN for ${item.id}`);
     }
   });
 
-  await t.test('buildAmazonSearchUrl appends subId via ascsubtag parameter correctly', () => {
+  await t.test('buildAmazonSearchUrl generates clean search link for compliance', () => {
     const defaultUrl = buildAmazonSearchUrl('cropped trench coat');
-    assert.ok(defaultUrl.includes('tag=cuncute-20'));
-    assert.ok(!defaultUrl.includes('ascsubtag'));
-
-    const trackedUrl = buildAmazonSearchUrl('cropped trench coat', 'clk-user-9912');
-    assert.ok(trackedUrl.includes('tag=cuncute-20'));
-    assert.ok(trackedUrl.includes('ascsubtag=clk-user-9912'));
+    assert.ok(!defaultUrl.includes('tag='));
+    assert.ok(defaultUrl.includes('k=cropped%20trench%20coat'));
   });
 
-  await t.test('buildAmazonProductUrl formats clean DP link with tag and optional subId', () => {
-    const url = buildAmazonProductUrl('B09V7N7Y6B', 'clk-sub-123');
-    assert.equal(url, 'https://www.amazon.com/dp/B09V7N7Y6B?tag=cuncute-20&ascsubtag=clk-sub-123');
+  await t.test('buildAmazonProductUrl formats clean DP link for policy compliance', () => {
+    const url = buildAmazonProductUrl('B09V7N7Y6B');
+    assert.equal(url, 'https://www.amazon.com/dp/B09V7N7Y6B');
   });
 });
 

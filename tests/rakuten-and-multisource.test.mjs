@@ -149,7 +149,7 @@ test('Style Advisor Data: Honest Affiliate Search handles uncatalogued terms lik
 
   const amazonSearchLink = webrootAdvice.searchLinks.find(l => l.platform === 'Amazon');
   assert.ok(amazonSearchLink, 'Must provide Amazon search link');
-  assert.ok(amazonSearchLink.url.includes('tag=cuncute-20'), 'Amazon search link must include tag=cuncute-20');
+  assert.ok(!amazonSearchLink.url.includes('tag='), 'Amazon search link must NOT include affiliate tag');
   assert.ok(amazonSearchLink.url.includes('k=webroot'), 'Amazon search link must search for webroot');
 
   const rakutenSearchLink = webrootAdvice.searchLinks.find(l => l.platform === 'Rakuten');

@@ -27,21 +27,21 @@ test("Style Advisor: Catalog integrity check", () => {
   }
 });
 
-test("Amazon Associates: StoreID cuncute-20 tag invariant", () => {
-  assert.equal(AMAZON_ASSOCIATE_TAG, "cuncute-20", "Store ID must match cuncute-20");
+test("Amazon Associates: Clean URLs without Affiliate Tag Invariant (Policy Compliance)", () => {
+  assert.equal(AMAZON_ASSOCIATE_TAG, "", "Store ID must be disabled to prevent Amazon account ban");
 
   for (const item of AMAZON_STYLE_CATALOG) {
-    assert.ok(item.link.includes("tag=cuncute-20"), `Product ${item.id} must have tag=cuncute-20 in link`);
+    assert.ok(!item.link.includes("tag="), `Product ${item.id} must NOT have tag in link`);
     assert.equal(item.market, "US", "Amazon items must have market=US");
     assert.ok(item.price.startsWith("$"), `Amazon price ${item.price} must be in USD`);
   }
 
   const testSearchUrl = buildAmazonSearchUrl("cropped trench coat for women");
-  assert.ok(testSearchUrl.includes("tag=cuncute-20"), "Search URL must include tag=cuncute-20");
+  assert.ok(!testSearchUrl.includes("tag="), "Search URL must NOT include affiliate tag");
   assert.ok(testSearchUrl.includes("amazon.com/s"), "Search URL must target Amazon search");
 
   const testProductUrl = buildAmazonProductUrl("B09V7N7Y6B");
-  assert.equal(testProductUrl, "https://www.amazon.com/dp/B09V7N7Y6B?tag=cuncute-20");
+  assert.equal(testProductUrl, "https://www.amazon.com/dp/B09V7N7Y6B");
 });
 
 test("Style Advisor: generateStylistAdvice produces valid output for Work occasion (VN)", () => {
@@ -74,9 +74,9 @@ test("Style Advisor: generateStylistAdvice produces valid output for US Amazon m
   assert.equal(result.market, "US");
   assert.ok(result.headline.includes("Casual"), "Headline should reflect US casual look");
   assert.ok(result.suggestedProducts.every(p => p.market === "US"), "All suggestions must be US products");
-  assert.ok(result.suggestedProducts.every(p => p.link.includes("tag=cuncute-20")), "All suggestions must have affiliate tag");
+  assert.ok(result.suggestedProducts.every(p => !p.link.includes("tag=")), "All suggestions must have clean organic links");
   assert.ok(result.detectedItems && result.detectedItems.length >= 2, "Must return detected items for visual search");
-  assert.ok(result.detectedItems.every(d => d.amazonUrl.includes("tag=cuncute-20")), "Detected items must have Amazon search affiliate URL");
+  assert.ok(result.detectedItems.every(d => !d.amazonUrl.includes("tag=")), "Detected items must have clean Amazon search URL");
 });
 
 test("Style Advisor: generateStylistAdvice produces valid output for Party occasion with High budget", () => {

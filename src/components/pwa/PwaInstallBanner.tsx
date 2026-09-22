@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Download, Share2, X, Sparkles, Smartphone } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 export default function PwaInstallBanner() {
+  const pathname = usePathname();
   const { t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIos, setIsIos] = useState(false);
@@ -31,10 +33,15 @@ export default function PwaInstallBanner() {
       }
     }
 
-    // Detect iOS
+    // Detect mobile / iOS devices - do not show intrusive floating mobile banner on desktop
     const ua = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(ua);
+    const isMobileDevice = /mobile|android|iphone|ipad|ipod/.test(ua) || window.innerWidth < 1024;
     setIsIos(isIosDevice);
+
+    if (!isMobileDevice) {
+      return;
+    }
 
     // Listen for Android beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -81,11 +88,17 @@ export default function PwaInstallBanner() {
     }
   };
 
-  if (isStandalone || isDismissed) return null;
+  // Strictly hide on active game canvas routes to prevent event stealing & blocking puzzle pieces
+  const isGameRoute = Boolean(
+    pathname &&
+    (pathname.startsWith("/make-puzzle") || pathname.startsWith("/puzzle"))
+  );
+
+  if (isStandalone || isDismissed || isGameRoute) return null;
 
   return (
     <aside aria-label="Install CunFashion App" className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md max-w-[calc(100vw-2rem)] z-40 animate-in slide-in-from-bottom-5 duration-300">
-      <div className="luxury-glass p-4 rounded-2xl shadow-2xl border border-amber-500/30 text-stone-100 flex flex-col gap-3 relative overflow-hidden bg-stone-950/90">
+      <div className="p-4 rounded-2xl shadow-2xl border border-amber-500/40 text-stone-100 flex flex-col gap-3 relative overflow-hidden bg-stone-950/95 backdrop-blur-xl">
         {/* Glow accent */}
         <div className="absolute -top-12 -right-12 w-28 h-28 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
 

@@ -42,7 +42,7 @@ test("Amazon Live Client: End-to-end integration and affiliate tag enforcement",
       assert.ok(first.asin, "Product should have an ASIN");
       assert.ok(first.name, "Product should have a title");
       assert.ok(first.img.startsWith("http"), "Image should be an HTTP URL");
-      assert.ok(first.link.includes("tag=cuncute-20"), "Link must contain affiliate tag cuncute-20");
+      assert.ok(!first.link.includes("tag="), "Link must be clean compliant URL");
       assert.strictEqual(first.platform, "Amazon");
       console.log(`✓ Rainforest returned ${items.length} live items, sample: ${first.name.slice(0, 40)}...`);
     }
@@ -60,7 +60,7 @@ test("Amazon Live Client: End-to-end integration and affiliate tag enforcement",
       assert.ok(first.asin, "Product should have an ASIN");
       assert.ok(first.name, "Product should have a title");
       assert.ok(first.img.startsWith("http"), "Image should be an HTTP URL");
-      assert.ok(first.link.includes("tag=cuncute-20"), "Link must contain affiliate tag cuncute-20");
+      assert.ok(!first.link.includes("tag="), "Link must be clean compliant URL");
       assert.strictEqual(first.platform, "Amazon");
       console.log(`✓ RapidAPI returned ${items.length} live items, sample: ${first.name.slice(0, 40)}...`);
     }
@@ -73,7 +73,7 @@ test("Amazon Live Client: End-to-end integration and affiliate tag enforcement",
 
     assert.ok(Array.isArray(items1), "Should return products");
     assert.ok(items1.length > 0, "Should have at least 1 product");
-    assert.ok(items1[0].link.includes("tag=cuncute-20"), "All links must contain tag=cuncute-20");
+    assert.ok(!items1[0].link.includes("tag="), "All links must be clean compliant URLs");
 
     // Second call should hit the in-memory cache and be virtually instantaneous (< 50ms)
     const startCacheTime = Date.now();
