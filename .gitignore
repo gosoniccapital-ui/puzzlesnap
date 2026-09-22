@@ -60,7 +60,7 @@ Thumbs.db
 # ==========================================
 .gemini/
 .claude/
-.scratch/tmp/
+.scratch/
 .agents/logs/
 .agents/cache/
 .agents/memory/
