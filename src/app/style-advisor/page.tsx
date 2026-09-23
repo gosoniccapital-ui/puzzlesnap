@@ -12,6 +12,7 @@ import { useTranslation } from "@/lib/i18n";
 
 import { StyleAdvisorSearchBar } from "@/components/style-advisor/StyleAdvisorSearchBar";
 import { StyleAdvisorFilters } from "@/components/style-advisor/StyleAdvisorFilters";
+import { trackUserAction } from "@/lib/analytics/event-dispatcher";
 import { StyleAdvisorResults } from "@/components/style-advisor/StyleAdvisorResults";
 import { StyleExtensionModal } from "@/components/style-advisor/StyleExtensionModal";
 import { useStyleAdvisor } from "@/components/style-advisor/useStyleAdvisor";
@@ -144,7 +145,10 @@ export default function StyleAdvisorPage() {
 
             <button
               type="button"
-              onClick={() => setShowExtensionModal(true)}
+              onClick={() => {
+                setShowExtensionModal(true);
+                trackUserAction("extension_install_click", { source: "style_advisor_header" });
+              }}
               className="touch-target px-4 py-2.5 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[#dfba73] font-bold text-xs flex items-center gap-2 transition cursor-pointer"
             >
               <Chrome className="w-4 h-4" />

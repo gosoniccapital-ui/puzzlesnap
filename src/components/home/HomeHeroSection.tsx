@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Play, Sparkles, Upload } from "lucide-react";
 import type { PuzzleItem } from "@/lib/data/puzzles-data";
 import { DailyPuzzleCard } from "./DailyPuzzleCard";
+import { trackUserAction } from "@/lib/analytics/event-dispatcher";
 
 interface HomeHeroSectionProps {
   daily: PuzzleItem;
@@ -54,6 +55,7 @@ export function HomeHeroSection({
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link
               href={`/puzzle/${daily.slug}`}
+              onClick={() => trackUserAction("daily_puzzle_click", { source: "hero_play_button", slug: daily.slug })}
               className="touch-target inline-flex items-center gap-2.5 px-7 py-4 rounded-full bg-gradient-to-r from-amber-400 via-[#dfba73] to-amber-500 hover:brightness-110 text-stone-950 font-black text-sm shadow-[0_0_25px_rgba(223,186,115,0.35)] hover:shadow-[0_0_35px_rgba(223,186,115,0.55)] transition-all transform hover:-translate-y-0.5 duration-200"
             >
               <span>{playTodayLabel}</span>
@@ -62,6 +64,7 @@ export function HomeHeroSection({
 
             <Link
               href="/make-puzzle"
+              onClick={() => trackUserAction("create_puzzle_click", { source: "hero_make_button" })}
               className="touch-target inline-flex items-center gap-2.5 px-7 py-4 rounded-full bg-white dark:bg-stone-900/90 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white font-bold text-sm border border-stone-300 dark:border-stone-700 hover:border-[#dfba73]/60 transition-all duration-200 backdrop-blur-md shadow-sm"
             >
               <Upload className="w-4 h-4 text-[#dfba73]" />

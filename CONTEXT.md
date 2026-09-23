@@ -14,10 +14,12 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - [x] Milestone 11.2 (Amazon Affiliate Monetization Engine & Lookbook Funnel): Standardize dynamic Amazon tracking tag (`cuncute-20` / `tungcute-20`), eliminate legacy VND prices across datasets/admin placeholders, wire direct Amazon ASIN lookbook links with variant tags (`th=1&psc=1`), 161/161 automated tests pass 100%, 26/26 static routes generated. Commit: `2b1930d`.
 - [x] Milestone 11.3 (Git Hygiene, Clean ESM Type, SPEC & GOAL Automation): Dọn sạch 100% untracked verification images qua .gitignore, chuẩn hoá `"type": "module"` triệt tiêu hoàn toàn Node.js typeless warnings, tự động sinh chuẩn hoá SPEC.md và GOAL.md theo chuẩn harness-engineering. 161/161 automated tests pass 100% không warning, 26/26 static routes build sạch.
 - [x] Milestone 11.4 (Custom Puzzle Fix, Storage Fallback, UX Loading & Local History): Fix check constraint difficulty 30->25/36 with fallback 16, Supabase Storage auto-healing fallback in GET /api/custom-puzzles, added silk resolving loader + error alert in make-puzzle, created local puzzle history store & MakePuzzleHistory component.
+- [x] Milestone 11.7 (Space Daily Puzzles 50-Set, Sample Clean-up & Multi-Platform Event Telemetry): Converted 50 high-definition Space images from E:\tmp\space into lightweight 160KB WebP (total ~8MB), integrated daily calendar rotation, archived sample puzzles, created multi-platform Event Dispatcher (GA4, Meta Pixel, TikTok Pixel) for Addon, Make Puzzle, Style Tiles, and Desktop Icon PWA.
+- [x] Milestone 11.8 (Full 236 Space Puzzles & Multi-Platform Event Telemetry Production Gate): Converted entire 236-piece Space collection to optimized 1280px WebPs (27.44 MB total), updated PUZZLES_DATA with 236 items and 236-day non-repeating rotation, implemented multi-platform event tracking (GA4, Meta, TikTok) across Navbar, Hero, Dropzone, Style Advisor, PWA Banner with ring buffer debugging, passed 200/200 tests and autonomous verification gate.
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
-- **Rollback Anchor:** `1f1626e` trên nhánh `feature/fullstack-puzzle-foundation`.
+- **Rollback Anchor:** `436227b` trên nhánh `feature/space-puzzle-collection-and-telemetry`.
 - **UI & UX Standard:** Tuân thủ `design-taste-frontend` (Anti-slop, tông màu Silk Alabaster Light default + Velvet Noir Dark mode, Champagne Gold Haute Couture `#dfba73`, typography rõ ràng).
 - **Core Puzzle Engine:**
   - `bezier-cutter.ts`: Tạo cạnh mấu lồi/lỗ khuyết Cubic Bézier mượt mà, đảm bảo bất biến đối xứng giữa 2 mảnh kề nhau.

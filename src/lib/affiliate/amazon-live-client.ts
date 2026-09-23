@@ -281,7 +281,7 @@ const DEFAULT_FALLBACK_PRODUCTS: StyleProduct[] = [
     tag: "Trending",
     occasions: ["work", "casual"],
     styles: ["chic", "minimal"],
-    budgetTier: "budget",
+    budgetTier: "low",
     colorTags: ["black", "trousers", "bottom"],
     asin: "B07X9Y9012",
     market: "US"
@@ -299,7 +299,7 @@ const DEFAULT_FALLBACK_PRODUCTS: StyleProduct[] = [
     tag: "Prime Delivery",
     occasions: ["casual", "work"],
     styles: ["minimal", "casual"],
-    budgetTier: "budget",
+    budgetTier: "low",
     colorTags: ["cream", "top", "sweater"],
     asin: "B09W8Z3456",
     market: "US"

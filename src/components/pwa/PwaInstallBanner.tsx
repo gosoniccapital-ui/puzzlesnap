@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Download, Share2, X, Sparkles, Smartphone } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { trackUserAction } from "@/lib/analytics/event-dispatcher";
 
 export default function PwaInstallBanner() {
   const pathname = usePathname();
@@ -70,8 +71,10 @@ export default function PwaInstallBanner() {
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
+      trackUserAction("desktop_icon_install_click", { outcome: "prompt_invoked" });
       deferredPrompt.prompt();
       const choiceResult = await deferredPrompt.userChoice;
+      trackUserAction("desktop_icon_install_choice", { outcome: choiceResult?.outcome || "unknown" });
       if (choiceResult.outcome === "accepted") {
         setIsDismissed(true);
       }

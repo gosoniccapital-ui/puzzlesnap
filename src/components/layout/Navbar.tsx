@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/brand/Logo";
+import { trackUserAction } from "@/lib/analytics/event-dispatcher";
 import { CATEGORIES_LIST } from "@/lib/data/puzzles-data";
 import { Search, ChevronDown, Sparkles, Users, Globe, Check } from "lucide-react";
 import PlayerProfileModal from "@/components/puzzle/PlayerProfileModal";
@@ -76,7 +77,8 @@ export default function Navbar() {
         {/* Center-Left: Nav Links */}
         <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-stone-700 dark:text-stone-300">
           <Link
-            href="/puzzle/colorful-fireworks-jigsaw-puzzle"
+            href="/puzzle/daily"
+            onClick={() => trackUserAction("daily_puzzle_click", { source: "navbar" })}
             className="hover:text-amber-600 dark:hover:text-[#dfba73] transition flex items-center gap-1.5"
           >
             <Sparkles className="w-4 h-4 text-amber-500 dark:text-[#dfba73] fill-amber-500 dark:fill-[#dfba73]" />
@@ -143,7 +145,11 @@ export default function Navbar() {
             )}
           </div>
 
-          <Link href="/make-puzzle" className="hover:text-amber-600 dark:hover:text-[#dfba73] transition">
+          <Link
+            href="/make-puzzle"
+            onClick={() => trackUserAction("create_puzzle_click", { source: "navbar_link" })}
+            className="hover:text-amber-600 dark:hover:text-[#dfba73] transition"
+          >
             {t.navbar.makePuzzles}
           </Link>
         </nav>
@@ -237,6 +243,7 @@ export default function Navbar() {
           {/* Make Your Own CTA Button */}
           <Link
             href="/make-puzzle"
+            onClick={() => trackUserAction("create_puzzle_click", { source: "navbar_cta" })}
             className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-gradient-to-r from-amber-400 via-[#dfba73] to-amber-500 hover:brightness-105 text-stone-950 rounded-full shadow-[0_0_15px_rgba(223,186,115,0.25)] hover:shadow-[0_0_22px_rgba(223,186,115,0.4)] transition duration-200"
           >
             {t.navbar.makeYourOwn}
