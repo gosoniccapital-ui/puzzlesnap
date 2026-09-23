@@ -26,13 +26,14 @@ export default function PlayerProfileModal({
   onClose,
   onSaved,
 }: PlayerProfileModalProps) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const [nickname, setNickname] = useState("");
   const [selectedColor, setSelectedColor] = useState(PLAYER_COLORS[0].hex);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -64,12 +65,39 @@ export default function PlayerProfileModal({
     if (!supabase) return;
     try {
       setIsAuthLoading(true);
-      await supabase.auth.signInWithOAuth({
+      setAuthNotice(null);
+      const redirectUrl = typeof window !== "undefined" ? window.location.href : undefined;
+      const { data } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: typeof window !== "undefined" ? window.location.href : undefined,
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
         },
       });
+
+      if (data?.url) {
+        // Pre-flight probe to verify Supabase Google OAuth provider is active before redirecting
+        try {
+          const res = await fetch(data.url);
+          if (!res.ok) {
+            const errJson = await res.json().catch(() => null);
+            if (
+              errJson?.msg?.includes("missing OAuth client ID") ||
+              errJson?.msg?.includes("not enabled")
+            ) {
+              setAuthNotice(
+                lang === "vi"
+                  ? "Google OAuth đang chờ nạp Client ID trên Supabase. Bạn có thể đặt Biệt danh để lưu hồ sơ chơi ngay!"
+                  : "Google OAuth is awaiting Client ID on Supabase. You can set a nickname and play now!"
+              );
+              return;
+            }
+          }
+        } catch {
+          // If probe is blocked by browser CORS/policy, proceed to standard navigation
+        }
+        window.location.href = data.url;
+      }
     } catch (err) {
       console.error("Google auth error:", err);
     } finally {
@@ -273,6 +301,11 @@ export default function PlayerProfileModal({
                 <p className="text-[10px] text-stone-500 dark:text-stone-400 text-center leading-tight">
                   {t.profile.cloudSyncBenefit}
                 </p>
+                {authNotice && (
+                  <p className="text-[11px] text-amber-800 dark:text-amber-200 bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl text-center leading-relaxed">
+                    {authNotice}
+                  </p>
+                )}
               </div>
             )}
           </div>
