@@ -1,5 +1,5 @@
 export const AMAZON_ASSOCIATE_TAG =
-  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_AMAZON_TAG) || "cuncute-20";
+  (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_AMAZON_TAG) || "";
 
 export function buildAmazonSearchUrl(query: string, subId?: string): string {
   // Condense to 3-4 clean keywords to prevent Amazon 503 / "Sorry! Something went wrong!" error page
@@ -9,20 +9,28 @@ export function buildAmazonSearchUrl(query: string, subId?: string): string {
     .filter(Boolean);
   const condensed = words.length > 4 ? words.slice(0, 4).join(" ") : words.join(" ");
   const clean = encodeURIComponent(condensed.trim() || query.trim());
-  let url = `https://www.amazon.com/s?k=${clean}&tag=${AMAZON_ASSOCIATE_TAG}`;
-  if (subId) {
-    url += `&ascsubtag=${encodeURIComponent(subId)}`;
+  let url = `https://www.amazon.com/s?k=${clean}`;
+  if (AMAZON_ASSOCIATE_TAG) {
+    url += `&tag=${AMAZON_ASSOCIATE_TAG}`;
+    if (subId) {
+      url += `&ascsubtag=${encodeURIComponent(subId)}`;
+    }
   }
   return url;
 }
 
 export function buildAmazonProductUrl(asin: string, subId?: string, options?: { preserveVariants?: boolean }): string {
-  let url = `https://www.amazon.com/dp/${asin}?tag=${AMAZON_ASSOCIATE_TAG}`;
-  if (subId) {
-    url += `&ascsubtag=${encodeURIComponent(subId)}`;
-  }
-  if (options?.preserveVariants) {
-    url += `&th=1&psc=1`;
+  let url = `https://www.amazon.com/dp/${asin}`;
+  if (AMAZON_ASSOCIATE_TAG) {
+    url += `?tag=${AMAZON_ASSOCIATE_TAG}`;
+    if (subId) {
+      url += `&ascsubtag=${encodeURIComponent(subId)}`;
+    }
+    if (options?.preserveVariants) {
+      url += `&th=1&psc=1`;
+    }
+  } else if (options?.preserveVariants) {
+    url += `?th=1&psc=1`;
   }
   return url;
 }
@@ -680,7 +688,7 @@ export function buildAffiliateSearchLinks(query: string, market: string = "ALL")
       platform: "Amazon",
       label: `Search "${clean}" on Amazon US / Global`,
       url: buildAmazonSearchUrl(clean),
-      badge: "Tag: cuncute-20",
+      badge: "Amazon Global",
       colorClass: "bg-amber-500 hover:bg-amber-600 text-stone-950 font-black shadow-xs"
     },
     {

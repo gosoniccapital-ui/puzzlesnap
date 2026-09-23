@@ -94,6 +94,8 @@ export default async function CategoryDetailPage({ params }: CategoryDetailPageP
                 <img
                   src={puzzle.image}
                   alt={puzzle.title}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 duration-200">

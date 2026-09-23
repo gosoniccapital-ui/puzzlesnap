@@ -82,7 +82,7 @@ export function parseSharedWardrobeParam(
         name: `Trang phục thời trang #${id.slice(-4)}`,
         price: "Xem chi tiết",
         img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80",
-        link: `https://www.amazon.com/s?k=${encodeURIComponent(id)}&tag=cuncute-20`,
+        link: `https://www.amazon.com/s?k=${encodeURIComponent(id)}`,
         platform: "Amazon",
         savedAt: new Date().toISOString()
       });

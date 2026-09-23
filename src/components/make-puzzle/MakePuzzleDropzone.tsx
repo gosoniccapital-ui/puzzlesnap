@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { Upload } from "lucide-react";
+import { trackUserAction } from "@/lib/analytics/event-dispatcher";
 
 interface MakePuzzleDropzoneProps {
   onFileSelect: (file: File) => void;
@@ -11,6 +12,11 @@ export function MakePuzzleDropzone({ onFileSelect }: MakePuzzleDropzoneProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      trackUserAction("create_puzzle_upload", {
+        mode: "custom_image",
+        file_size: file.size,
+        file_type: file.type,
+      });
       onFileSelect(file);
     }
   };

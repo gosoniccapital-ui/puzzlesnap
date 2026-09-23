@@ -68,7 +68,7 @@ test("Sprint 11.3 Invariants - Soft Retro / ModCloth Fashion Catalog", async (t)
       assert.ok(item.asin && /^B[0-9A-Z]{9}$/.test(item.asin), `Valid ASIN required: ${item.asin}`);
       assert.equal(item.platform, "Amazon");
       assert.ok(item.price.startsWith("$"), "Price must be USD");
-      assert.ok(item.link.includes("tag=cuncute-20"), "Link must have cuncute-20 tag");
+      assert.ok(!item.link.includes("tag="), "Link must have clean compliant URL");
       assert.ok(item.styles.includes("retro"), "Must contain retro style tag");
     }
   });

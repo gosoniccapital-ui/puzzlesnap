@@ -14,10 +14,12 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - [x] Milestone 11.2 (Amazon Affiliate Monetization Engine & Lookbook Funnel): Standardize dynamic Amazon tracking tag (`cuncute-20` / `tungcute-20`), eliminate legacy VND prices across datasets/admin placeholders, wire direct Amazon ASIN lookbook links with variant tags (`th=1&psc=1`), 161/161 automated tests pass 100%, 26/26 static routes generated. Commit: `2b1930d`.
 - [x] Milestone 11.3 (Git Hygiene, Clean ESM Type, SPEC & GOAL Automation): Dọn sạch 100% untracked verification images qua .gitignore, chuẩn hoá `"type": "module"` triệt tiêu hoàn toàn Node.js typeless warnings, tự động sinh chuẩn hoá SPEC.md và GOAL.md theo chuẩn harness-engineering. 161/161 automated tests pass 100% không warning, 26/26 static routes build sạch.
 - [x] Milestone 11.4 (Custom Puzzle Fix, Storage Fallback, UX Loading & Local History): Fix check constraint difficulty 30->25/36 with fallback 16, Supabase Storage auto-healing fallback in GET /api/custom-puzzles, added silk resolving loader + error alert in make-puzzle, created local puzzle history store & MakePuzzleHistory component.
+- [x] Milestone 11.7 (Space Daily Puzzles 50-Set, Sample Clean-up & Multi-Platform Event Telemetry): Converted 50 high-definition Space images from E:\tmp\space into lightweight 160KB WebP (total ~8MB), integrated daily calendar rotation, archived sample puzzles, created multi-platform Event Dispatcher (GA4, Meta Pixel, TikTok Pixel) for Addon, Make Puzzle, Style Tiles, and Desktop Icon PWA.
+- [x] Milestone 11.8 (Full 236 Space Puzzles & Multi-Platform Event Telemetry Production Gate): Converted entire 236-piece Space collection to optimized 1280px WebPs (27.44 MB total), updated PUZZLES_DATA with 236 items and 236-day non-repeating rotation, implemented multi-platform event tracking (GA4, Meta, TikTok) across Navbar, Hero, Dropzone, Style Advisor, PWA Banner with ring buffer debugging, passed 200/200 tests and autonomous verification gate.
 
 ## 🏛️ Decisions & Architecture
 - **Frontend Framework:** Next.js 15.1 (App Router, React 19) + TypeScript + Tailwind CSS.
-- **Rollback Anchor:** `1f1626e` trên nhánh `feature/fullstack-puzzle-foundation`.
+- **Rollback Anchor:** `436227b` trên nhánh `feature/space-puzzle-collection-and-telemetry`.
 - **UI & UX Standard:** Tuân thủ `design-taste-frontend` (Anti-slop, tông màu Silk Alabaster Light default + Velvet Noir Dark mode, Champagne Gold Haute Couture `#dfba73`, typography rõ ràng).
 - **Core Puzzle Engine:**
   - `bezier-cutter.ts`: Tạo cạnh mấu lồi/lỗ khuyết Cubic Bézier mượt mà, đảm bảo bất biến đối xứng giữa 2 mảnh kề nhau.
@@ -159,5 +161,13 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
   - Remote Interaction Halo: Implemented `drawRemotePieceHalos()` to render an amber/colored glowing halo around pieces actively dragged by teammates.
   - Throttled Broadcast & Auto-Pruning: Throttled pointer movements to max 22 updates/second (45ms interval) to protect network bandwidth, with automatic 8,000ms pruning of stale disconnected cursors and zero solo-mode overhead.
   - Strict Invariant Suite: Authored `tests/sprint-11-6-realtime-coop-presence.test.mjs` verifying all 6 core invariants. 191/191 tests pass 100%, 26/26 routes build cleanly.
+
+- [x] Milestone 11.16 (PWA UX Collision, Make-Puzzle Nav Freeze, Amazon Policy Compliance & Autonomous Git Gate):
+  - PWA Banner Collision & Contrast Hardening: Suppressed banner on `/puzzle/*` and `/make-puzzle` to prevent hit-test canvas interference, restricted to mobile devices, replaced luxury-glass with high-contrast WCAG AAA palette (`bg-stone-950/95 border-amber-500/40 text-stone-100`).
+  - Make Puzzle Navigation Freeze Fix: Keyed `MakePuzzleWrapper` by active search params (`${id}_${room}_${img}`) and added comprehensive state reset in `useMakePuzzle.ts` on route transition without params to unmount/remount clean customizer state.
+  - Amazon Associates Policy Compliance: Deactivated associate tracking tags across Style Advisor and Wardrobe lookbook links (`AMAZON_ASSOCIATE_TAG = ""`), ensuring clean compliant URLs to avoid Amazon ban.
+  - Self-Contained Resilient Catalog: Embedded local fallback catalog in `amazon-live-client.ts`, eliminating ESM dynamic cross-import runtime failures.
+  - Strict Invariant Suite: 195/195 tests pass 100%, `npx tsc --noEmit` exit code 0, 26/26 routes compile cleanly.
+  - Autonomous Git Push: Committed cleanly and pushed branch `feature/ux-hardening-and-amazon-compliance` (Commit `1eb94b3`) to GitHub via authenticated PAT token.
 
 

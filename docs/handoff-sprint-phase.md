@@ -1,59 +1,71 @@
-# Handoff Sprint Phase: Fullstack PuzzleSnap (CunFashion)
-**Date:** 2026-09-21  
-**Project:** CunFashion — Haute Couture & Artisanal Jigsaw Puzzles  
-**Branch:** `feature/fullstack-puzzle-foundation`  
-**Rollback Anchor:** `67bcae7`  
-**Production Domain:** [https://cunfashion.com/](https://cunfashion.com/)
+# Handoff Report: Phase 11 — Sprint 11.16
+
+**Dự Án:** PuzzleSnap Full Stack (`cunfashion.com`)  
+**Thời Điểm Handoff:** 2026-09-22 23:00 (GMT+7)  
+**Tác Giả:** AI Copilot (theo `/ai-copilot-alignment`, `/vibe-engineering-workflow`, `/behavior-model-debugger`)  
+**Nhánh Hoạt Động:** `feature/ux-hardening-and-amazon-compliance`  
+**Rollback Anchor:** `1eb94b3`  
+**Trạng Thái Remote:** Đã push lên `origin feature/ux-hardening-and-amazon-compliance` (GitHub PR ready)
 
 ---
 
-## 🎯 1. Mục Tiêu Vừa Hoàn Thành (Sprint 11.5 - 11.6)
+## 1. Mục Tiêu Vừa Thực Hiện (Completed Invariants)
 
-1. **Multiplayer Realtime Co-Op Presence & Remote Cursors (Sprint 11.6):**
-   - **Giao thức đồng bộ con trỏ chuột thời gian thực:** Định nghĩa cấu trúc `RemoteCursorEvent` đồng bộ tọa độ World Space hai chiều qua Supabase Realtime broadcast và BroadcastChannel fallback.
-   - **Render 60fps trên Canvas Screen Space:** Hàm `drawRemoteCursors()` chuyển đổi tọa độ World sang Screen qua ma trận Camera (zoomScale, panOffset), vẽ con trỏ chuột polygon sang trọng theo mã màu riêng của từng người chơi, viền trắng, đổ bóng nổi và nhãn tên tag pill sắc nét.
-   - **Hiệu ứng ánh sáng đồng đội (Remote Piece Halos):** Hàm `drawRemotePieceHalos()` tự động nhận diện mảnh ghép đang được đồng đội kéo rê và phủ đường viền phát sáng (halo glow) tương ứng với màu của đồng đội đó.
-   - **Tiết chế băng thông (Throttling) & Tự động dọn dẹp (Auto-Pruning):** Giới hạn tần suất phát tín hiệu con trỏ tối đa 22 lần/giây (khoảng cách 45ms), tự động dọn sạch con trỏ mất kết nối sau 8,000ms không hoạt động, zero overhead cho chế độ Solo.
-   - **Kiểm thử bất biến tự động:** Viết bộ test `tests/sprint-11-6-realtime-coop-presence.test.mjs` kiểm tra toàn bộ 6/6 bất biến cốt lõi (tất cả đều PASS 100%).
+1. **PWA Install Banner Hardening & WCAG AAA Contrast:**
+   - **File:** `src/components/pwa/PwaInstallBanner.tsx`
+   - Khắc phục triệt để lỗi màu chữ trắng trên nền xám mờ khó đọc (white-on-white text contrast). Chuyển sang bảng màu Velvet Noir `bg-stone-950/95 border-amber-500/40 text-stone-100` với nút CTA nổi bật.
+   - Thêm bộ lọc `usePathname()` tự động **suppress hoàn toàn** banner trên các trang chơi puzzle (`/puzzle/*`) và trang tạo puzzle (`/make-puzzle`) để không cản trở hit-test canvas của người dùng.
+   - Giới hạn hiển thị độc quyền trên thiết bị di động (`isMobileDevice`), ẩn trên máy tính để bàn (PC).
 
-2. **Sửa dứt điểm lỗi Modal Player Profile bị che đỉnh đầu (Sprint 11.5):**
-   - Đưa modal ra khỏi header bằng `createPortal(modalContent, document.body)`.
-   - Căn giữa `my-auto`, bổ sung `max-h-[90vh]` và `overflow-y-auto`.
+2. **Khắc Phục Lỗi Make Puzzle Freeze / Đứng Khi Chuyển Trang:**
+   - **Files:** `src/app/make-puzzle/page.tsx`, `src/components/make-puzzle/useMakePuzzle.ts`
+   - Khi người dùng đang ở puzzle chia sẻ (URL có query `?id=...&room=...`) rồi bấm lại link menu "Make Puzzles", trang không còn bị đơ hay kẹt trạng thái cũ.
+   - Bọc `MakePuzzleWrapper` với dynamic key `${activeKey}` phụ thuộc vào query search params, kích hoạt React unmount/remount clean lifecycle.
+   - Reset toàn bộ state (`isPlaying: false`, `selectedImage: null`, `showHistory: false`) trong `useMakePuzzle.ts` khi query rỗng.
 
-3. **Kiến trúc Lazy Auth (Progressive Google OAuth):**
-   - Tích hợp nút "Continue with Google" không xâm nhập (non-intrusive) cho phép người chơi đổi tên ẩn danh hoặc đăng nhập Google để sao lưu đám mây.
-   - Đồng bộ 100% key parity trên 7 ngôn ngữ quốc tế (`en`, `ja`, `fr`, `de`, `es`, `zh`, `vi`).
+3. **Gỡ Bỏ Mã Tracking Amazon Associates Tuân Thủ Chính Sách (Compliance):**
+   - **Files:** `src/lib/data/style-advisor-data.ts`, `src/lib/affiliate/amazon-live-client.ts`, `src/components/style-advisor/StyleAdvisorFilters.tsx`, `src/app/api/style-advisor/analyze/route.ts`, `src/app/style-advisor/layout.tsx`, `src/lib/seo/json-ld.ts`, `src/lib/wardrobe/sharing.ts`
+   - Đặt `AMAZON_ASSOCIATE_TAG = ""` và tạo link trực tiếp dạng DP thuần không chứa `?tag=` hay `&ascsubtag=` nhằm ngăn ngừa rủi ro bị Amazon quét khóa tài khoản khi triển khai thử nghiệm hoặc vi phạm chính sách Operating Agreement.
+   - Chuyển nhãn filter từ `Amazon (cuncute-20)` thành `Amazon US & Global`.
+   - Loại bỏ chuỗi StoreID trong metadata Schema.org, layout SEO và Lookbook sharing.
 
-4. **Tối ưu hóa Phễu Chuyển Đổi Affiliate Amazon (Affiliate Funnel Bridge):**
-   - **`PuzzleVictoryModal.tsx`:** Bổ sung Haute Couture Lookbook preview (ảnh thật, giá sale `$49.99`, gạch giá gốc).
-   - **Nút 1-Click "Save to Wardrobe" (icon Heart):** Kết nối với `useWardrobe()`, tự động thêm vào `cunfashion_wardrobe_v1` trong localStorage và đồng bộ nền Supabase.
-   - **Nút "Mix & Match in Style Advisor":** Deep-link dẫn sang `/style-advisor?keyword=[Title]`.
-
-5. **Triệt tiêu 100% lỗi Tràn Ngang (Horizontal Overflow) trên In-App Browser:**
-   - Ẩn tagline dài của Logo trên mobile trong `Logo.tsx` (`hidden sm:flex`).
-   - Thu nhỏ Player Profile Pill trên mobile trong `Navbar.tsx` (ẩn nickname, giữ avatar dot + icon Users).
-   - Đo đạc thực tế sau khi sửa: `bodyScrollWidth: 412px` = `winWidth: 412px` (`hasHorizontalScroll: false`).
+4. **Self-Contained Resilient Catalog Architecture:**
+   - **File:** `src/lib/affiliate/amazon-live-client.ts`
+   - Nhúng trực tiếp `DEFAULT_FALLBACK_PRODUCTS` vào module live client, loại bỏ dynamic cross-import gây lỗi Node ESM loader và xung đột TypeScript extension `TS5097`.
 
 ---
 
-## 📊 2. Kết Quả Thực Tế Từ Terminal (Evidence-First)
+## 2. Kết Quả Thực Tế Từ Terminal (Evidence-First Verification)
 
-* **Unit & Invariant Test Suite:** `191 / 191 tests PASSED (100%)`
-  - Sprint 11.6: Multiplayer Realtime Co-Op Presence & Remote Cursors (PASS - 6/6)
-  - Sprint 11.5: E-Commerce Affiliate & Style Advisor Funnel Bridge (PASS)
-  - Sprint 11.4: 100% Global-First i18n & Synchronized Dictionaries (PASS)
-  - Sprint 11: Amazon Affiliate & Monetization Engine (PASS)
-  - Sprint 11: Rich SEO Schema JSON-LD & Cloud Wardrobe Sync (PASS)
-* **Production Build:** `npm run build` hoàn thành với **Exit code 0**, biên dịch toàn bộ 26/26 routes sạch sẽ.
-* **Console Errors:** `0 errors, 0 uncaught exceptions`.
-* **Zero Secrets & Clean Working Tree:** Tuân thủ triệt để nguyên tắc không rò rỉ token/secret.
+- **Test Suite:**
+  - Lệnh: `npm test` (`node --test tests/*.test.mjs`)
+  - Kết quả: **195/195 tests PASS (0 fail, 0 skipped, duration 7.9s)**.
+  - Các test đặc thù: `tests/amazon-live-api.test.mjs` (4/4 pass), `tests/pwa-and-affiliate.test.mjs` (2/2 pass), `tests/custom-puzzle-fixes.test.mjs` (4/4 pass).
+
+- **TypeScript Typecheck:**
+  - Lệnh: `npx tsc --noEmit`
+  - Kết quả: **Exit code 0** (0 errors, 0 warnings).
+
+- **Git & Security Audit:**
+  - Lệnh: `git status --short`
+  - Kết quả: Sạch sẽ, không có tệp thừa ngoài lề. File `.env.local` nằm an toàn trong `.gitignore`.
+  - Quét secret trong commit: **0 token / private key bị lộ**.
+  - Tệp nhị phân duy nhất là `src/app/favicon.ico` dung lượng **17.5 KB** (đạt chuẩn << 25MB).
+
+- **Git Push Remote:**
+  - Branch: `feature/ux-hardening-and-amazon-compliance`
+  - Commit ID: `1eb94b3`
+  - Push status: Đã đẩy thành công lên `origin` via GitHub PAT qua Basic Auth header.
+  - Pull Request URL: `https://github.com/gosoniccapital-ui/puzzlesnap/pull/new/feature/ux-hardening-and-amazon-compliance`
 
 ---
 
-## 📝 3. Các Việc Còn Dang Dở / Roadmap Tiếp Theo
+## 3. Các Việc Còn Dang Dở / Hướng Đi Tiếp Theo (Next Backlog)
 
-1. **Pinterest / TikTok Organic Growth Automation:**
-   - Tạo script tự động xuất hình ảnh Lookbook 9:16 để đăng Pinterest kéo traffic US organic.
-2. **Payment Gateway (Nếu mở rộng sang Paywall / Paid Custom Puzzle):**
-   - Hiện tại hệ thống vận hành theo mô hình **Free-to-Play 100% + Amazon US Affiliate**.
-   - Nếu Đại Ka muốn bổ sung thu tiền trực tiếp (bán gói VIP không quảng cáo hoặc bán tranh custom), thiết lập bảng `orders` trên Supabase và tạo route webhook VietQR SePay (`/api/payment/sepay/webhook`) hoặc Stripe.
+1. **Review & Merge PR lên `feature/fullstack-puzzle-foundation` hoặc `main`:**
+   - Link PR: `https://github.com/gosoniccapital-ui/puzzlesnap/pull/new/feature/ux-hardening-and-amazon-compliance`.
+   - Có thể merge bằng GitHub UI hoặc gộp rebase nếu Đại Ka muốn đồng bộ nhánh chính.
+2. **Kích Hoạt Live Multi-Source Search (Rakuten / Fourthwall / Amazon):**
+   - Khi có nhu cầu kiếm tiền chính thức lại từ Amazon, chỉ cần cấp lại `NEXT_PUBLIC_AMAZON_TAG` hợp lệ qua biến môi trường bí mật trên Vercel sau khi đã đăng ký kênh quảng bá website chính thức với Amazon Associates.
+3. **Triển Khai Production Deployment Vercel:**
+   - Trigger build deploy lên production domain `https://cunfashion.com/` để người dùng thực tế trải nghiệm bản vá PWA banner và Make Puzzle routing mượt mà.

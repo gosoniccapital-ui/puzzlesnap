@@ -9,17 +9,17 @@ import {
   generateStylistAdvice
 } from "../src/lib/data/style-advisor-data.ts";
 
-test("Amazon Associates Tag: cuncute-20 verification", () => {
-  assert.equal(AMAZON_ASSOCIATE_TAG, "cuncute-20", "StoreID must be cuncute-20");
+test("Amazon Associates Tag: Disabled for Policy Compliance", () => {
+  assert.equal(AMAZON_ASSOCIATE_TAG, "", "StoreID must be empty to prevent policy violations");
 
   const query = "cropped trench coat women";
   const searchUrl = buildAmazonSearchUrl(query);
-  assert.ok(searchUrl.includes("tag=cuncute-20"), "Search URL must include tag=cuncute-20");
+  assert.ok(!searchUrl.includes("tag="), "Search URL must NOT include tag parameter");
   assert.ok(searchUrl.includes("k=cropped%20trench%20coat%20women"), "Search keywords must be URI encoded");
 
   const asin = "B09V7N7Y6B";
   const productUrl = buildAmazonProductUrl(asin);
-  assert.equal(productUrl, "https://www.amazon.com/dp/B09V7N7Y6B?tag=cuncute-20");
+  assert.equal(productUrl, "https://www.amazon.com/dp/B09V7N7Y6B");
 });
 
 test("Amazon US Catalog Integrity & Products Verification", () => {
@@ -31,7 +31,7 @@ test("Amazon US Catalog Integrity & Products Verification", () => {
     assert.equal(item.platform, "Amazon", "Platform must be Amazon");
     assert.equal(item.market, "US", "Market must be US");
     assert.ok(item.price.startsWith("$"), `Price ${item.price} must be in USD`);
-    assert.ok(item.link.includes("tag=cuncute-20"), `Link ${item.link} must have tag=cuncute-20`);
+    assert.ok(!item.link.includes("tag="), `Link ${item.link} must NOT have affiliate tag`);
     assert.ok(item.asin, `Item ${item.name} must have an ASIN`);
     assert.ok(item.rating >= 4.0, `Rating ${item.rating} should be high-quality (>= 4.0)`);
     assert.ok(item.reviewCount > 0, `Review count should be positive`);
@@ -71,7 +71,7 @@ test("Style Advisor Engine: US Market Generation with Detected Items", () => {
   assert.ok(result.detectedItems && result.detectedItems.length >= 3, "Must return detected items for visual mapping");
 
   for (const det of result.detectedItems) {
-    assert.ok(det.amazonUrl.includes("tag=cuncute-20"), "Detected item amazonUrl must include tag=cuncute-20");
+    assert.ok(!det.amazonUrl.includes("tag="), "Detected item amazonUrl must NOT include tag");
     assert.ok(det.searchQuery, "Detected item must have searchQuery");
   }
 });

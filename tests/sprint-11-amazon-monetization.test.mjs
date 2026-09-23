@@ -33,26 +33,15 @@ test('Sprint 11 Amazon Affiliate & Monetization Engine Verification', async (t) 
       '../src/lib/data/style-advisor-data.ts'
     );
 
-    // Verify default tag is tungcute-20 (or process.env.NEXT_PUBLIC_AMAZON_TAG)
-    assert.ok(
-      AMAZON_ASSOCIATE_TAG === 'tungcute-20' || AMAZON_ASSOCIATE_TAG === 'cuncute-20',
-      `AMAZON_ASSOCIATE_TAG should be a valid tag: ${AMAZON_ASSOCIATE_TAG}`
-    );
+    // Verify tag is string (disabled by default for policy compliance)
+    assert.equal(typeof AMAZON_ASSOCIATE_TAG, 'string');
 
-    // Generate link for B0CSWYSY6V with subId and preserveVariants
+    // Generate link for B0CSWYSY6V with preserveVariants
     const generatedUrl = buildAmazonProductUrl('B0CSWYSY6V', 'puzzle_victory_couture', { preserveVariants: true });
 
     assert.ok(
-      generatedUrl.startsWith('https://www.amazon.com/dp/B0CSWYSY6V?'),
+      generatedUrl.startsWith('https://www.amazon.com/dp/B0CSWYSY6V'),
       'Generated URL should point to direct Amazon ASIN'
-    );
-    assert.ok(
-      generatedUrl.includes(`tag=${AMAZON_ASSOCIATE_TAG}`),
-      `Generated URL must contain tag=${AMAZON_ASSOCIATE_TAG}`
-    );
-    assert.ok(
-      generatedUrl.includes('ascsubtag=puzzle_victory_couture'),
-      'Generated URL must contain sub-campaign tracking ascsubtag'
     );
     assert.ok(
       generatedUrl.includes('th=1&psc=1'),
@@ -63,12 +52,12 @@ test('Sprint 11 Amazon Affiliate & Monetization Engine Verification', async (t) 
     const cleanUrl = buildAmazonProductUrl('B0CSWYSY6V', 'test_sub');
     assert.ok(!cleanUrl.includes('th=1&psc=1'), 'Clean URL should omit variant params');
 
-    // Ensure ONLY one tag parameter exists in the query
+    // Ensure tag parameter is NOT present for policy compliance
     const tagMatches = generatedUrl.match(/[?&]tag=/g);
     assert.equal(
-      tagMatches?.length,
-      1,
-      'URL must have exactly ONE tag parameter to comply with Amazon Affiliate Operating Agreement'
+      tagMatches?.length || 0,
+      0,
+      'URL must have ZERO tag parameter to comply with Amazon Affiliate Operating Agreement'
     );
   });
 
@@ -108,8 +97,8 @@ test('Sprint 11 Amazon Affiliate & Monetization Engine Verification', async (t) 
         `Item ${item.id} (${item.name}) must have a valid Amazon ASIN`
       );
       assert.ok(
-        item.link && item.link.includes('tag='),
-        `Item ${item.id} link must contain affiliate tag=`
+        item.link && !item.link.includes('tag='),
+        `Item ${item.id} link must NOT contain affiliate tag=`
       );
       assert.ok(
         item.price.startsWith('$'),

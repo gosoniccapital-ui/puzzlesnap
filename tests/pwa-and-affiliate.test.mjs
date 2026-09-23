@@ -27,10 +27,10 @@ test('PWA: Service Worker public/sw.js exists and defines caching lifecycle', ()
   assert.ok(swContent.includes('fetch'), 'Must have fetch event');
 });
 
-test('Style Advisor: Zero fake shop links and verified Amazon affiliate tags', () => {
+test('Style Advisor: Zero fake shop links and verified clean Amazon links', () => {
   for (const item of AMAZON_STYLE_CATALOG) {
     assert.ok(!item.link.includes('cunfashion.com/shop/'), 'Amazon item should not link to fake /shop: ' + item.id);
-    assert.ok(item.link.includes('tag=cuncute-20'), 'Amazon item must have affiliate tag: ' + item.id);
+    assert.ok(!item.link.includes('tag='), 'Amazon item must NOT have affiliate tag: ' + item.id);
     assert.ok(item.price.startsWith('$'), 'Amazon item price must be in USD ($): ' + item.price);
   }
 });

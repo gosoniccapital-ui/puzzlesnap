@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Sparkles, Users, Loader2, Check, Share2, AlertCircle } from "lucide-react";
 import PuzzleGameBoard from "@/components/puzzle/PuzzleGameBoard";
 import { useTranslation } from "@/lib/i18n";
@@ -204,10 +205,16 @@ function MakePuzzleContent() {
   );
 }
 
+function MakePuzzleWrapper() {
+  const searchParams = useSearchParams();
+  const activeKey = `${searchParams.get("id") || ""}_${searchParams.get("room") || ""}_${searchParams.get("img") || ""}`;
+  return <MakePuzzleContent key={activeKey} />;
+}
+
 export default function MakePuzzlePage() {
   return (
     <Suspense fallback={<div className="p-12 text-center text-stone-400">Loading Puzzle Maker...</div>}>
-      <MakePuzzleContent />
+      <MakePuzzleWrapper />
     </Suspense>
   );
 }

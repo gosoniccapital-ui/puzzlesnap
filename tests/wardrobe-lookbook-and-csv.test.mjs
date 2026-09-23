@@ -50,7 +50,7 @@ test('Wardrobe Sharing: parseSharedWardrobeParam accurately resolves catalog pie
   const item3 = resolved[2];
   assert.equal(item3.id, 'custom-item-99');
   assert.ok(item3.name.includes('Trang phục thời trang'), 'Fallback item should have graceful name');
-  assert.ok(item3.link.includes('cuncute-20'), 'Fallback item should still preserve affiliate tag');
+  assert.ok(!item3.link.includes('tag='), 'Fallback item should have clean URL without affiliate tag');
 });
 
 test('CSV Analytics Exporter: generateClickCsvString formats valid CSV with UTF-8 BOM', () => {

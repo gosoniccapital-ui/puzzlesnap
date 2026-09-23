@@ -78,6 +78,17 @@ export function useMakePuzzle(roomNotFoundFallbackText: string = "Puzzle image n
       setIsPlaying(true);
     } else if (roomParam) {
       cleanupFn = connectAndSyncFromHost(roomParam);
+    } else {
+      // When navigating to clean /make-puzzle without query params, reset to customizer
+      setIsResolvingPuzzle(false);
+      setIsConnectingRoom(false);
+      setIsPlaying(false);
+      setSelectedImage(null);
+      setCustomPuzzleId(null);
+      setPuzzleTitle("My Custom Puzzle");
+      setSharedPuzzleError(null);
+      setRoomSyncError(null);
+      autoSavedRef.current = false;
     }
 
     function connectAndSyncFromHost(targetRoom: string) {

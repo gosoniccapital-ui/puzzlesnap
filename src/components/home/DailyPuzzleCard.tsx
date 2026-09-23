@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { Play, Heart, Sparkles } from "lucide-react";
 import type { PuzzleItem } from "@/lib/data/puzzles-data";
+import { trackUserAction } from "@/lib/analytics/event-dispatcher";
 
 interface DailyPuzzleCardProps {
   daily: PuzzleItem;
@@ -19,6 +20,7 @@ export function DailyPuzzleCard({
   return (
     <Link
       href={`/puzzle/${daily.slug}`}
+      onClick={() => trackUserAction("daily_puzzle_click", { source: "daily_card", slug: daily.slug })}
       className="group block relative rounded-2xl overflow-hidden border border-amber-400/50 dark:border-[#dfba73]/40 hover:border-[#dfba73] shadow-[0_10px_40px_rgba(0,0,0,0.1),0_0_30px_rgba(223,186,115,0.2)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.8),0_0_30px_rgba(223,186,115,0.15)] hover:shadow-[0_15px_50px_rgba(223,186,115,0.35)] transition-all duration-300 bg-white dark:bg-stone-950"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-stone-100 dark:bg-stone-950">
