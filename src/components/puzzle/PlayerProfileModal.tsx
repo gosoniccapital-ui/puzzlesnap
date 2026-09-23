@@ -66,38 +66,28 @@ export default function PlayerProfileModal({
     try {
       setIsAuthLoading(true);
       setAuthNotice(null);
+
+      // Verify Google OAuth readiness on server to prevent client-side 400 Bad Request in browser console
+      const statusRes = await fetch("/api/auth/google-status")
+        .then((r) => r.json())
+        .catch(() => ({ enabled: false }));
+
+      if (!statusRes?.enabled) {
+        setAuthNotice(
+          lang === "vi"
+            ? "Google OAuth đang chờ nạp Client ID trên Supabase. Bạn có thể đặt Biệt danh để lưu hồ sơ chơi ngay!"
+            : "Google OAuth is awaiting Client ID on Supabase. You can set a nickname and play now!"
+        );
+        return;
+      }
+
       const redirectUrl = typeof window !== "undefined" ? window.location.href : undefined;
-      const { data } = await supabase.auth.signInWithOAuth({
+      await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
         },
       });
-
-      if (data?.url) {
-        // Pre-flight probe to verify Supabase Google OAuth provider is active before redirecting
-        try {
-          const res = await fetch(data.url);
-          if (!res.ok) {
-            const errJson = await res.json().catch(() => null);
-            if (
-              errJson?.msg?.includes("missing OAuth client ID") ||
-              errJson?.msg?.includes("not enabled")
-            ) {
-              setAuthNotice(
-                lang === "vi"
-                  ? "Google OAuth đang chờ nạp Client ID trên Supabase. Bạn có thể đặt Biệt danh để lưu hồ sơ chơi ngay!"
-                  : "Google OAuth is awaiting Client ID on Supabase. You can set a nickname and play now!"
-              );
-              return;
-            }
-          }
-        } catch {
-          // If probe is blocked by browser CORS/policy, proceed to standard navigation
-        }
-        window.location.href = data.url;
-      }
     } catch (err) {
       console.error("Google auth error:", err);
     } finally {
