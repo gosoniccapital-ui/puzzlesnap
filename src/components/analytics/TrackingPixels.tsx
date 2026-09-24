@@ -5,9 +5,11 @@ import {
   GA_TRACKING_ID,
   FB_PIXEL_ID,
   TIKTOK_PIXEL_ID,
+  X_PIXEL_ID,
+  X_CONVERSION_EVENT_ID,
 } from "@/lib/analytics/pixel-config";
 
-export { GA_TRACKING_ID, FB_PIXEL_ID, TIKTOK_PIXEL_ID };
+export { GA_TRACKING_ID, FB_PIXEL_ID, TIKTOK_PIXEL_ID, X_PIXEL_ID, X_CONVERSION_EVENT_ID };
 
 export default function TrackingPixels() {
   return (
@@ -73,6 +75,23 @@ export default function TrackingPixels() {
               ttq.load('${TIKTOK_PIXEL_ID}');
               ttq.page();
             }(window, document, 'ttq');
+          `,
+        }}
+      />
+
+      {/* 4. X (Twitter) Conversion Tracking */}
+      <Script
+        id="x-conversion-pixel-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
+            },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',
+            a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
+            twq('config','${X_PIXEL_ID}');
+            twq('event', '${X_CONVERSION_EVENT_ID}', {
+              conversion_id: null
+            });
           `,
         }}
       />

@@ -50,14 +50,16 @@ test("Sprint 11.3 Invariants - i18n makePuzzle 7-Language Parity", async (t) => 
 
 test("Sprint 11.3 Invariants - Official Social Channels", async (t) => {
   await t.test("CUNFASHION_SOCIAL_CHANNELS contains verified URLs", () => {
-    assert.equal(CUNFASHION_SOCIAL_CHANNELS.length, 3);
+    assert.equal(CUNFASHION_SOCIAL_CHANNELS.length, 4);
     const fb = CUNFASHION_SOCIAL_CHANNELS.find((s) => s.name === "Facebook");
     const yt = CUNFASHION_SOCIAL_CHANNELS.find((s) => s.name === "YouTube");
     const tt = CUNFASHION_SOCIAL_CHANNELS.find((s) => s.name === "TikTok");
+    const x = CUNFASHION_SOCIAL_CHANNELS.find((s) => s.name === "X");
 
     assert.equal(fb?.url, "https://www.facebook.com/www.MuaChung.co/");
     assert.equal(yt?.url, "https://www.youtube.com/@cunfashion");
     assert.equal(tt?.url, "https://www.tiktok.com/@muachung.co");
+    assert.equal(x?.url, "https://x.com/cunfashion");
   });
 });
 

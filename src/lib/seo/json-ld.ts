@@ -51,6 +51,7 @@ export function generateOrganizationSchema() {
       "https://cute.cunfashion.com",
       "https://instagram.com/cunfashion",
       "https://facebook.com/cunfashion",
+      "https://x.com/cunfashion",
     ],
   };
 }

@@ -91,7 +91,7 @@ export function MakePuzzleShareModal({
               <span>Facebook</span>
             </a>
             <a
-              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Play my custom puzzle on CunFashion!")}`}
+              href={`https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Play my custom puzzle on CunFashion! 🧩✨")}&via=cunfashion`}
               target="_blank"
               rel="noopener noreferrer"
               className="touch-target flex flex-col items-center justify-center p-2 rounded-xl bg-stone-500/10 hover:bg-stone-500/20 text-stone-800 dark:text-stone-200 border border-stone-500/20 transition text-[11px] font-semibold"

@@ -1,7 +1,7 @@
 export interface SocialLinkItem {
   name: string;
   url: string;
-  icon: "facebook" | "youtube" | "tiktok";
+  icon: "facebook" | "youtube" | "tiktok" | "x";
   label: string;
   badge?: string;
 }
@@ -27,5 +27,12 @@ export const CUNFASHION_SOCIAL_CHANNELS: SocialLinkItem[] = [
     icon: "tiktok",
     label: "Follow CunFashion TikTok",
     badge: "Trending Looks",
+  },
+  {
+    name: "X",
+    url: "https://x.com/cunfashion",
+    icon: "x",
+    label: "Follow CunFashion on X",
+    badge: "Latest Updates",
   },
 ];

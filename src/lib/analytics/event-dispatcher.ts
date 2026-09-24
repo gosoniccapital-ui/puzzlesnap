@@ -86,4 +86,13 @@ export function trackUserAction(eventName: string, params?: EventParams): void {
   } catch {
     // Graceful no-op
   }
+
+  // 6. X (Twitter) Conversion Tracking
+  try {
+    if (typeof (window as any).twq === "function") {
+      (window as any).twq("event", eventName, eventPayload);
+    }
+  } catch {
+    // Graceful no-op
+  }
 }

@@ -247,13 +247,15 @@ export default function PuzzleVictoryModal({
                 <Facebook className="w-4 h-4" />
               </a>
               <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(getShareUrl())}`}
+                href={`https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(getShareUrl())}&via=cunfashion`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white border border-stone-700 transition cursor-pointer shadow-xs"
-                title="Share on X"
+                className="p-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white border border-stone-700 transition cursor-pointer shadow-xs flex items-center justify-center"
+                title="Share on X (formerly Twitter)"
               >
-                <Twitter className="w-4 h-4" />
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
               </a>
               <a
                 href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + " " + getShareUrl())}`}

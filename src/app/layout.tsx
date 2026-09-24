@@ -45,6 +45,8 @@ export const metadata: Metadata = {
     title: "CunFashion — Free Online Jigsaw Puzzles & Haute Couture",
     description: "Play free online jigsaw puzzles and discover AI outfit recommendations on CunFashion.",
     images: ["/images/brand/cunfashion-mark.png"],
+    site: "@cunfashion",
+    creator: "@cunfashion",
   },
   appleWebApp: {
     capable: true,
