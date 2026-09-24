@@ -36,7 +36,7 @@ Xy d?ng n?n t?ng Web Jigsaw Puzzle Full Stack tuong t? PuzzleSnap:
 - **Cloud Infrastructure:**
   - Production Custom Domain: [https://cunfashion.com](https://cunfashion.com) (HTTP 200 OK, SSL Active, Vercel Deployment `dpl_CKGJECytqtXMn1dSkzSByHLjfxjc`)
   - Vercel Deployment Alias: [https://puzzle-tung.vercel.app](https://puzzle-tung.vercel.app)
-  - GitHub Repository: https://github.com/gosoniccapital-ui/puzzlesnap (Commit `cca150d`)
+  - GitHub Repository: https://github.com/gosoniccapital-ui/puzzlesnap (Commit `dd78a8b`)
   - Cloudflare Zone: `cunfashion.com` (Apex A Record trỏ 76.76.21.21, bảo toàn 100% LadiPage www và các subdomain khác).
 
 ## 📦 Skills Installed (Project Scope: `.agents/skills/`)
