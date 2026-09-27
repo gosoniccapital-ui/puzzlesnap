@@ -7,9 +7,19 @@ import {
   TIKTOK_PIXEL_ID,
   X_PIXEL_ID,
   X_CONVERSION_EVENT_ID,
+  RAKUTEN_AUTOMATE_KEY,
+  RAKUTEN_U1,
 } from "@/lib/analytics/pixel-config";
 
-export { GA_TRACKING_ID, FB_PIXEL_ID, TIKTOK_PIXEL_ID, X_PIXEL_ID, X_CONVERSION_EVENT_ID };
+export {
+  GA_TRACKING_ID,
+  FB_PIXEL_ID,
+  TIKTOK_PIXEL_ID,
+  X_PIXEL_ID,
+  X_CONVERSION_EVENT_ID,
+  RAKUTEN_AUTOMATE_KEY,
+  RAKUTEN_U1,
+};
 
 export default function TrackingPixels() {
   return (
@@ -95,6 +105,57 @@ export default function TrackingPixels() {
           `,
         }}
       />
+
+      {/* 5. Rakuten Automate (LinkSynergy Dynamic Affiliate Tracking) */}
+      {RAKUTEN_AUTOMATE_KEY && (
+        <Script
+          id="rakuten-automate-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== "undefined" && !window._rakuten_automate) {
+                var _rakuten_automate = {
+                  u1: ${JSON.stringify(RAKUTEN_U1 || "")},
+                  snippetURL: "https://automate-frontend.linksynergy.com/minified_logic.js",
+                  automateURL: "https://automate.linksynergy.com",
+                  widgetKey: ${JSON.stringify(RAKUTEN_AUTOMATE_KEY)},
+                  aelJS: null,
+                  useDefaultAEL: false,
+                  loaded: false,
+                  events: []
+                };
+                window._rakuten_automate = _rakuten_automate;
+                var ael = window.addEventListener;
+                window.addEventListener = function(a, b, c, d) {
+                  "click" !== a && _rakuten_automate.useDefaultAEL
+                    ? ael(a, b, c)
+                    : _rakuten_automate.events.push({ type: a, handler: b, capture: c, rakuten: d });
+                };
+                _rakuten_automate.links = {};
+                var httpRequest = new XMLHttpRequest();
+                httpRequest.open("GET", _rakuten_automate.snippetURL, true);
+                httpRequest.timeout = 5000;
+                httpRequest.ontimeout = function() {
+                  if (!_rakuten_automate.loaded) {
+                    for (var i = 0; i < _rakuten_automate.events.length; i++) {
+                      var a = _rakuten_automate.events[i];
+                      ael(a.type, a.handler, a.capture);
+                    }
+                    _rakuten_automate.useDefaultAEL = true;
+                  }
+                };
+                httpRequest.onreadystatechange = function() {
+                  if (httpRequest.readyState === XMLHttpRequest.DONE && 200 === httpRequest.status) {
+                    eval(httpRequest.responseText);
+                    _rakuten_automate.run(ael);
+                  }
+                };
+                httpRequest.send(null);
+              }
+            `,
+          }}
+        />
+      )}
     </>
   );
 }

@@ -1,22 +1,22 @@
-# Implementation Notes: Milestone 6.9 — Supabase Admin Cloud Persistence, Real Likes & Plays Counter
+# Implementation Notes: Milestone 11.11 — Rakuten Automate Tracking Script & CSP Hardening
 
 ## 1. Unspecified & Implicit Decisions
-- **Optimistic Heart Like UI:** Instead of forcing users to register an account before liking a puzzle, the `PuzzleLikeButton` operates on zero-friction local storage tracking (`localStorage.getItem("cun_liked_${slug}")`). When the user clicks like, the UI increments the counter instantly with a bounce micro-animation and disables further clicks for that session, while asynchronously dispatching `POST /api/puzzles/interact`.
-- **Play Tracking Strategy:** To record plays without double-counting on rapid page re-renders, the tracking request is fired once in a single-purpose `useEffect` hook upon mounting `PuzzleGameBoard`.
-- **Interaction Rate Limiting:** Applied a sliding-window rate limit of 60 interactions per minute per IP address on `/api/puzzles/interact` to prevent spam bot flooding.
-- **Graceful Supabase Sync:** For all Admin mutations (`POST`, `PUT`, `DELETE` in `/api/puzzles` and `/api/scores`) and interaction counters, mutations update the in-memory store immediately and synchronously dispatch to Supabase in a non-blocking `try/catch` block. If Supabase is unreachable or rate-limited, the application maintains continuous uptime.
-- **Distributed Test Resilience:** Enhanced `/api/scores` integration test in `tests/api-routes.test.mjs` with a 3-attempt polling loop to account for horizontal serverless lambda distribution on remote test runs.
+- **Script Strategy Selection (`afterInteractive` vs `beforeInteractive`):** Placed the Rakuten Automate snippet inside `src/components/analytics/TrackingPixels.tsx` using Next.js `<Script strategy="afterInteractive">`. This guarantees that React 19 and Next.js finish hydrating and attaching event listeners before Rakuten hooks `window.addEventListener`, preventing race conditions or swallowing React synthetic events.
+- **Idempotency & SPA Route Guard:** Added `if (typeof window !== "undefined" && !window._rakuten_automate)` to prevent duplicate script evaluation, duplicate XMLHttpRequest firing, or multiple event listener hooks during client-side Next.js route transitions.
+- **Strict-Mode Loop Safety:** Hardened the timeout replay loop from `for(i=0;...)` to `for (var i = 0; ...)` to ensure that JavaScript strict mode does not throw `ReferenceError: i is not defined`.
+- **Config-First Architecture:** Declared `NEXT_PUBLIC_RAKUTEN_AUTOMATE_KEY` in `.env.local` and `.env.example`, exported with fallback from `src/lib/analytics/pixel-config.ts` to adhere to Trụ cột 1 của `ai-copilot-alignment`.
 
 ## 2. Deviations from Specification
-- None. All implementations strictly adhere to the approved audit recommendations and user requests.
+- Whitelisted `https://automate-frontend.linksynergy.com`, `https://automate.linksynergy.com`, and `https://*.linksynergy.com` across `script-src`, `connect-src`, `img-src`, and `frame-src` in `next.config.mjs` Content-Security-Policy. Without this proactive surgical change, the browser's CSP would have silently blocked Rakuten Automate in production.
 
 ## 3. Considered Trade-offs
-- **PostgreSQL Atomic RPC vs Update Query:** While an atomic RPC function (`increment_counter`) in PostgreSQL is ideal for high concurrency, updating via standard Supabase query (`update({ likes_count: count + 1 })`) with in-memory sync requires zero additional database schema migrations and works out of the box with existing table definitions.
-- **Client-Side Deduplication vs IP-Based Like DB:** Decided on `localStorage` deduplication for likes rather than storing IP hashes in Supabase to eliminate user privacy tracking concerns and reduce database storage overhead.
+- **Direct Raw Script in Head vs Next.js Script in TrackingPixels:** Directly dumping raw HTML `<script>` into `head` could cause Next.js SSR hydration mismatches and block First Contentful Paint (FCP). Integrating into `TrackingPixels.tsx` unifies all marketing telemetry (GA4, Meta Pixel, TikTok, X, Rakuten) in one managed, non-blocking client bundle.
+- **Offline / Network Interruption Resilience:** The script retains the native 5000ms timeout with automatic fallback restoring `useDefaultAEL = true` and flushing any buffered listeners, ensuring seamless UX even if LinkSynergy servers are temporarily unreachable.
 
 ## 4. Maintenance Notes
-- **Environment Variables:** No new environment variables required. Uses existing `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- **Database Tables Involved:**
-  - `puzzles`: Columns `likes_count`, `plays_count`, `voucher_code`, `discount_percent`, `product_url`.
-  - `puzzle_scores`: Querying top scores with order by `created_at desc`.
-- **Test Invariants:** All 49 automated unit and invariant tests (`npm test`) verify the data structures, rate limiter, PWA manifest, and component existence.
+- **Environment Variables:**
+  - `NEXT_PUBLIC_RAKUTEN_AUTOMATE_KEY`: Widget key provided by Rakuten Advertising LinkSynergy (`nLOsPQ64OPucpR0KJEBScMn0DWZ6nbfc`).
+  - `NEXT_PUBLIC_RAKUTEN_U1`: Optional SubID / Member ID parameter for customized tracking.
+- **Automated Verification:**
+  - Node.js native test runner verifies constant IDs, script rendering, and CSP domain whitelisting (`tests/tracking-pixels.test.mjs`).
+  - Total test suite: 202/202 passing tests with 0 failures.
